@@ -117,6 +117,7 @@ class CandidateBase(BaseModel):
     status: Optional[str] = Field(default="new", regex="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     resume_url: Optional[str] = None
+    tags: Optional[List[str]] = None
 
 
 class CandidateCreate(CandidateBase):
@@ -140,11 +141,13 @@ class CandidateUpdate(BaseModel):
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     resume_url: Optional[str] = None
     ai_score: Optional[Any] = None
+    tags: Optional[List[str]] = None
 
 
 class CandidatePatch(BaseModel):
     status: Optional[str] = Field(default=None, regex="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
     rating: Optional[int] = Field(default=None, ge=1, le=5)
+    tags: Optional[List[str]] = None
 
 
 class DocumentCreate(BaseModel):
@@ -221,11 +224,11 @@ class CallScriptRequest(BaseModel):
 
 
 class CallScriptResponse(BaseModel):
-    opening: str
-    qualify: List[str]
+    candidate: str
+    role: str
+    location: str
     value_props: List[str]
-    objections: List[dict]
-    closing: str
+    sections: dict
 
 
 class ChatbotMessageRequest(BaseModel):
@@ -237,3 +240,51 @@ class ChatbotMessageResponse(BaseModel):
     session_id: str
     reply: str
     tools_suggested: List[str]
+    context_echo: Optional[str] = None
+
+
+class FileAnalysisRequest(BaseModel):
+    document_id: str
+    project_id: Optional[str] = None
+    trigger_market_research: bool = True
+
+
+class FileAnalysisResponse(BaseModel):
+    project_info: dict
+    positions: List[dict]
+    file_diagnostics: dict
+
+
+class MarketResearchResponse(BaseModel):
+    region: str
+    sector: str
+    summary: Optional[str]
+    findings: List[dict]
+    sources: List[dict]
+
+
+class CandidateBulkActionRequest(BaseModel):
+    action: str
+    candidate_ids: List[str]
+    tag: Optional[str] = None
+    export_format: Optional[str] = Field(default="csv", regex="^(csv|xlsx)$")
+
+
+class CandidateBulkActionResult(BaseModel):
+    updated: Optional[int] = None
+    deleted: Optional[int] = None
+    message: Optional[str] = None
+
+
+class SmartRecruitersBulkRequest(BaseModel):
+    position_ids: List[str]
+    notes: Optional[str]
+    project_id: Optional[str]
+
+
+class SourcingJobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    progress: Optional[int]
+    found_count: Optional[int]
+    results: Optional[List[dict]]

@@ -99,6 +99,7 @@ class Candidate(Base):
     status = Column(String, nullable=False, default="new")
     rating = Column(Integer)
     resume_url = Column(String)
+    tags = Column(JSON)
     ai_score = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

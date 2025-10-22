@@ -7,12 +7,24 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
-from ..models import Candidate, Position, Project
+from ..models import (
+    Candidate,
+    ChatbotMessage,
+    ChatbotSession,
+    OutreachRun,
+    Position,
+    Project,
+    ProjectMarketResearch,
+)
 from ..schemas import (
     CallScriptRequest,
     CallScriptResponse,
     ChatbotMessageRequest,
     ChatbotMessageResponse,
+    FileAnalysisRequest,
+    FileAnalysisResponse,
+    MarketResearchRequest,
+    MarketResearchResponse,
     OutreachRequest,
     OutreachResponse,
     SalaryBenchmarkRequest,
@@ -20,35 +32,38 @@ from ..schemas import (
 )
 from ..services.activity import log_activity
 from ..services.ai import (
-    analyze_file_stub,
-    enqueue_ai_job,
-    generate_call_script_stub,
-    generate_email_stub,
-    generate_jd_stub,
-    generate_salary_stub,
+    analyze_document_inline,
+    create_ai_job,
+    enqueue_market_research_job,
+    get_or_create_salary_benchmark,
+    mark_job_completed,
     record_screening,
+    start_sourcing_job,
 )
+from ..services.gemini import gemini
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["ai"])
 
 
-@router.post("/ai/analyze-file")
+@router.post("/ai/analyze-file", response_model=FileAnalysisResponse)
 def analyze_file(
-    payload: Dict[str, Any],
+    payload: FileAnalysisRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
-    file_name = payload.get("filename", "Uploaded File")
-    result = analyze_file_stub(file_name)
-    enqueue_ai_job(
-        db,
-        "file_analysis",
-        project_id=payload.get("project_id"),
-        request=payload,
-        response=result,
-    )
-    return result
+) -> FileAnalysisResponse:
+    try:
+        analysis = analyze_document_inline(
+            db,
+            payload.document_id,
+            project_id=payload.project_id,
+            user_id=current_user.user_id,
+        )
+    except ValueError as exc:  # pragma: no cover - defensive
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if payload.trigger_market_research and payload.project_id:
+        enqueue_market_research_job(db, payload.project_id, current_user.user_id)
+    return FileAnalysisResponse(**analysis)
 
 
 @router.post("/ai/generate-jd")
@@ -60,8 +75,14 @@ def generate_jd_endpoint(
     title = payload.get("title")
     if not title:
         raise HTTPException(status_code=400, detail="title is required")
-    jd = generate_jd_stub(title)
-    enqueue_ai_job(db, "generate_jd", position_id=payload.get("position_id"), request=payload, response=jd)
+    jd = gemini.generate_job_description(payload)
+    job = create_ai_job(
+        db,
+        "generate_jd",
+        position_id=payload.get("position_id"),
+        request={**payload, "user_id": current_user.user_id},
+    )
+    mark_job_completed(db, job, jd)
     return jd
 
 
@@ -71,16 +92,16 @@ def source_candidates(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> Dict[str, Any]:
-    job = enqueue_ai_job(db, "ai_sourcing", project_id=payload.get("project_id"), request=payload, response={"found": 3})
-    log_activity(
-        db,
-        actor_type="ai",
-        actor_id=current_user.user_id,
-        project_id=payload.get("project_id"),
-        message="AI sourcing completed (stub)",
-        event_type="ai_sourcing",
-    )
-    return {"job_id": job.job_id, "found": 3}
+    if not payload.get("project_id") or not payload.get("position_id"):
+        raise HTTPException(status_code=400, detail="project_id and position_id required")
+    result = start_sourcing_job(db, payload, user_id=current_user.user_id)
+    sourcing_job = result["sourcing_job"]
+    job = result["job"]
+    return {
+        "job_id": job.job_id,
+        "status": job.status,
+        "sourcing_job_id": sourcing_job.sourcing_job_id,
+    }
 
 
 @router.post("/ai/screen-candidate")
@@ -98,12 +119,23 @@ def screen_candidate(
     if not candidate or not position:
         raise HTTPException(status_code=404, detail="Candidate or position not found")
 
-    score = {
-        "match": 0.7,
-        "highlights": ["Experienced recruiter"],
+    score_payload = {
+        "skills": payload.get("skills") or candidate.tags or [],
+        "years_experience": payload.get("years_experience", 0),
+        "leadership": payload.get("leadership", False),
     }
+    score = gemini.score_candidate(score_payload)
+    candidate.ai_score = score
+    db.add(candidate)
     record_screening(db, candidate, position_id, score)
-    enqueue_ai_job(db, "ai_screening", candidate_id=candidate_id, position_id=position_id, request=payload, response=score)
+    job = create_ai_job(
+        db,
+        "ai_screening",
+        candidate_id=candidate_id,
+        position_id=position_id,
+        request={**payload, "user_id": current_user.user_id},
+    )
+    mark_job_completed(db, job, score)
     log_activity(
         db,
         actor_type="ai",
@@ -111,11 +143,9 @@ def screen_candidate(
         project_id=candidate.project_id,
         position_id=position_id,
         candidate_id=candidate_id,
-        message="Candidate screened (stub)",
+        message="Candidate screened via AI",
         event_type="ai_screening",
     )
-    candidate.ai_score = score
-    db.add(candidate)
     return score
 
 
@@ -125,8 +155,19 @@ def generate_email(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> OutreachResponse:
-    email = generate_email_stub(payload.dict())
-    enqueue_ai_job(db, "generate_email", request=payload.dict(), response=email)
+    email = gemini.generate_outreach_email(payload.dict())
+    job = create_ai_job(db, "generate_email", request={**payload.dict(), "user_id": current_user.user_id})
+    mark_job_completed(db, job, email)
+    outreach = OutreachRun(
+        outreach_id=generate_id(),
+        user_id=current_user.user_id,
+        candidate_id=None,
+        position_id=None,
+        type="email",
+        output_json=email,
+        created_at=datetime.utcnow(),
+    )
+    db.add(outreach)
     return OutreachResponse(**email)
 
 
@@ -136,8 +177,9 @@ def generate_call_script(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> CallScriptResponse:
-    script = generate_call_script_stub(payload.dict())
-    enqueue_ai_job(db, "call_script", request=payload.dict(), response=script)
+    script = gemini.generate_call_script(payload.dict())
+    job = create_ai_job(db, "call_script", request={**payload.dict(), "user_id": current_user.user_id})
+    mark_job_completed(db, job, script)
     return CallScriptResponse(**script)
 
 
@@ -147,9 +189,15 @@ def salary_benchmark(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> SalaryBenchmarkResponse:
-    result = generate_salary_stub(payload.dict())
-    enqueue_ai_job(db, "salary_benchmark", request=payload.dict(), response=result)
-    return SalaryBenchmarkResponse(**result)
+    benchmark = get_or_create_salary_benchmark(db, payload.dict(), user_id=current_user.user_id)
+    return SalaryBenchmarkResponse(
+        currency=benchmark.currency,
+        annual_min=benchmark.annual_min,
+        annual_mid=benchmark.annual_mid,
+        annual_max=benchmark.annual_max,
+        rationale=benchmark.rationale,
+        sources=benchmark.sources,
+    )
 
 
 @router.post("/chatbot", response_model=ChatbotMessageResponse)
@@ -158,22 +206,84 @@ def chatbot(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> ChatbotMessageResponse:
-    session_id = payload.session_id or generate_id()
-    reply = f"You said: {payload.message}. (This is a stubbed chatbot response.)"
-    enqueue_ai_job(
+    session: ChatbotSession | None = None
+    if payload.session_id:
+        session = db.get(ChatbotSession, payload.session_id)
+    if not session:
+        session = ChatbotSession(
+            session_id=payload.session_id or generate_id(),
+            user_id=current_user.user_id,
+            context_json={},
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(session)
+    history = (
+        db.query(ChatbotMessage)
+        .filter(ChatbotMessage.session_id == session.session_id)
+        .order_by(ChatbotMessage.created_at.asc())
+        .all()
+    )
+    db.add(
+        ChatbotMessage(
+            message_id=generate_id(),
+            session_id=session.session_id,
+            role="user",
+            content=payload.message,
+            created_at=datetime.utcnow(),
+        )
+    )
+    history_payload = [{"role": msg.role, "content": msg.content} for msg in history]
+    reply_payload = gemini.generate_chatbot_reply(history_payload, payload.message)
+    db.add(
+        ChatbotMessage(
+            message_id=generate_id(),
+            session_id=session.session_id,
+            role="assistant",
+            content=reply_payload["reply"],
+            created_at=datetime.utcnow(),
+        )
+    )
+    session.updated_at = datetime.utcnow()
+    db.add(session)
+    job = create_ai_job(
         db,
         "chatbot",
-        request={"session_id": session_id, "message": payload.message},
-        response={"reply": reply},
+        request={"session_id": session.session_id, "message": payload.message, "user_id": current_user.user_id},
     )
-    return ChatbotMessageResponse(session_id=session_id, reply=reply, tools_suggested=[])
+    mark_job_completed(db, job, reply_payload)
+    return ChatbotMessageResponse(
+        session_id=session.session_id,
+        reply=reply_payload["reply"],
+        tools_suggested=[],
+        context_echo=reply_payload.get("context_echo"),
+    )
 
 
 @router.post("/research/market-analysis")
 def market_analysis(
-    payload: Dict[str, Any],
+    payload: MarketResearchRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> Dict[str, Any]:
-    enqueue_ai_job(db, "market_research", project_id=payload.get("project_id"), request=payload, response={"status": "completed"})
-    return {"status": "completed"}
+):
+    project = db.get(Project, payload.project_id)
+    if not project or project.created_by != current_user.user_id:
+        raise HTTPException(status_code=404, detail="Project not found")
+    existing = (
+        db.query(ProjectMarketResearch)
+        .filter(ProjectMarketResearch.project_id == payload.project_id)
+        .order_by(ProjectMarketResearch.completed_at.desc())
+        .first()
+    )
+    if existing and existing.status == "completed":
+        return MarketResearchResponse(
+            region=existing.region,
+            sector=project.sector or payload.sector or "",
+            summary=project.summary,
+            findings=existing.findings,
+            sources=existing.sources,
+        )
+    job = enqueue_market_research_job(db, payload.project_id, current_user.user_id)
+    return {"job_id": job.job_id, "status": job.status}
+
+

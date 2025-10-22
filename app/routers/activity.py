@@ -1,13 +1,16 @@
 """Activity and dashboard endpoints."""
 
-from typing import List
+import json
+from typing import AsyncGenerator, List
 
 from fastapi import APIRouter, Depends
+from starlette.responses import EventSourceResponse
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
 from ..models import ActivityFeed, Candidate, Project
 from ..schemas import ActivityRead
+from ..services.realtime import events
 
 router = APIRouter(prefix="/api", tags=["activity"])
 
@@ -50,3 +53,17 @@ def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_curr
         "projects": projects_count,
         "candidates": candidates_count,
     }
+
+
+@router.get("/activity/stream")
+async def activity_stream(
+    current_user=Depends(get_current_user),
+) -> EventSourceResponse:
+    async def event_generator() -> AsyncGenerator[dict, None]:
+        async for event in events.subscribe(user_id=current_user.user_id):
+            yield {
+                "event": event.get("type", "activity"),
+                "data": json.dumps(event.get("payload", {})),
+            }
+
+    return EventSourceResponse(event_generator())

@@ -3,12 +3,24 @@
 from datetime import datetime
 from typing import List
 
+import csv
+import io
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
 from ..models import Candidate, CandidateStatusHistory, Position, Project
-from ..schemas import CandidateCreate, CandidatePatch, CandidateRead, CandidateUpdate
+from ..schemas import (
+    CandidateBulkActionRequest,
+    CandidateBulkActionResult,
+    CandidateCreate,
+    CandidatePatch,
+    CandidateRead,
+    CandidateUpdate,
+)
 from ..services.activity import log_activity
 from ..utils.security import generate_id
 
@@ -36,6 +48,7 @@ def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_curr
             rating=c.rating,
             resume_url=c.resume_url,
             ai_score=c.ai_score,
+            tags=c.tags,
             created_at=c.created_at,
         )
         for c in candidates
@@ -68,6 +81,7 @@ def create_candidate(
         status=payload.status or "new",
         rating=payload.rating,
         resume_url=payload.resume_url,
+        tags=payload.tags,
         created_at=datetime.utcnow(),
     )
     db.add(candidate)
@@ -94,6 +108,7 @@ def create_candidate(
         rating=candidate.rating,
         resume_url=candidate.resume_url,
         ai_score=candidate.ai_score,
+        tags=candidate.tags,
         created_at=candidate.created_at,
     )
 
@@ -119,6 +134,7 @@ def get_candidate(candidate_id: str, db: Session = Depends(get_db), current_user
         rating=candidate.rating,
         resume_url=candidate.resume_url,
         ai_score=candidate.ai_score,
+        tags=candidate.tags,
         created_at=candidate.created_at,
     )
 
@@ -153,6 +169,7 @@ def update_candidate(
         rating=candidate.rating,
         resume_url=candidate.resume_url,
         ai_score=candidate.ai_score,
+        tags=candidate.tags,
         created_at=candidate.created_at,
     )
 
@@ -206,6 +223,7 @@ def patch_candidate(
         rating=candidate.rating,
         resume_url=candidate.resume_url,
         ai_score=candidate.ai_score,
+        tags=candidate.tags,
         created_at=candidate.created_at,
     )
 
@@ -230,3 +248,111 @@ def delete_candidate(candidate_id: str, db: Session = Depends(get_db), current_u
         message=f"Deleted candidate {candidate.name}",
         event_type="candidate_deleted",
     )
+
+
+@router.post("/candidates/bulk-action")
+def candidates_bulk_action(
+    payload: CandidateBulkActionRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if not payload.candidate_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="candidate_ids required")
+
+    candidates = (
+        db.query(Candidate)
+        .filter(Candidate.candidate_id.in_(payload.candidate_ids))
+        .all()
+    )
+    if not candidates:
+        return CandidateBulkActionResult(updated=0, deleted=0, message="No candidates matched")
+
+    for candidate in candidates:
+        if candidate.project_id:
+            project = db.get(Project, candidate.project_id)
+            if not project or project.created_by != current_user.user_id:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Candidate outside your projects")
+
+    action = payload.action.lower()
+    if action == "add_tag":
+        if not payload.tag:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="tag is required for add_tag")
+        updated = 0
+        for candidate in candidates:
+            tags = set(candidate.tags or [])
+            if payload.tag not in tags:
+                tags.add(payload.tag)
+                candidate.tags = sorted(tags)
+                updated += 1
+            db.add(candidate)
+        log_activity(
+            db,
+            actor_type="user",
+            actor_id=current_user.user_id,
+            message=f"Applied tag '{payload.tag}' to {updated} candidates",
+            event_type="candidate_bulk_tag",
+        )
+        return CandidateBulkActionResult(updated=updated, message="Tag applied")
+
+    if action == "delete":
+        deleted = 0
+        for candidate in candidates:
+            db.delete(candidate)
+            deleted += 1
+        log_activity(
+            db,
+            actor_type="user",
+            actor_id=current_user.user_id,
+            message=f"Bulk deleted {deleted} candidates",
+            event_type="candidate_bulk_delete",
+        )
+        return CandidateBulkActionResult(deleted=deleted, message="Candidates deleted")
+
+    if action == "export":
+        headers = ["Candidate ID", "Name", "Email", "Phone", "Status", "Source", "Tags"]
+        rows = [
+            [
+                candidate.candidate_id,
+                candidate.name,
+                candidate.email or "",
+                candidate.phone or "",
+                candidate.status,
+                candidate.source,
+                ", ".join(candidate.tags or []),
+            ]
+            for candidate in candidates
+        ]
+        log_activity(
+            db,
+            actor_type="user",
+            actor_id=current_user.user_id,
+            message=f"Exported {len(rows)} candidates ({payload.export_format})",
+            event_type="candidate_bulk_export",
+        )
+        if payload.export_format == "xlsx":
+            workbook = Workbook()
+            sheet = workbook.active
+            sheet.append(headers)
+            for row in rows:
+                sheet.append(row)
+            output = io.BytesIO()
+            workbook.save(output)
+            output.seek(0)
+            return StreamingResponse(
+                output,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=candidates.xlsx"},
+            )
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        writer.writerows(rows)
+        content = output.getvalue().encode("utf-8")
+        return StreamingResponse(
+            iter([content]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=candidates.csv"},
+        )
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported action")

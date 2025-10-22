@@ -1,6 +1,7 @@
 """Security helpers for password hashing and JWT tokens."""
 
 from datetime import datetime, timedelta
+from hashlib import sha256
 from typing import Optional
 from uuid import uuid4
 
@@ -9,16 +10,23 @@ from passlib.context import CryptContext
 
 from ..config import get_settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 settings = get_settings()
 
 
+def _normalize_password(password: str) -> str:
+    encoded = password.encode("utf-8")
+    if len(encoded) <= 72:
+        return password
+    return sha256(encoded).hexdigest()
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_context.hash(_normalize_password(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(_normalize_password(plain_password), hashed_password)
 
 
 def create_access_token(subject: str, expires_minutes: Optional[int] = None) -> str:

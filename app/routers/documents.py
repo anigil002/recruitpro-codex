@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from ..config import get_settings
 from ..deps import get_current_user, get_db
-from ..models import Document
+from ..models import Document, ProjectDocument
 from ..schemas import DocumentRead
 from ..services.activity import log_activity
+from ..services.ai import create_ai_job
+from ..services.queue import background_queue
 from ..utils.security import generate_id
+from ..utils.storage import ensure_storage_dir, resolve_storage_path
 
-settings = get_settings()
 router = APIRouter(prefix="/api", tags=["documents"])
 
 
@@ -46,23 +47,37 @@ def upload_document(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> DocumentRead:
-    storage_dir = Path(settings.storage_path)
-    storage_dir.mkdir(parents=True, exist_ok=True)
+    storage_dir = ensure_storage_dir()
+    safe_name = Path(file.filename).name
     file_id = generate_id()
-    file_path = storage_dir / f"{file_id}_{file.filename}"
-    with file_path.open("wb") as f:
-        f.write(file.file.read())
+    file_path = storage_dir / f"{file_id}_{safe_name}"
+    with file_path.open("wb") as buffer:
+        buffer.write(file.file.read())
 
+    relative_path = file_path.relative_to(storage_dir)
     document = Document(
         id=file_id,
         filename=filename,
         mime_type=mime_type,
-        file_url=str(file_path),
+        file_url=str(relative_path),
         scope=scope,
         scope_id=scope_id,
         owner_user=current_user.user_id,
     )
     db.add(document)
+    project_doc_id = None
+    if scope == "project" and scope_id:
+        project_doc = ProjectDocument(
+            doc_id=file_id,
+            project_id=scope_id,
+            filename=filename,
+            file_url=str(relative_path),
+            mime_type=mime_type,
+            uploaded_by=current_user.user_id,
+        )
+        db.add(project_doc)
+        project_doc_id = project_doc.doc_id
+
     log_activity(
         db,
         actor_type="user",
@@ -70,7 +85,23 @@ def upload_document(
         message=f"Uploaded document {document.filename}",
         event_type="document_uploaded",
     )
+
+    job_request = {
+        "document_id": file_id,
+        "project_id": scope_id,
+        "user_id": current_user.user_id,
+    }
+    if project_doc_id:
+        job_request["project_document"] = True
+    job = create_ai_job(
+        db,
+        "file_analysis",
+        project_id=scope_id,
+        request=job_request,
+    )
+    background_queue.enqueue("file_analysis", {"job_id": job.job_id})
     db.flush()
+
     return DocumentRead(
         id=document.id,
         filename=document.filename,
@@ -88,10 +119,34 @@ def download_document(doc_id: str, db: Session = Depends(get_db), current_user=D
     document = db.get(Document, doc_id)
     if not document or document.owner_user != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
-    path = Path(document.file_url)
+    try:
+        path = resolve_storage_path(document.file_url)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File missing on disk")
     if not path.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File missing on disk")
     return FileResponse(path, filename=document.filename, media_type=document.mime_type)
+
+
+@router.get("/documents/{doc_id}/file")
+def stream_document(doc_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> StreamingResponse:
+    document = db.get(Document, doc_id)
+    if not document or document.owner_user != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    try:
+        path = resolve_storage_path(document.file_url)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File missing on disk")
+    if not path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File missing on disk")
+
+    def iterator():
+        with path.open("rb") as stream:
+            while chunk := stream.read(8192):
+                yield chunk
+
+    headers = {"Content-Disposition": f"inline; filename={document.filename}"}
+    return StreamingResponse(iterator(), media_type=document.mime_type, headers=headers)
 
 
 @router.get("/documents/{doc_id}/view", response_model=DocumentRead)
@@ -125,9 +180,15 @@ def delete_document(doc_id: str, db: Session = Depends(get_db), current_user=Dep
     document = db.get(Document, doc_id)
     if not document or document.owner_user != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
-    path = Path(document.file_url)
-    if path.exists():
+    try:
+        path = resolve_storage_path(document.file_url)
+    except ValueError:
+        path = None
+    if path and path.exists():
         path.unlink()
+    project_doc = db.get(ProjectDocument, doc_id)
+    if project_doc:
+        db.delete(project_doc)
     db.delete(document)
     log_activity(
         db,

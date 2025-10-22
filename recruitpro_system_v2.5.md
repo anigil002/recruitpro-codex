@@ -1,4 +1,3 @@
-
 # RecruitPro — Comprehensive System Documentation (v2.5, **Markdown Edition**)
 
 **Last Updated:** 22 Oct 2025  

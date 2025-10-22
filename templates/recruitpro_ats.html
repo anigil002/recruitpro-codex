@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RecruitPro ATS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        background: #f3f6f8;
+      }
+      header {
+        background: #062c3a;
+        color: white;
+        padding: 1.5rem 2rem;
+      }
+      main {
+        padding: 2rem;
+      }
+      section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        margin: 0 0 0.5rem 0;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      input,
+      button {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #97b8bb;
+        margin-bottom: 0.75rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        background: #00617e;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #004c62;
+      }
+      pre {
+        background: #101828;
+        color: #f2f4f7;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>RecruitPro ATS</h1>
+      <p>Human-in-the-loop AI recruiting platform.</p>
+    </header>
+    <main>
+      <section>
+        <h2>Quick Start</h2>
+        <ol>
+          <li>Run <code>uvicorn app.main:app --reload</code>.</li>
+          <li>Use the endpoints documented in <code>recruitpro_system_v2.5.md</code>.</li>
+          <li>Explore the API via the built-in Swagger UI at <code>/docs</code>.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>API Endpoint Summary</h2>
+        <p>
+          The backend implements the 54 documented endpoints with pragmatic stub
+          behavior suitable for local demos. Activity tracking and AI helpers use
+          deterministic fallback data so the platform runs fully offline.
+        </p>
+      </section>
+      <section>
+        <h2>Sample Response</h2>
+        <pre>{
+  "status": "ok",
+  "message": "RecruitPro backend is running."
+}</pre>
+      </section>
+    </main>
+  </body>
+</html>

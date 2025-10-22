@@ -1,0 +1,1 @@
+"""RecruitPro application package."""

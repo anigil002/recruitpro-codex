@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+*.db
+.env
+storage/
+.pytest_cache/
+.poetry/

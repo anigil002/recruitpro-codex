@@ -19,7 +19,7 @@ class TokenPayload(BaseModel):
 class UserBase(BaseModel):
     email: EmailStr
     name: str
-    role: str = Field(default="recruiter", regex="^(recruiter|admin)$")
+    role: str = Field(default="recruiter", pattern="^(recruiter|admin)$")
 
 
 class UserCreate(UserBase):
@@ -56,6 +56,12 @@ class ProjectBase(BaseModel):
     location_region: Optional[str] = None
     summary: Optional[str] = None
     client: Optional[str] = None
+    status: Optional[str] = Field(default="active", pattern=r"^(active|on-hold|completed|archived)$")
+    priority: Optional[str] = Field(default="medium", pattern=r"^(urgent|high|medium|low)$")
+    department: Optional[str] = None
+    tags: Optional[List[str]] = None
+    team_members: Optional[List[str]] = None
+    target_hires: Optional[int] = Field(default=None, ge=0)
 
 
 class ProjectCreate(ProjectBase):
@@ -68,6 +74,10 @@ class ProjectRead(ProjectBase):
     research_status: Optional[str]
     created_by: str
     created_at: datetime
+    tags: List[str] = Field(default_factory=list)
+    team_members: List[str] = Field(default_factory=list)
+    target_hires: int = 0
+    hires_count: int = 0
 
 
 class ProjectUpdate(ProjectBase):
@@ -84,7 +94,8 @@ class PositionBase(BaseModel):
     requirements: Optional[List[str]] = None
     location: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = Field(default="draft", regex="^(draft|open|closed)$")
+    status: Optional[str] = Field(default="draft", pattern="^(draft|open|closed)$")
+    openings: Optional[int] = Field(default=1, ge=0)
 
 
 class PositionCreate(PositionBase):
@@ -94,6 +105,8 @@ class PositionCreate(PositionBase):
 class PositionRead(PositionBase):
     position_id: str
     created_at: datetime
+    openings: int
+    applicants_count: int
 
 
 class PositionUpdate(BaseModel):
@@ -104,7 +117,8 @@ class PositionUpdate(BaseModel):
     requirements: Optional[List[str]] = None
     location: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = Field(default=None, regex="^(draft|open|closed)$")
+    status: Optional[str] = Field(default=None, pattern="^(draft|open|closed)$")
+    openings: Optional[int] = Field(default=None, ge=0)
 
 
 class CandidateBase(BaseModel):
@@ -114,7 +128,7 @@ class CandidateBase(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     source: str
-    status: Optional[str] = Field(default="new", regex="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
+    status: Optional[str] = Field(default="new", pattern="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     resume_url: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -137,7 +151,7 @@ class CandidateUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     source: Optional[str] = None
-    status: Optional[str] = Field(default=None, regex="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
+    status: Optional[str] = Field(default=None, pattern="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     resume_url: Optional[str] = None
     ai_score: Optional[Any] = None
@@ -145,7 +159,7 @@ class CandidateUpdate(BaseModel):
 
 
 class CandidatePatch(BaseModel):
-    status: Optional[str] = Field(default=None, regex="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
+    status: Optional[str] = Field(default=None, pattern="^(new|screening|interviewing|offer|hired|rejected|withdrawn)$")
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     tags: Optional[List[str]] = None
 
@@ -267,7 +281,7 @@ class CandidateBulkActionRequest(BaseModel):
     action: str
     candidate_ids: List[str]
     tag: Optional[str] = None
-    export_format: Optional[str] = Field(default="csv", regex="^(csv|xlsx)$")
+    export_format: Optional[str] = Field(default="csv", pattern="^(csv|xlsx)$")
 
 
 class CandidateBulkActionResult(BaseModel):

@@ -39,6 +39,13 @@ class Project(Base):
     location_region = Column(String)
     summary = Column(Text)
     client = Column(String)
+    status = Column(String, nullable=False, default="active")
+    priority = Column(String, nullable=False, default="medium")
+    department = Column(String)
+    tags = Column(JSON, default=list)
+    team_members = Column(JSON, default=list)
+    target_hires = Column(Integer, nullable=False, default=0)
+    hires_count = Column(Integer, nullable=False, default=0)
     research_done = Column(Integer, nullable=False, default=0)
     research_status = Column(String)
     created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
@@ -76,6 +83,8 @@ class Position(Base):
     location = Column(String)
     description = Column(Text)
     status = Column(String, nullable=False, default="draft")
+    openings = Column(Integer, nullable=False, default=1)
+    applicants_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     __table_args__ = (

@@ -4,7 +4,7 @@ import json
 from typing import AsyncGenerator, List
 
 from fastapi import APIRouter, Depends
-from starlette.responses import EventSourceResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
@@ -58,12 +58,11 @@ def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_curr
 @router.get("/activity/stream")
 async def activity_stream(
     current_user=Depends(get_current_user),
-) -> EventSourceResponse:
-    async def event_generator() -> AsyncGenerator[dict, None]:
+) -> StreamingResponse:
+    async def event_generator() -> AsyncGenerator[str, None]:
         async for event in events.subscribe(user_id=current_user.user_id):
-            yield {
-                "event": event.get("type", "activity"),
-                "data": json.dumps(event.get("payload", {})),
-            }
+            payload = json.dumps(event.get("payload", {}))
+            event_type = event.get("type", "activity")
+            yield f"event: {event_type}\ndata: {payload}\n\n"
 
-    return EventSourceResponse(event_generator())
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from .config import get_settings
 from .database import Base, engine
 from .routers import (
     activity,
@@ -31,7 +32,17 @@ app.add_middleware(
 )
 
 templates = Jinja2Templates(directory="templates")
-app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+settings = get_settings()
+
+try:
+    from .utils.storage import ensure_storage_dir
+
+    storage_dir = ensure_storage_dir()
+    storage_path = storage_dir
+except Exception:  # pragma: no cover - fallback if storage helper missing
+    storage_path = settings.storage_path
+
+app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
 
 app.include_router(auth.router)
 app.include_router(projects.router)

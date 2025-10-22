@@ -1,14 +1,17 @@
 """Candidate endpoints."""
 
 from datetime import datetime
-from typing import List
+from typing import Iterable, List, Set
 
 import csv
 import io
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-from openpyxl import Workbook
+try:
+    from openpyxl import Workbook
+except ImportError:  # pragma: no cover - optional dependency
+    Workbook = None
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
@@ -25,6 +28,45 @@ from ..services.activity import log_activity
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["candidates"])
+
+
+def _recalculate_project_hires(db: Session, project_id: str | None) -> None:
+    if not project_id:
+        return
+    project = db.get(Project, project_id)
+    if not project:
+        return
+    hires = (
+        db.query(Candidate)
+        .filter(Candidate.project_id == project_id, Candidate.status == "hired")
+        .count()
+    )
+    project.hires_count = hires
+    db.add(project)
+
+
+def _recalculate_position_applicants(db: Session, position_id: str | None) -> None:
+    if not position_id:
+        return
+    position = db.get(Position, position_id)
+    if not position:
+        return
+    applicants = db.query(Candidate).filter(Candidate.position_id == position_id).count()
+    position.applicants_count = applicants
+    db.add(position)
+
+
+def _recalculate_many(
+    db: Session,
+    project_ids: Iterable[str | None],
+    position_ids: Iterable[str | None],
+) -> None:
+    seen_projects: Set[str] = {pid for pid in project_ids if pid}
+    seen_positions: Set[str] = {pid for pid in position_ids if pid}
+    for project_id in seen_projects:
+        _recalculate_project_hires(db, project_id)
+    for position_id in seen_positions:
+        _recalculate_position_applicants(db, position_id)
 
 
 @router.get("/candidates", response_model=List[CandidateRead])
@@ -81,10 +123,12 @@ def create_candidate(
         status=payload.status or "new",
         rating=payload.rating,
         resume_url=payload.resume_url,
-        tags=payload.tags,
+        tags=sorted(set(payload.tags or [])) if payload.tags is not None else None,
         created_at=datetime.utcnow(),
     )
     db.add(candidate)
+    db.flush()
+    _recalculate_many(db, [candidate.project_id], [candidate.position_id])
     log_activity(
         db,
         actor_type="user",
@@ -95,7 +139,6 @@ def create_candidate(
         message=f"Created candidate {candidate.name}",
         event_type="candidate_created",
     )
-    db.flush()
     return CandidateRead(
         candidate_id=candidate.candidate_id,
         project_id=candidate.project_id,
@@ -154,9 +197,31 @@ def update_candidate(
         if not project or project.created_by != current_user.user_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
 
-    for field, value in payload.dict(exclude_unset=True).items():
+    updates = payload.dict(exclude_unset=True)
+    if "project_id" in updates and updates["project_id"]:
+        new_project = db.get(Project, updates["project_id"])
+        if not new_project or new_project.created_by != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    if "position_id" in updates and updates["position_id"]:
+        new_position = db.get(Position, updates["position_id"])
+        if not new_position:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+
+    previous_project_id = candidate.project_id
+    previous_position_id = candidate.position_id
+    previous_status = candidate.status
+
+    for field, value in updates.items():
+        if field == "tags" and value is not None:
+            value = sorted(set(value))
         setattr(candidate, field, value)
     db.add(candidate)
+    db.flush()
+    _recalculate_many(
+        db,
+        [previous_project_id, candidate.project_id] if previous_status != candidate.status or previous_project_id != candidate.project_id else [candidate.project_id],
+        [previous_position_id, candidate.position_id] if previous_position_id != candidate.position_id else [candidate.position_id],
+    )
     return CandidateRead(
         candidate_id=candidate.candidate_id,
         project_id=candidate.project_id,
@@ -184,9 +249,15 @@ def patch_candidate(
     candidate = db.get(Candidate, candidate_id)
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+    if candidate.project_id:
+        project = db.get(Project, candidate.project_id)
+        if not project or project.created_by != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
 
     previous_status = candidate.status
     for field, value in payload.dict(exclude_unset=True).items():
+        if field == "tags" and value is not None:
+            value = sorted(set(value))
         setattr(candidate, field, value)
     db.add(candidate)
 
@@ -210,6 +281,10 @@ def patch_candidate(
             message=f"Candidate {candidate.name} status changed to {candidate.status}",
             event_type="candidate_status_changed",
         )
+
+    db.flush()
+    if payload.status and payload.status != previous_status:
+        _recalculate_many(db, [candidate.project_id], [candidate.position_id])
 
     return CandidateRead(
         candidate_id=candidate.candidate_id,
@@ -237,6 +312,8 @@ def delete_candidate(candidate_id: str, db: Session = Depends(get_db), current_u
         project = db.get(Project, candidate.project_id)
         if not project or project.created_by != current_user.user_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+    previous_project_id = candidate.project_id if candidate.status == "hired" else None
+    previous_position_id = candidate.position_id
     db.delete(candidate)
     log_activity(
         db,
@@ -248,6 +325,8 @@ def delete_candidate(candidate_id: str, db: Session = Depends(get_db), current_u
         message=f"Deleted candidate {candidate.name}",
         event_type="candidate_deleted",
     )
+    db.flush()
+    _recalculate_many(db, [previous_project_id] if previous_project_id else [], [previous_position_id] if previous_position_id else [])
 
 
 @router.post("/candidates/bulk-action")
@@ -296,7 +375,13 @@ def candidates_bulk_action(
 
     if action == "delete":
         deleted = 0
+        project_ids: Set[str] = set()
+        position_ids: Set[str] = set()
         for candidate in candidates:
+            if candidate.status == "hired" and candidate.project_id:
+                project_ids.add(candidate.project_id)
+            if candidate.position_id:
+                position_ids.add(candidate.position_id)
             db.delete(candidate)
             deleted += 1
         log_activity(
@@ -306,6 +391,8 @@ def candidates_bulk_action(
             message=f"Bulk deleted {deleted} candidates",
             event_type="candidate_bulk_delete",
         )
+        db.flush()
+        _recalculate_many(db, project_ids, position_ids)
         return CandidateBulkActionResult(deleted=deleted, message="Candidates deleted")
 
     if action == "export":
@@ -330,6 +417,11 @@ def candidates_bulk_action(
             event_type="candidate_bulk_export",
         )
         if payload.export_format == "xlsx":
+            if Workbook is None:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="xlsx export requires openpyxl",
+                )
             workbook = Workbook()
             sheet = workbook.active
             sheet.append(headers)

@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class Token(BaseModel):
@@ -62,6 +62,28 @@ class ProjectBase(BaseModel):
     tags: Optional[List[str]] = None
     team_members: Optional[List[str]] = None
     target_hires: Optional[int] = Field(default=None, ge=0)
+
+    @field_validator("tags", "team_members", mode="before")
+    @classmethod
+    def _ensure_list(cls, value: Optional[Any]):
+        """Allow comma-separated strings from forms for list fields."""
+        if value is None or value == "":
+            return None
+        if isinstance(value, str):
+            items = [item.strip() for item in value.split(",") if item.strip()]
+            return items or None
+        if isinstance(value, (set, tuple)):
+            return list(value)
+        return value
+
+    @field_validator("status", "priority", mode="before")
+    @classmethod
+    def _normalize_choices(cls, value: Optional[str]):
+        """Normalize choice strings to the expected lowercase slug format."""
+        if value is None:
+            return value
+        normalized = value.strip().lower().replace(" ", "-").replace("_", "-")
+        return normalized or None
 
 
 class ProjectCreate(ProjectBase):

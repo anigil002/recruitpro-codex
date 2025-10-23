@@ -538,6 +538,189 @@
         color: var(--gray);
       }
 
+      .project-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .project-card {
+        background: var(--white);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 12px 30px rgba(6, 44, 58, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .project-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .project-card-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+
+      .project-status {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0, 167, 139, 0.12);
+        color: var(--green);
+      }
+
+      .project-status.draft {
+        background: rgba(244, 164, 29, 0.16);
+        color: var(--orange);
+      }
+
+      .project-status.on-hold {
+        background: rgba(117, 161, 210, 0.16);
+        color: var(--blue);
+      }
+
+      .project-summary {
+        font-size: 13px;
+        color: var(--gray);
+        line-height: 1.5;
+      }
+
+      .project-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--gray);
+      }
+
+      .project-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--gray-light);
+        border-radius: 999px;
+        padding: 4px 10px;
+      }
+
+      .project-tags,
+      .project-team {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .project-tag,
+      .project-member {
+        font-size: 11px;
+        background: rgba(0, 98, 126, 0.1);
+        color: var(--teal-dark);
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+
+      .project-member {
+        background: rgba(171, 193, 0, 0.18);
+        color: var(--primary-dark);
+      }
+
+      .project-card-footer {
+        font-size: 11px;
+        color: var(--gray);
+      }
+
+      .info-banner {
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--primary-dark);
+        background: rgba(117, 161, 210, 0.12);
+        border-radius: 10px;
+        padding: 10px 14px;
+        display: none;
+      }
+
+      .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .setting-card {
+        background: var(--white);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 12px 30px rgba(6, 44, 58, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .setting-card h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+
+      .setting-description {
+        font-size: 13px;
+        color: var(--gray);
+        line-height: 1.4;
+      }
+
+      .setting-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .setting-toggle input[type='checkbox'] {
+        width: 42px;
+        height: 22px;
+        border-radius: 999px;
+        appearance: none;
+        background: var(--gray-light);
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .setting-toggle input[type='checkbox']::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease;
+      }
+
+      .setting-toggle input[type='checkbox']:checked {
+        background: var(--green);
+      }
+
+      .setting-toggle input[type='checkbox']:checked::after {
+        transform: translateX(20px);
+      }
+
+      .setting-footer {
+        font-size: 11px;
+        color: var(--gray);
+      }
+
       .ai-actions {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -847,6 +1030,9 @@
               </div>
             </div>
             <p class="upload-hint">Upload project briefs or scope documents to kick off sourcing automation instantly.</p>
+            <div class="project-list" id="project-list"></div>
+            <div class="info-banner" id="project-list-message" role="status"></div>
+            <div class="upload-hint" id="project-empty-state">No active projects yet. Create a project via the API or upload a brief to get started.</div>
             <div class="upload-hint" id="project-upload-status">No project files uploaded yet.</div>
             <div class="project-upload-grid" id="project-upload-grid"></div>
           </section>
@@ -928,6 +1114,42 @@
               </div>
             </section>
           </div>
+
+          <section class="panel-card" id="settings">
+            <div class="panel-heading">
+              <h2 class="panel-title">Workspace Settings</h2>
+              <span style="font-size: 13px; color: var(--gray)">Control automation, security, and integrations</span>
+            </div>
+            <div class="settings-grid">
+              <article class="setting-card">
+                <h3>Automation Guardrails</h3>
+                <p class="setting-description">Limit the number of AI sourcing sprints that can run concurrently to protect candidate outreach quality.</p>
+                <div class="setting-toggle">
+                  <input type="checkbox" id="setting-automation-limit" checked />
+                  <label for="setting-automation-limit">Cap sourcing jobs at 3 per project</label>
+                </div>
+                <p class="setting-footer">Changes apply immediately to new automation runs.</p>
+              </article>
+              <article class="setting-card">
+                <h3>Security &amp; Compliance</h3>
+                <p class="setting-description">Require two-factor authentication for everyone with access to live pipelines and documents.</p>
+                <div class="setting-toggle">
+                  <input type="checkbox" id="setting-mfa" checked />
+                  <label for="setting-mfa">Enforce multi-factor authentication</label>
+                </div>
+                <p class="setting-footer">Audit logs are stored for 180 days.</p>
+              </article>
+              <article class="setting-card">
+                <h3>Integrations</h3>
+                <p class="setting-description">Keep RecruitPro synchronized with your ATS and collaboration tools for realtime insights.</p>
+                <div class="setting-toggle">
+                  <input type="checkbox" id="setting-ats-sync" />
+                  <label for="setting-ats-sync">Enable Greenhouse + Slack sync</label>
+                </div>
+                <p class="setting-footer">Last sync attempt: <span id="integration-sync-status">never</span></p>
+              </article>
+            </div>
+          </section>
         </main>
       </div>
     </div>
@@ -975,6 +1197,45 @@
         { type: 'workflow', message: 'Outreach campaign scheduled', detail: 'Sequence starts at 09:00' },
       ];
 
+      const DEMO_PROJECTS = [
+        {
+          project_id: 'demo-mercury',
+          name: 'Mercury Launch',
+          client: 'Aperture Labs',
+          status: 'Active',
+          priority: 'High',
+          summary: 'Scaling product design and research hires ahead of the Q3 launch window.',
+          location_region: 'Hybrid · San Francisco',
+          tags: ['Design', 'Product', 'Growth'],
+          team_members: ['Jordan P.', 'Mia L.'],
+          created_at: '2024-05-14T14:00:00Z',
+        },
+        {
+          project_id: 'demo-atlas',
+          name: 'Atlas Data Platform',
+          client: 'Northwind Analytics',
+          status: 'On Hold',
+          priority: 'Medium',
+          summary: 'Paused pending budget approval. Ready to restart for data engineering roles.',
+          location_region: 'Remote · North America',
+          tags: ['Data', 'Engineering'],
+          team_members: ['Evan T.'],
+          created_at: '2024-03-02T09:30:00Z',
+        },
+        {
+          project_id: 'demo-radiant',
+          name: 'Radiant CX Refresh',
+          client: 'Lumen HQ',
+          status: 'Draft',
+          priority: 'Low',
+          summary: 'Exploring potential hires to refresh the customer experience organization.',
+          location_region: 'On-site · Austin',
+          tags: ['Customer Success', 'Enablement'],
+          team_members: ['Priya S.', 'Jon K.'],
+          created_at: '2024-04-22T16:45:00Z',
+        },
+      ];
+
       const projectUploads = [];
       let demoStreamBootstrapped = false;
 
@@ -984,6 +1245,149 @@
           return value;
         }
         return date.toLocaleString();
+      }
+
+      function formatTitle(value, fallback = '') {
+        if (!value) return fallback;
+        return value
+          .toString()
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .join(' ');
+      }
+
+      function setProjectListMessage(message = '') {
+        const messageEl = document.getElementById('project-list-message');
+        if (!messageEl) return;
+        messageEl.textContent = message;
+        messageEl.style.display = message ? 'block' : 'none';
+      }
+
+      function updateIntegrationSyncStatus(status) {
+        const el = document.getElementById('integration-sync-status');
+        if (el) {
+          el.textContent = status;
+        }
+      }
+
+      function renderProjectList(projects) {
+        const list = document.getElementById('project-list');
+        const emptyState = document.getElementById('project-empty-state');
+        if (!list || !emptyState) return;
+
+        list.innerHTML = '';
+        emptyState.textContent = 'No active projects yet. Create a project via the API or upload a brief to get started.';
+
+        if (!Array.isArray(projects) || projects.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        emptyState.style.display = 'none';
+
+        projects.forEach((project) => {
+          const card = document.createElement('article');
+          card.className = 'project-card';
+
+          const header = document.createElement('div');
+          header.className = 'project-card-header';
+          const title = document.createElement('h3');
+          title.textContent = project?.name || 'Untitled project';
+          const statusLabel = document.createElement('span');
+          const statusValue = project?.status || 'Draft';
+          const statusClass = statusValue.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          statusLabel.className = ['project-status', statusClass].filter(Boolean).join(' ');
+          statusLabel.textContent = formatTitle(statusValue, 'Draft');
+          header.appendChild(title);
+          header.appendChild(statusLabel);
+          card.appendChild(header);
+
+          const summary = document.createElement('p');
+          summary.className = 'project-summary';
+          summary.textContent =
+            project?.summary || 'Add a project summary to keep the team aligned on goals and deliverables.';
+          card.appendChild(summary);
+
+          const meta = document.createElement('div');
+          meta.className = 'project-meta';
+          [
+            { icon: '👥', text: project?.client || 'Internal project' },
+            { icon: '📍', text: project?.location_region || 'Flexible location' },
+            { icon: '⭐', text: `${formatTitle(project?.priority || 'Medium')} priority` },
+          ].forEach(({ icon, text }) => {
+            const span = document.createElement('span');
+            span.textContent = `${icon} ${text}`;
+            meta.appendChild(span);
+          });
+          card.appendChild(meta);
+
+          const tags = Array.isArray(project?.tags) ? project.tags.filter(Boolean) : [];
+          if (tags.length) {
+            const tagContainer = document.createElement('div');
+            tagContainer.className = 'project-tags';
+            tags.slice(0, 6).forEach((tag) => {
+              const badge = document.createElement('span');
+              badge.className = 'project-tag';
+              badge.textContent = tag;
+              tagContainer.appendChild(badge);
+            });
+            card.appendChild(tagContainer);
+          }
+
+          const team = Array.isArray(project?.team_members) ? project.team_members.filter(Boolean) : [];
+          if (team.length) {
+            const teamContainer = document.createElement('div');
+            teamContainer.className = 'project-team';
+            team.slice(0, 6).forEach((member) => {
+              const badge = document.createElement('span');
+              badge.className = 'project-member';
+              badge.textContent = member;
+              teamContainer.appendChild(badge);
+            });
+            card.appendChild(teamContainer);
+          }
+
+          const footer = document.createElement('div');
+          footer.className = 'project-card-footer';
+          const updated = project?.updated_at || project?.created_at || new Date().toISOString();
+          footer.textContent = `Updated ${formatDateTime(updated)}`;
+          card.appendChild(footer);
+
+          list.appendChild(card);
+        });
+      }
+
+      async function loadProjects() {
+        const emptyState = document.getElementById('project-empty-state');
+        if (emptyState) {
+          emptyState.textContent = 'Loading projects…';
+          emptyState.style.display = 'block';
+        }
+        setProjectListMessage('');
+        updateIntegrationSyncStatus('checking…');
+
+        try {
+          const res = await fetch('/api/projects', { headers: { Accept: 'application/json' } });
+          if (!res.ok) {
+            const error = new Error(`HTTP ${res.status}`);
+            error.status = res.status;
+            throw error;
+          }
+          const projects = await res.json();
+          renderProjectList(projects);
+          setProjectListMessage(projects.length ? '' : 'Create your first project to unlock automation workflows.');
+          updateIntegrationSyncStatus(formatDateTime(new Date()));
+        } catch (error) {
+          console.warn('Unable to load projects', error);
+          renderProjectList(DEMO_PROJECTS);
+          if (error?.status === 401 || error?.status === 403) {
+            setProjectListMessage('Sign in to RecruitPro to see your workspace. Showing demo projects instead.');
+          } else {
+            setProjectListMessage('We could not reach the API. Displaying demo projects so you can keep exploring the UI.');
+          }
+          updateIntegrationSyncStatus('demo mode');
+        }
       }
 
       function applyMetrics(data) {
@@ -1190,6 +1594,7 @@
         });
       }
 
+      loadProjects();
       refreshMetrics();
       attachActivityStream();
       initDemoInteractions();

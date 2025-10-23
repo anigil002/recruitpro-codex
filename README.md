@@ -16,14 +16,14 @@ This repository provides an executable reference implementation of the RecruitPr
 ### 1. Install Dependencies
 
 ```bash
-pip install poetry
-poetry install
+pip install pdm
+pdm install
 ```
 
 ### 2. Launch the API
 
 ```bash
-poetry run uvicorn app.main:app --reload
+pdm run uvicorn app.main:app --reload
 ```
 
 Visit `http://localhost:8000/docs` for the interactive Swagger UI and `http://localhost:8000/` for a simple status response.
@@ -31,7 +31,7 @@ Visit `http://localhost:8000/docs` for the interactive Swagger UI and `http://lo
 ### 3. Run Tests
 
 ```bash
-poetry run pytest
+pdm run pytest
 ```
 
 The tests ensure critical endpoints (health, version, and auth flow) operate correctly.

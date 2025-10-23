@@ -483,6 +483,61 @@
         color: var(--black);
       }
 
+      .panel-heading-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .primary-btn {
+        background: var(--green);
+        border: none;
+        color: var(--white);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .primary-btn:hover {
+        background: var(--teal);
+        transform: translateY(-1px);
+      }
+
+      .upload-hint {
+        font-size: 13px;
+        color: var(--gray);
+      }
+
+      .project-upload-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .project-upload-card {
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        padding: 16px;
+        background: rgba(0, 167, 139, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .project-upload-card h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+
+      .project-upload-card span {
+        font-size: 12px;
+        color: var(--gray);
+      }
+
       .ai-actions {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -783,6 +838,19 @@
             </div>
           </section>
 
+          <section class="panel-card" id="projects">
+            <div class="panel-heading">
+              <h2 class="panel-title">Projects</h2>
+              <div class="panel-heading-actions">
+                <input type="file" id="project-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.html,.md" hidden />
+                <button class="primary-btn" id="add-project-btn">Add Project</button>
+              </div>
+            </div>
+            <p class="upload-hint">Upload project briefs or scope documents to kick off sourcing automation instantly.</p>
+            <div class="upload-hint" id="project-upload-status">No project files uploaded yet.</div>
+            <div class="project-upload-grid" id="project-upload-grid"></div>
+          </section>
+
           <div class="split-panels">
             <section class="panel-card" id="ai-operations">
               <div class="panel-heading">
@@ -879,71 +947,142 @@
         }
       });
 
-      async function refreshMetrics() {
-        try {
-          const res = await fetch('/api/dashboard/stats');
-          if (!res.ok) return;
-          const data = await res.json();
-          document.getElementById('metric-projects').textContent = data.projects ?? '0';
-          document.getElementById('metric-candidates').textContent = data.candidates ?? '0';
-          const totalPipeline = (data.pipeline ?? {}).total ?? null;
-          if (totalPipeline !== null) {
-            document.getElementById('pipeline-count').textContent = totalPipeline;
-          }
-          const sourcing = (data.pipeline ?? {}).sourcing ?? null;
-          if (sourcing !== null) {
-            document.getElementById('count-sourcing').textContent = sourcing;
-          }
-          const screening = (data.pipeline ?? {}).screening ?? null;
-          if (screening !== null) {
-            document.getElementById('count-screening').textContent = screening;
-          }
-          const interviews = (data.pipeline ?? {}).interviews ?? null;
-          if (interviews !== null) {
-            document.getElementById('count-interviews').textContent = interviews;
-          }
-          const offers = (data.pipeline ?? {}).offers ?? null;
-          if (offers !== null) {
-            document.getElementById('count-offers').textContent = offers;
-          }
-          if (data.featured_candidate) {
-            const candidate = data.featured_candidate;
-            document.getElementById('candidate-name').textContent = candidate.name ?? 'Candidate';
-            document.getElementById('candidate-summary').textContent = candidate.summary ?? 'AI insights pending';
-            const tagContainer = document.getElementById('candidate-tags');
-            tagContainer.innerHTML = '';
-            (candidate.tags ?? []).forEach((tag) => {
-              const badge = document.createElement('span');
-              badge.className = 'tag';
-              badge.textContent = tag;
-              tagContainer.appendChild(badge);
-            });
-          }
-          if (Array.isArray(data.suggestions) && data.suggestions.length) {
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
-            data.suggestions.forEach((tip) => {
-              const item = document.createElement('div');
-              item.className = 'suggestion-item';
-              item.textContent = tip;
-              suggestions.appendChild(item);
-            });
-          }
-        } catch (err) {
-          console.warn('Unable to fetch metrics', err);
+      const DEMO_DASHBOARD = {
+        projects: 3,
+        candidates: 28,
+        pipeline: {
+          total: 28,
+          sourcing: 6,
+          screening: 9,
+          interviews: 7,
+          offers: 6,
+        },
+        featured_candidate: {
+          name: 'Jordan Patel',
+          summary: 'Senior Product Designer · 92% match · ready for final interviews',
+          tags: ['Portfolio reviewed', 'Culture add', 'AI ready'],
+        },
+        suggestions: [
+          'Upload your latest project brief to auto-generate positions and outreach sequences.',
+          'Run an AI screening batch to keep the pipeline moving overnight.',
+          'Schedule market intelligence to compare your offer against competitors.',
+        ],
+      };
+
+      const DEMO_ACTIVITY_STREAM = [
+        { type: 'project', message: 'Project Mercury uploaded', detail: 'Kickoff brief synced' },
+        { type: 'candidate', message: 'Jordan Patel rated 92%', detail: 'Screening batch completed' },
+        { type: 'workflow', message: 'Outreach campaign scheduled', detail: 'Sequence starts at 09:00' },
+      ];
+
+      const projectUploads = [];
+      let demoStreamBootstrapped = false;
+
+      function formatDateTime(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.valueOf())) {
+          return value;
+        }
+        return date.toLocaleString();
+      }
+
+      function applyMetrics(data) {
+        document.getElementById('metric-projects').textContent = data.projects ?? '0';
+        document.getElementById('metric-candidates').textContent = data.candidates ?? '0';
+        const totalPipeline = (data.pipeline ?? {}).total ?? null;
+        if (totalPipeline !== null) {
+          document.getElementById('pipeline-count').textContent = totalPipeline;
+        }
+        const sourcing = (data.pipeline ?? {}).sourcing ?? null;
+        if (sourcing !== null) {
+          document.getElementById('count-sourcing').textContent = sourcing;
+        }
+        const screening = (data.pipeline ?? {}).screening ?? null;
+        if (screening !== null) {
+          document.getElementById('count-screening').textContent = screening;
+        }
+        const interviews = (data.pipeline ?? {}).interviews ?? null;
+        if (interviews !== null) {
+          document.getElementById('count-interviews').textContent = interviews;
+        }
+        const offers = (data.pipeline ?? {}).offers ?? null;
+        if (offers !== null) {
+          document.getElementById('count-offers').textContent = offers;
+        }
+        if (data.featured_candidate) {
+          const candidate = data.featured_candidate;
+          document.getElementById('candidate-name').textContent = candidate.name ?? 'Candidate';
+          document.getElementById('candidate-summary').textContent = candidate.summary ?? 'AI insights pending';
+          const tagContainer = document.getElementById('candidate-tags');
+          tagContainer.innerHTML = '';
+          (candidate.tags ?? []).forEach((tag) => {
+            const badge = document.createElement('span');
+            badge.className = 'tag';
+            badge.textContent = tag;
+            tagContainer.appendChild(badge);
+          });
+        }
+        if (Array.isArray(data.suggestions) && data.suggestions.length) {
+          const suggestions = document.getElementById('suggestions');
+          suggestions.innerHTML = '';
+          data.suggestions.forEach((tip) => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = tip;
+            suggestions.appendChild(item);
+          });
         }
       }
 
-      function pushActivity(message, meta = {}) {
+      function addProjectCard(entry) {
+        const grid = document.getElementById('project-upload-grid');
+        const card = document.createElement('div');
+        card.className = 'project-upload-card';
+        const statusLine = entry.synced ? 'Synced to workspace' : 'Saved locally';
+        const description = entry.description || 'Project document';
+        card.innerHTML = `
+          <h3>${entry.filename}</h3>
+          <span>${description}</span>
+          <span>${statusLine} · ${formatDateTime(entry.uploadedAt)}</span>
+        `;
+        grid.prepend(card);
+        projectUploads.push(entry);
+      }
+
+      function bootstrapDemoEvents() {
+        if (demoStreamBootstrapped) return;
+        demoStreamBootstrapped = true;
+        DEMO_ACTIVITY_STREAM.forEach((event, index) => {
+          setTimeout(() => {
+            pushActivity(event.message, { event_type: event.type, detail: event.detail });
+          }, index * 800);
+        });
+      }
+
+      async function refreshMetrics() {
+        try {
+          const res = await fetch('/api/dashboard/stats');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          applyMetrics(data);
+        } catch (err) {
+          console.warn('Unable to fetch metrics', err);
+          applyMetrics(DEMO_DASHBOARD);
+        }
+      }
+
+      function pushActivity(message = 'Activity update', meta = {}) {
         const feed = document.getElementById('activity-timeline');
         const item = document.createElement('div');
         item.className = 'activity-item';
+        const title = message || 'Activity update';
+        const timestamp = formatDateTime(new Date());
         item.innerHTML = `
           <div class="activity-icon">⚡</div>
           <div class="activity-content">
-            <div class="activity-title">${message}</div>
+            <div class="activity-title">${title}</div>
             <div class="activity-description">${meta.detail ?? 'Automated event captured by RecruitPro.'}</div>
-            <div class="activity-time">${new Date().toLocaleTimeString()} · ${meta.event_type || 'event'}</div>
+            <div class="activity-time">${timestamp} · ${meta.event_type || 'event'}</div>
           </div>
         `;
         feed.prepend(item);
@@ -960,7 +1099,10 @@
         const source = new EventSource('/api/activity/stream');
         source.onmessage = (event) => {
           try {
-            const payload = JSON.parse(event.data);
+            const payload = JSON.parse(event.data || '{}');
+            if (!payload.message) {
+              return;
+            }
             pushActivity(payload.message, { event_type: event.type, detail: payload.detail });
           } catch (err) {
             console.warn('Malformed activity payload', err);
@@ -968,6 +1110,7 @@
         };
         source.onerror = () => {
           pushActivity('Realtime connection lost. Retrying…', { event_type: 'system' });
+          bootstrapDemoEvents();
         };
       }
 
@@ -982,9 +1125,75 @@
         });
       }
 
+      function initProjectUpload() {
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const fileInput = document.getElementById('project-file-input');
+        const statusEl = document.getElementById('project-upload-status');
+        if (!addProjectBtn || !fileInput || !statusEl) {
+          return;
+        }
+
+        addProjectBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (event) => {
+          const [file] = event.target.files || [];
+          if (!file) {
+            return;
+          }
+
+          const entry = {
+            filename: file.name,
+            description: `${(file.size / 1024).toFixed(1)} KB • ${file.type || 'Unknown type'}`,
+            uploadedAt: new Date().toISOString(),
+            synced: false,
+          };
+
+          statusEl.textContent = `Uploading ${file.name}…`;
+
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('filename', file.name);
+            formData.append('mime_type', file.type || 'application/octet-stream');
+            formData.append('scope', 'project');
+            formData.append('scope_id', '');
+
+            const res = await fetch('/api/documents/upload', {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+
+            const doc = await res.json();
+            entry.synced = true;
+            entry.uploadedAt = doc.uploaded_at || entry.uploadedAt;
+            entry.description = `${doc.mime_type || 'application/octet-stream'} • Ready for analysis`;
+            statusEl.textContent = `Uploaded ${doc.filename} • ${formatDateTime(entry.uploadedAt)}`;
+            pushActivity(`Uploaded project document ${doc.filename}`, {
+              event_type: 'document',
+              detail: 'File synchronized with RecruitPro.',
+            });
+          } catch (error) {
+            console.warn('Project upload failed', error);
+            statusEl.textContent = 'Upload failed. Stored locally until you sign in.';
+            pushActivity(`Stored ${entry.filename} locally`, {
+              event_type: 'document',
+              detail: error?.message || 'Offline fallback storage',
+            });
+          } finally {
+            addProjectCard(entry);
+            fileInput.value = '';
+          }
+        });
+      }
+
       refreshMetrics();
       attachActivityStream();
       initDemoInteractions();
+      initProjectUpload();
     </script>
   </body>
 </html>

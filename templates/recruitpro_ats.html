@@ -1,2348 +1,625 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RecruitPro ATS Control Center</title>
+    <title>RecruitPro - Control Center</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1173d4",
+              "primary-soft": "#1f8bff",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+              "card-dark": "#111a22",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              lg: "0.75rem",
+              xl: "1rem",
+            },
+            boxShadow: {
+              soft: "0 20px 45px -20px rgba(17, 115, 212, 0.35)",
+              inset: "inset 0 1px 0 0 rgba(255,255,255,0.05)",
+            },
+          },
+        },
+      };
+    </script>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      :root {
-        --primary-dark: #062c3a;
-        --lime: #abc100;
-        --gray-blue: #5d858b;
-        --teal-dark: #00617e;
-        --teal: #00a4a6;
-        --light-blue: #97b8bb;
-        --orange: #f4a41d;
-        --purple: #71164c;
-        --yellow: #e2ec57;
-        --blue: #75a1d2;
-        --navy: #344893;
-        --green: #00a78b;
-        --red: #c8313f;
-        --white: #ffffff;
-        --gray-light: #f5f5f7;
-        --gray: #86868b;
-        --black: #1d1d1f;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        background: var(--gray-light);
-        color: var(--black);
-        min-height: 100vh;
-      }
-
-      .app-container {
-        display: flex;
-        min-height: 100vh;
-      }
-
-      .sidebar {
-        width: 280px;
-        background: var(--white);
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        height: 100vh;
-        z-index: 100;
-        transition: transform 0.3s ease;
-      }
-
-      .sidebar.collapsed {
-        transform: translateX(-280px);
-      }
-
-      .sidebar-header {
-        padding: 24px 20px;
-        background: linear-gradient(135deg, var(--navy), var(--primary-dark));
-        color: var(--white);
-      }
-
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 20px;
-        font-weight: 700;
-      }
-
-      .logo-icon {
-        width: 40px;
-        height: 40px;
-        background: var(--lime);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: var(--primary-dark);
-      }
-
-      .nav-menu {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px 0;
-      }
-
-      .nav-section {
-        margin-bottom: 24px;
-      }
-
-      .nav-section-title {
-        padding: 0 20px;
-        margin-bottom: 8px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: var(--gray);
-        letter-spacing: 0.5px;
-      }
-
-      .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 20px;
-        color: var(--black);
-        text-decoration: none;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        position: relative;
-      }
-
-      .nav-item:hover {
-        background: var(--gray-light);
-        color: var(--teal);
-      }
-
-      .nav-item.active {
-        background: linear-gradient(90deg, rgba(0, 167, 139, 0.1) 0%, transparent 100%);
-        color: var(--green);
-      }
-
-      .nav-item.active::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 3px;
-        background: var(--green);
-      }
-
-      .nav-icon {
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .nav-badge {
-        margin-left: auto;
-        background: var(--red);
-        color: var(--white);
-        font-size: 11px;
-        padding: 2px 6px;
-        border-radius: 10px;
-        font-weight: 600;
-      }
-
-      .main-content {
-        flex: 1;
-        margin-left: 280px;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      .main-content.expanded {
-        margin-left: 0;
-      }
-
-      .topbar {
-        background: var(--white);
-        padding: 16px 24px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 50;
-      }
-
-      .topbar-left {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .menu-toggle {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--gray-light);
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 20px;
-      }
-
-      .search-bar {
-        position: relative;
-        width: 320px;
-      }
-
-      .search-input {
-        width: 100%;
-        padding: 10px 40px 10px 16px;
-        border: 1px solid #e5e5e7;
-        border-radius: 8px;
-        font-size: 14px;
-        background: var(--gray-light);
-      }
-
-      .search-icon {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--gray);
-      }
-
-      .topbar-right {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .topbar-btn {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--gray-light);
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        position: relative;
-      }
-
-      .notification-badge {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 8px;
-        height: 8px;
-        background: var(--red);
-        border-radius: 50%;
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-
-      .user-menu:hover {
-        background: var(--gray-light);
-      }
-
-      .user-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--blue), var(--teal));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--white);
-        font-weight: 600;
-      }
-
-      .user-info {
-        display: none;
-      }
-
-      @media (min-width: 768px) {
-        .user-info {
-          display: block;
-        }
-      }
-
-      .user-name {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--black);
-      }
-
-      .user-role {
-        font-size: 12px;
-        color: var(--gray);
-      }
-
-      .page-content {
-        flex: 1;
-        padding: 24px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      }
-
-      .page-header {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .page-title {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--primary-dark);
-      }
-
-      .page-subtitle {
-        font-size: 14px;
-        color: var(--gray);
-      }
-
-      .dashboard-grid {
-        display: grid;
-        gap: 24px;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-      }
-
-      .stat-card {
-        background: var(--white);
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-      }
-
-      .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-      }
-
-      .stat-icon.blue {
-        background: rgba(117, 161, 210, 0.15);
-        color: var(--blue);
-      }
-
-      .stat-icon.green {
-        background: rgba(0, 167, 139, 0.15);
-        color: var(--green);
-      }
-
-      .stat-icon.orange {
-        background: rgba(244, 164, 29, 0.15);
-        color: var(--orange);
-      }
-
-      .stat-content {
-        flex: 1;
-      }
-
-      .stat-label {
-        font-size: 12px;
-        color: var(--gray);
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--black);
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-      }
-
-      .stat-change {
-        font-size: 12px;
-        font-weight: 500;
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
-
-      .stat-change.up {
-        background: rgba(0, 167, 139, 0.1);
-        color: var(--green);
-      }
-
-      .pipeline-board {
-        display: flex;
-        gap: 20px;
-        overflow-x: auto;
-        padding-bottom: 20px;
-      }
-
-      .pipeline-column {
-        min-width: 260px;
-        background: var(--gray-light);
-        border-radius: 12px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .pipeline-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .pipeline-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--primary-dark);
-      }
-
-      .pipeline-count {
-        background: var(--teal);
-        color: var(--white);
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-      }
-
-      .candidate-card,
-      .pipeline-card {
-        background: var(--white);
-        border-radius: 10px;
-        padding: 12px;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        font-size: 13px;
-        color: var(--gray);
-      }
-
-      .split-panels {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
-      }
-
-      .panel-card {
-        background: var(--white);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .panel-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .panel-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--black);
-      }
-
-      .panel-heading-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .primary-btn {
-        background: var(--green);
-        border: none;
-        color: var(--white);
-        font-size: 14px;
-        font-weight: 600;
-        padding: 10px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s ease, transform 0.2s ease;
-      }
-
-      .primary-btn:hover {
-        background: var(--teal);
-        transform: translateY(-1px);
-      }
-
-      .upload-hint {
-        font-size: 13px;
-        color: var(--gray);
-      }
-
-      .ghost-btn {
-        border: 1px solid rgba(0, 167, 139, 0.5);
-        background: rgba(0, 167, 139, 0.08);
-        color: var(--teal-dark);
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s ease, transform 0.2s ease;
-      }
-
-      .ghost-btn:hover {
-        background: rgba(0, 167, 139, 0.16);
-        transform: translateY(-1px);
-      }
-
-      .knowledge-upload {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .knowledge-upload select,
-      .select-control {
-        border-radius: 8px;
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        padding: 10px 12px;
-        font-size: 13px;
-        background: var(--white);
-        min-width: 200px;
-      }
-
-      .knowledge-base {
-        background: rgba(0, 167, 139, 0.05);
-        border-radius: 12px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .knowledge-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .knowledge-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .knowledge-item {
-        background: var(--white);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 10px;
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .knowledge-item strong {
-        color: var(--primary-dark);
-        font-weight: 600;
-      }
-
-      .knowledge-item span {
-        font-size: 12px;
-        color: var(--gray);
-      }
-
-      .knowledge-empty {
-        font-size: 13px;
-        color: var(--gray);
-      }
-
-      .positions-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .positions-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .table-wrapper {
-        overflow-x: auto;
-      }
-
-      .positions-table th,
-      .positions-table td {
-        padding: 12px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        text-align: left;
-        font-size: 13px;
-      }
-
-      .positions-table th {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--gray);
-      }
-
-      .positions-table tr:hover {
-        background: var(--gray-light);
-      }
-
-      .position-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .link-btn {
-        border: none;
-        background: none;
-        color: var(--teal);
-        cursor: pointer;
-        font-weight: 600;
-      }
-
-      .link-btn:hover {
-        text-decoration: underline;
-      }
-
-      .modal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        padding: 20px;
-      }
-
-      .modal.active {
-        display: flex;
-      }
-
-      .modal-content {
-        background: var(--white);
-        border-radius: 12px;
-        padding: 24px;
-        width: min(520px, 100%);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .modal-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        border: none;
-        background: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: var(--gray);
-      }
-
-      .form-grid {
-        display: grid;
-        gap: 16px;
-      }
-
-      .form-grid label {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        font-size: 13px;
-        color: var(--gray);
-      }
-
-      .form-grid input,
-      .form-grid textarea,
-      .form-grid select {
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        border-radius: 8px;
-        padding: 10px;
-        font-size: 14px;
-        font-family: inherit;
-      }
-
-      .form-grid textarea {
-        min-height: 96px;
-        resize: vertical;
-      }
-
-      .badge {
-        background: rgba(117, 161, 210, 0.2);
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 11px;
-        color: var(--primary-dark);
-        font-weight: 600;
-      }
-
-      .project-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 16px;
-        margin-top: 16px;
-      }
-
-      .project-card {
-        background: var(--white);
-        border-radius: 14px;
-        padding: 18px;
-        box-shadow: 0 12px 30px rgba(6, 44, 58, 0.08);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .project-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .project-card-header h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--primary-dark);
-      }
-
-      .project-status {
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(0, 167, 139, 0.12);
-        color: var(--green);
-      }
-
-      .project-status.draft {
-        background: rgba(244, 164, 29, 0.16);
-        color: var(--orange);
-      }
-
-      .project-status.on-hold {
-        background: rgba(117, 161, 210, 0.16);
-        color: var(--blue);
-      }
-
-      .project-summary {
-        font-size: 13px;
-        color: var(--gray);
-        line-height: 1.5;
-      }
-
-      .project-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        font-size: 12px;
-        color: var(--gray);
-      }
-
-      .project-meta span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--gray-light);
-        border-radius: 999px;
-        padding: 4px 10px;
-      }
-
-      .project-tags,
-      .project-team {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .project-tag,
-      .project-member {
-        font-size: 11px;
-        background: rgba(0, 98, 126, 0.1);
-        color: var(--teal-dark);
-        padding: 4px 8px;
-        border-radius: 999px;
-        font-weight: 600;
-      }
-
-      .project-member {
-        background: rgba(171, 193, 0, 0.18);
-        color: var(--primary-dark);
-      }
-
-      .project-card-footer {
-        font-size: 11px;
-        color: var(--gray);
-      }
-
-      .info-banner {
-        margin-top: 12px;
-        font-size: 12px;
-        color: var(--primary-dark);
-        background: rgba(117, 161, 210, 0.12);
-        border-radius: 10px;
-        padding: 10px 14px;
-        display: none;
-      }
-
-      .settings-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 16px;
-        margin-top: 16px;
-      }
-
-      .setting-card {
-        background: var(--white);
-        border-radius: 14px;
-        padding: 18px;
-        box-shadow: 0 12px 30px rgba(6, 44, 58, 0.08);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .setting-card h3 {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--primary-dark);
-      }
-
-      .setting-description {
-        font-size: 13px;
-        color: var(--gray);
-        line-height: 1.4;
-      }
-
-      .setting-toggle {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .setting-toggle input[type='checkbox'] {
-        width: 42px;
-        height: 22px;
-        border-radius: 999px;
-        appearance: none;
-        background: var(--gray-light);
-        position: relative;
-        cursor: pointer;
-        transition: background 0.2s ease;
-      }
-
-      .setting-toggle input[type='checkbox']::after {
-        content: '';
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--white);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease;
-      }
-
-      .setting-toggle input[type='checkbox']:checked {
-        background: var(--green);
-      }
-
-      .setting-toggle input[type='checkbox']:checked::after {
-        transform: translateX(20px);
-      }
-
-      .setting-footer {
-        font-size: 11px;
-        color: var(--gray);
-      }
-
-      .ai-actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-      }
-
-      .action-card {
-        border: none;
-        background: var(--gray-light);
-        border-radius: 10px;
-        padding: 16px;
-        text-align: left;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--primary-dark);
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-
-      .action-card span {
-        font-size: 12px;
-        color: var(--gray);
-        font-weight: 500;
-      }
-
-      .action-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      }
-
-      .activity-feed {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        max-height: 280px;
-        overflow-y: auto;
-      }
-
-      .activity-item {
-        display: flex;
-        gap: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--gray-light);
-      }
-
-      .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--gray-light);
-        font-size: 18px;
-      }
-
-      .activity-content {
-        flex: 1;
-      }
-
-      .activity-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--black);
-        margin-bottom: 4px;
-      }
-
-      .activity-description {
-        font-size: 13px;
-        color: var(--gray);
-      }
-
-      .activity-time {
-        font-size: 12px;
-        color: var(--gray);
-        margin-top: 6px;
-      }
-
-      .candidate-highlight {
-        background: var(--gray-light);
-        border-radius: 12px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .candidate-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .tag {
-        background: rgba(0, 167, 139, 0.12);
-        color: var(--teal-dark);
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      .smart-suggestions {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .suggestion-item {
-        background: var(--white);
-        border-radius: 10px;
-        padding: 16px;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        font-size: 14px;
-        color: var(--gray);
-      }
-
-      @media (max-width: 1024px) {
-        .split-panels {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-280px);
-        }
-
-        .sidebar.active {
-          transform: translateX(0);
-        }
-
-        .main-content {
-          margin-left: 0;
-        }
-
-        .search-bar {
-          width: 100%;
-        }
-
-        .stats-grid {
-          grid-template-columns: 1fr;
-        }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
       }
     </style>
   </head>
-  <body>
-    <div class="app-container">
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <div class="logo">
-            <div class="logo-icon">RP</div>
-            <div>
-              RecruitPro<br /><span style="font-size: 12px; font-weight: 500">Complete ATS</span>
+  <body class="font-display bg-background-light text-slate-200 antialiased dark:bg-background-dark">
+    <div class="relative flex min-h-screen w-full flex-row">
+      <nav
+        class="flex h-screen min-h-full w-64 flex-col justify-between border-r border-slate-300/10 bg-[#111a22] p-5"
+      >
+        <div class="flex flex-col gap-5">
+          <div class="flex items-center gap-3 px-2">
+            <div
+              class="size-11 rounded-xl bg-[url('https://lh3.googleusercontent.com/aida-public/AB6AXuBABvct9KgKcFoPkdeNzGyqDA14dGhOyoAgqCSPQ33U2r15Ti1rrmA3GffcszzSex5cKCrvoFS_RhYY9m0EoVYN6lYoiSeuszCjEA7pPL18hRFCgt7VCXIAcBtQpySPINIYivyiQnFgRqzz5xpofWiYvfl02jQfn40qHS4-k-UcAll6cV_JbB1_Mq049qZhIR1o-8If4RFvQGRDFMphdY_5Tc22Ty_NOriGHBD28nx1z1H1B-4iW-UdMVJc7MiV-g3bnQvP55f1Sz0')] bg-cover bg-center bg-no-repeat"
+            ></div>
+            <div class="flex flex-col">
+              <span class="text-sm font-semibold text-white">RecruitPro</span>
+              <span class="text-xs font-medium text-slate-400">Control Center</span>
             </div>
           </div>
-        </div>
-        <nav class="nav-menu">
-          <div class="nav-section">
-            <div class="nav-section-title">Workspace</div>
-            <a class="nav-item active" href="#overview">
-              <span class="nav-icon">🏠</span>
-              Overview
+          <div class="flex flex-col gap-1">
+            <span class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >Overview</span
+            >
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-white transition-colors"
+            >
+              <span class="material-symbols-outlined">dashboard</span>
+              Dashboard
             </a>
-            <a class="nav-item" href="#pipeline">
-              <span class="nav-icon">🗂️</span>
-              Pipeline
-              <span class="nav-badge" id="pipeline-count">0</span>
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-slate-400">bar_chart</span>
+              Analytics
             </a>
-            <a class="nav-item" href="#ai-operations">
-              <span class="nav-icon">🤖</span>
-              AI Ops
-            </a>
-            <a class="nav-item" href="#intelligence">
-              <span class="nav-icon">📊</span>
-              Intelligence
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-slate-400">auto_awesome</span>
+              AI Playbooks
             </a>
           </div>
-          <div class="nav-section">
-            <div class="nav-section-title">Automation</div>
-            <a class="nav-item" href="#projects">
-              <span class="nav-icon">📁</span>
+          <div class="flex flex-col gap-1">
+            <span class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >Recruiting</span
+            >
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-slate-400">folder</span>
               Projects
             </a>
-            <a class="nav-item" href="#positions">
-              <span class="nav-icon">🧾</span>
-              Positions
-            </a>
-            <a class="nav-item" href="#candidates">
-              <span class="nav-icon">🧑‍💼</span>
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-slate-400">group</span>
               Candidates
             </a>
-            <a class="nav-item" href="#documents">
-              <span class="nav-icon">📄</span>
-              Documents
-            </a>
-            <a class="nav-item" href="#settings">
-              <span class="nav-icon">⚙️</span>
-              Settings
+            <a
+              href="#"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-slate-400">event</span>
+              Interviews
             </a>
           </div>
-        </nav>
-      </aside>
-
-      <div class="main-content" id="main-content">
-        <header class="topbar">
-          <div class="topbar-left">
-            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">☰</button>
-            <div class="search-bar">
-              <input class="search-input" type="search" placeholder="Search projects, candidates, docs…" aria-label="Global search" />
-              <span class="search-icon">⌘K</span>
-            </div>
-          </div>
-          <div class="topbar-right">
-            <button class="topbar-btn" aria-label="Notifications">
-              🔔
-              <span class="notification-badge"></span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a
+            href="#"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+          >
+            <span class="material-symbols-outlined text-slate-400">settings</span>
+            Settings
+          </a>
+          <a
+            href="#"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+          >
+            <span class="material-symbols-outlined text-slate-400">help</span>
+            Help Center
+          </a>
+          <div class="mt-3 rounded-xl border border-slate-700/60 bg-slate-900/50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Current Plan
+            </p>
+            <p class="mt-1 text-sm font-medium text-white">Talent Ops Suite</p>
+            <button
+              class="mt-4 w-full rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90"
+            >
+              Upgrade
             </button>
-            <button class="topbar-btn" aria-label="Add item">＋</button>
-            <div class="user-menu" role="button">
-              <div class="user-avatar">RP</div>
-              <div class="user-info">
-                <div class="user-name">Operations Bot</div>
-                <div class="user-role">Platform Admin</div>
-              </div>
-            </div>
+          </div>
+        </div>
+      </nav>
+      <main class="flex min-h-screen flex-1 flex-col gap-8 p-8">
+        <header class="flex flex-wrap items-center justify-between gap-5">
+          <div class="flex flex-col gap-1">
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Thursday, October 26th
+            </p>
+            <h1 class="text-3xl font-bold leading-tight text-white">RecruitPro ATS Dashboard</h1>
+            <p class="text-sm text-slate-400">
+              Monitor hiring progress, candidate flow and AI automations in a single view.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              class="flex h-10 items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              <span class="material-symbols-outlined text-base">upload_file</span>
+              Import from Excel
+            </button>
+            <button
+              class="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-primary/90"
+            >
+              <span class="material-symbols-outlined text-base">add</span>
+              Add Position
+            </button>
           </div>
         </header>
 
-        <main class="page-content">
-          <section class="page-header" id="overview">
-            <div class="page-title">RecruitPro Command Center</div>
-            <div class="page-subtitle">Monitor pipelines, trigger AI workflows, and review talent intelligence in a single canvas.</div>
-          </section>
-
-          <section class="dashboard-grid">
-            <div class="stats-grid">
-              <article class="stat-card">
-                <div class="stat-icon blue">📁</div>
-                <div class="stat-content">
-                  <div class="stat-label">Active Projects</div>
-                  <div class="stat-value" id="metric-projects">—</div>
-                  <div class="stat-change up">Tracking project velocity</div>
-                </div>
-              </article>
-              <article class="stat-card">
-                <div class="stat-icon green">🧑‍💼</div>
-                <div class="stat-content">
-                  <div class="stat-label">Candidates</div>
-                  <div class="stat-value" id="metric-candidates">—</div>
-                  <div class="stat-change up">Live scoring enabled</div>
-                </div>
-              </article>
-              <article class="stat-card">
-                <div class="stat-icon orange">🤖</div>
-                <div class="stat-content">
-                  <div class="stat-label">AI Jobs Today</div>
-                  <div class="stat-value" id="metric-ai">0</div>
-                  <div class="stat-change up">Realtime Gemini orchestration</div>
-                </div>
-              </article>
-            </div>
-          </section>
-
-          <section class="panel-card" id="pipeline">
-            <div class="panel-heading">
-              <h2 class="panel-title">Pipeline Overview</h2>
-              <span style="font-size: 13px; color: var(--gray)">Drag-and-drop ready</span>
-            </div>
-            <div class="pipeline-board" id="kanban-board">
-              <div class="pipeline-column">
-                <div class="pipeline-header">
-                  <span class="pipeline-title">Sourcing</span>
-                  <span class="pipeline-count" id="count-sourcing">0</span>
-                </div>
-                <div class="pipeline-card">Upload a project brief to auto-generate roles and sourcing plans.</div>
+        <section class="grid gap-5 xl:grid-cols-12">
+          <div class="grid gap-4 xl:col-span-8 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                  >Total Positions</span
+                >
+                <span class="material-symbols-outlined text-primary-soft">work</span>
               </div>
-              <div class="pipeline-column">
-                <div class="pipeline-header">
-                  <span class="pipeline-title">Screening</span>
-                  <span class="pipeline-count" id="count-screening">0</span>
-                </div>
-                <div class="pipeline-card">AI scoring drops top candidates with structured insights.</div>
+              <p class="mt-4 text-3xl font-bold text-white">24</p>
+              <p class="mt-2 text-xs font-medium text-emerald-400">
+                <span class="material-symbols-outlined align-middle text-base">arrow_upward</span>
+                12% vs last month
+              </p>
+            </article>
+            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                  >Active Candidates</span
+                >
+                <span class="material-symbols-outlined text-primary-soft">group</span>
               </div>
-              <div class="pipeline-column">
-                <div class="pipeline-header">
-                  <span class="pipeline-title">Interviews</span>
-                  <span class="pipeline-count" id="count-interviews">0</span>
-                </div>
-                <div class="pipeline-card">Manage interview loops with automated prep packs and notes.</div>
+              <p class="mt-4 text-3xl font-bold text-white">312</p>
+              <p class="mt-2 text-xs font-medium text-emerald-400">
+                <span class="material-symbols-outlined align-middle text-base">arrow_upward</span>
+                8% vs last week
+              </p>
+            </article>
+            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                  >Interviews this week</span
+                >
+                <span class="material-symbols-outlined text-primary-soft">event</span>
               </div>
-              <div class="pipeline-column">
-                <div class="pipeline-header">
-                  <span class="pipeline-title">Offers</span>
-                  <span class="pipeline-count" id="count-offers">0</span>
-                </div>
-                <div class="pipeline-card">Route approvals with compensation benchmarking &amp; e-sign.</div>
+              <p class="mt-4 text-3xl font-bold text-white">28</p>
+              <p class="mt-2 text-xs font-medium text-orange-300">
+                <span class="material-symbols-outlined align-middle text-base">schedule</span>
+                9 pending coordination
+              </p>
+            </article>
+            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                  >AI Automations</span
+                >
+                <span class="material-symbols-outlined text-primary-soft">auto_awesome</span>
               </div>
-            </div>
-          </section>
-
-          <section class="panel-card" id="projects">
-            <div class="panel-heading">
-              <h2 class="panel-title">Projects</h2>
-              <div class="panel-heading-actions">
-                <button class="primary-btn" id="new-project-btn">New Project</button>
-                <div class="knowledge-upload">
-                  <select id="project-upload-select" class="select-control" aria-label="Select project"></select>
-                  <input
-                    type="file"
-                    id="project-file-input"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.html,.md,.csv"
-                    hidden
-                  />
-                  <button class="ghost-btn" id="upload-project-file-btn">Upload Document</button>
-                </div>
-              </div>
-            </div>
-            <p class="upload-hint">Upload project briefs or scope documents to kick off sourcing automation instantly.</p>
-            <div class="project-list" id="project-list"></div>
-            <div class="info-banner" id="project-list-message" role="status"></div>
-            <div class="upload-hint" id="project-empty-state">No active projects yet. Create a project via the API or upload a brief to get started.</div>
-            <div class="knowledge-base" id="project-knowledge-base">
-              <div class="knowledge-header">
-                <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-dark)">Knowledge Base</h3>
-                <span class="upload-hint" id="project-upload-status">Select a project to upload supporting documents.</span>
-              </div>
-              <div class="knowledge-empty" id="knowledge-base-empty">Choose a project to see synced documents and analysis.</div>
-              <div class="knowledge-list" id="knowledge-base-list"></div>
-            </div>
-          </section>
-
-          <section class="panel-card" id="positions">
-            <div class="panel-heading">
-              <h2 class="panel-title">Positions</h2>
-              <div class="positions-controls">
-                <select id="positions-project-filter" class="select-control" aria-label="Filter positions by project">
-                  <option value="">All projects</option>
-                </select>
-                <button class="ghost-btn" id="refresh-positions-btn">Refresh</button>
-                <button class="primary-btn" id="start-sourcing-btn" disabled>Start AI Sourcing</button>
-              </div>
-            </div>
-            <div class="info-banner" id="positions-message" role="status"></div>
-            <div class="table-wrapper">
-              <table class="positions-table" id="positions-table">
-                <thead>
-                  <tr>
-                    <th><input type="checkbox" id="positions-select-all" /></th>
-                    <th>Title</th>
-                    <th>Project</th>
-                    <th>Status</th>
-                    <th>Location</th>
-                    <th>Openings</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </section>
-
-          <div class="split-panels">
-            <section class="panel-card" id="ai-operations">
-              <div class="panel-heading">
-                <h2 class="panel-title">AI Operations Hub</h2>
-                <span style="font-size: 13px; color: var(--gray)">Trigger Gemini workflows</span>
-              </div>
-              <div class="ai-actions">
-                <button class="action-card" data-action="project-analysis">
-                  Project File Analysis
-                  <span>Upload requirements → role, competency &amp; risk mapping.</span>
-                </button>
-                <button class="action-card" data-action="jd">
-                  Generate Job Description
-                  <span>Transform hiring intent into branded postings.</span>
-                </button>
-                <button class="action-card" data-action="sourcing">
-                  AI Sourcing Sprint
-                  <span>Launch LinkedIn, Google X-Ray, and SR automations.</span>
-                </button>
-                <button class="action-card" data-action="screening">
-                  Candidate Screening
-                  <span>Score resumes, highlight fit signals, recommend next steps.</span>
-                </button>
-                <button class="action-card" data-action="salary">
-                  Salary Benchmark
-                  <span>Pull compensation ranges from trusted data sources.</span>
-                </button>
-                <button class="action-card" data-action="outreach">
-                  Personalized Outreach
-                  <span>Draft email &amp; call scripts aligned to persona.</span>
-                </button>
-              </div>
-            </section>
-
-            <section class="panel-card" id="intelligence">
-              <div class="panel-heading">
-                <h2 class="panel-title">Live Activity &amp; Insights</h2>
-                <span style="font-size: 13px; color: var(--gray)">Streaming updates</span>
-              </div>
-              <div class="activity-feed" id="activity-timeline">
-                <div class="activity-item">
-                  <div class="activity-icon">⚡</div>
-                  <div class="activity-content">
-                    <div class="activity-title">Ready for action</div>
-                    <div class="activity-description">Kick off an AI workflow or connect your ATS data source.</div>
-                    <div class="activity-time">Just now · system</div>
-                  </div>
-                </div>
-              </div>
-            </section>
+              <p class="mt-4 text-3xl font-bold text-white">14</p>
+              <p class="mt-2 text-xs font-medium text-slate-400">
+                Last executed 12 minutes ago
+              </p>
+            </article>
           </div>
-
-          <div class="split-panels">
-            <section class="panel-card" id="candidates">
-              <div class="panel-heading">
-                <h2 class="panel-title">Candidate Spotlight</h2>
-                <span style="font-size: 13px; color: var(--gray)">Updated after screenings</span>
+          <div class="xl:col-span-4">
+            <article class="flex h-full flex-col justify-between gap-4 rounded-xl border border-slate-800 bg-gradient-to-br from-primary/20 via-card-dark to-card-dark p-5">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold text-white">AI Knowledge Hub</h2>
+                  <p class="mt-1 text-sm text-slate-300">
+                    Give the assistant more company context to automate recruiting actions.
+                  </p>
+                </div>
+                <span class="material-symbols-outlined text-primary-soft">rocket</span>
               </div>
-              <div class="candidate-highlight" id="candidate-card">
-                <div style="font-size: 18px; font-weight: 600; color: var(--primary-dark)" id="candidate-name">Awaiting first screening</div>
-                <div style="font-size: 13px; color: var(--gray)" id="candidate-summary">Trigger candidate screening workflows to populate a featured profile with match score, highlights, and next steps.</div>
-                <div class="candidate-tags" id="candidate-tags"></div>
-              </div>
-            </section>
-
-            <section class="panel-card" id="documents">
-              <div class="panel-heading">
-                <h2 class="panel-title">Smart Suggestions</h2>
-                <span style="font-size: 13px; color: var(--gray)">AI-enabled recommendations</span>
-              </div>
-              <div class="smart-suggestions" id="suggestions">
-                <div class="suggestion-item">Connect sourcing jobs to your pipeline for live candidate drops.</div>
-                <div class="suggestion-item">Trigger market intelligence once per project to unlock benchmarking dashboards.</div>
-                <div class="suggestion-item">Personalize outreach via AI call scripts and Egis voice templates.</div>
-              </div>
-            </section>
+              <ul class="space-y-3 text-sm text-slate-300">
+                <li class="flex items-center justify-between rounded-lg border border-primary/10 bg-primary/10 px-3 py-2">
+                  <span>Employee Value Proposition</span>
+                  <span class="text-xs font-semibold text-primary-soft">Updated 2d ago</span>
+                </li>
+                <li class="flex items-center justify-between rounded-lg border border-slate-700/60 px-3 py-2">
+                  <span>Interview Process Playbook</span>
+                  <span class="text-xs font-semibold text-slate-500">Draft</span>
+                </li>
+                <li class="flex items-center justify-between rounded-lg border border-slate-700/60 px-3 py-2">
+                  <span>Competitive Intel Repository</span>
+                  <span class="text-xs font-semibold text-slate-500">In review</span>
+                </li>
+              </ul>
+              <button
+                class="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-primary/90"
+              >
+                <span class="material-symbols-outlined text-base">upload</span>
+                Upload briefing to hub
+              </button>
+            </article>
           </div>
+        </section>
 
-          <section class="panel-card" id="settings">
-            <div class="panel-heading">
-              <h2 class="panel-title">Workspace Settings</h2>
-              <span style="font-size: 13px; color: var(--gray)">Control automation, security, and integrations</span>
+        <section class="grid gap-5 lg:grid-cols-2">
+          <article class="rounded-xl border border-slate-800 bg-card-dark p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-semibold text-white">Pipeline Overview</h2>
+                <p class="text-sm text-slate-400">Live status across all open positions</p>
+              </div>
+              <button
+                class="flex items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+              >
+                View full board
+                <span class="material-symbols-outlined text-base">chevron_right</span>
+              </button>
             </div>
-            <div class="settings-grid">
-              <article class="setting-card">
-                <h3>Automation Guardrails</h3>
-                <p class="setting-description">Limit the number of AI sourcing sprints that can run concurrently to protect candidate outreach quality.</p>
-                <div class="setting-toggle">
-                  <input type="checkbox" id="setting-automation-limit" checked />
-                  <label for="setting-automation-limit">Cap sourcing jobs at 3 per project</label>
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white">Screening</span>
+                  <span class="rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300"
+                    >64</span
+                  >
                 </div>
-                <p class="setting-footer">Changes apply immediately to new automation runs.</p>
-              </article>
-              <article class="setting-card">
-                <h3>Security &amp; Compliance</h3>
-                <p class="setting-description">Require two-factor authentication for everyone with access to live pipelines and documents.</p>
-                <div class="setting-toggle">
-                  <input type="checkbox" id="setting-mfa" checked />
-                  <label for="setting-mfa">Enforce multi-factor authentication</label>
+                <p class="mt-3 text-sm text-slate-400">
+                  12 awaiting hiring manager review
+                </p>
+              </div>
+              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white">Interviews</span>
+                  <span class="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300"
+                    >38</span
+                  >
                 </div>
-                <p class="setting-footer">Audit logs are stored for 180 days.</p>
-              </article>
-              <article class="setting-card">
-                <h3>Integrations</h3>
-                <p class="setting-description">Keep RecruitPro synchronized with your ATS and collaboration tools for realtime insights.</p>
-                <div class="setting-toggle">
-                  <input type="checkbox" id="setting-ats-sync" />
-                  <label for="setting-ats-sync">Enable Greenhouse + Slack sync</label>
+                <p class="mt-3 text-sm text-slate-400">
+                  9 candidates scheduled in the next 48 hours
+                </p>
+              </div>
+              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white">Offers</span>
+                  <span class="rounded-full bg-orange-500/20 px-2.5 py-0.5 text-xs font-semibold text-orange-300"
+                    >12</span
+                  >
                 </div>
-                <p class="setting-footer">Last sync attempt: <span id="integration-sync-status">never</span></p>
-              </article>
+                <p class="mt-3 text-sm text-slate-400">
+                  Offer acceptance rate at 78%
+                </p>
+              </div>
+              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white">Hired</span>
+                  <span class="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs font-semibold text-purple-300"
+                    >6</span
+                  >
+                </div>
+                <p class="mt-3 text-sm text-slate-400">
+                  Avg. time-to-fill: 31 days
+                </p>
+              </div>
             </div>
-          </section>
-        </main>
-      </div>
+          </article>
+          <article class="rounded-xl border border-slate-800 bg-card-dark p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-semibold text-white">Automation Timeline</h2>
+                <p class="text-sm text-slate-400">Latest actions executed by RecruitPro AI</p>
+              </div>
+              <button
+                class="flex items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+              >
+                Manage automations
+                <span class="material-symbols-outlined text-base">settings</span>
+              </button>
+            </div>
+            <ol class="mt-5 space-y-4">
+              <li class="flex gap-4">
+                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
+                  <span class="material-symbols-outlined">auto_awesome</span>
+                </span>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-white">JD Enhancement completed</p>
+                  <p class="text-xs text-slate-400">
+                    AI rewrote Senior Data Scientist description focusing on GenAI skills.
+                  </p>
+                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
+                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
+                    12 minutes ago
+                  </span>
+                </div>
+              </li>
+              <li class="flex gap-4">
+                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
+                  <span class="material-symbols-outlined">campaign</span>
+                </span>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-white">Sourcing campaign launched</p>
+                  <p class="text-xs text-slate-400">
+                    240 candidates added from curated lists for Product Design roles.
+                  </p>
+                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
+                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
+                    1 hour ago
+                  </span>
+                </div>
+              </li>
+              <li class="flex gap-4">
+                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
+                  <span class="material-symbols-outlined">lightbulb</span>
+                </span>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-white">Interview insights generated</p>
+                  <p class="text-xs text-slate-400">
+                    Panel feedback summarized for Full-Stack Engineer candidates.
+                  </p>
+                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
+                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
+                    Yesterday at 6:42 PM
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </article>
+        </section>
+
+        <section class="space-y-4">
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-card-dark p-4"
+          >
+            <div class="relative w-full max-w-xs">
+              <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                >search</span
+              >
+              <input
+                type="text"
+                placeholder="Search positions..."
+                class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900/70 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+              >
+                Status: All
+                <span class="material-symbols-outlined text-base">expand_more</span>
+              </button>
+              <button
+                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+              >
+                Department: All
+                <span class="material-symbols-outlined text-base">expand_more</span>
+              </button>
+              <button
+                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+              >
+                Hiring Manager
+                <span class="material-symbols-outlined text-base">expand_more</span>
+              </button>
+            </div>
+          </div>
+          <div class="overflow-hidden rounded-xl border border-slate-800 bg-card-dark">
+            <table class="min-w-full divide-y divide-slate-800">
+              <thead class="bg-slate-900/60">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Position Title
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Status
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Candidates
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Hiring Manager
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Date Added
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr class="transition-colors hover:bg-slate-900/60">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-white">Senior Full-Stack Engineer</span>
+                      <span class="text-xs font-semibold text-sky-300">Product Platform</span>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <span class="inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300"
+                      >Screening</span
+                    >
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">42</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Kai Mendez</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 26, 2023</td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <button
+                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
+                      >
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Generate JD
+                      </button>
+                      <button
+                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                      >
+                        <span class="material-symbols-outlined text-xl">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-slate-900/60">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-white">Product Designer</span>
+                      <span class="text-xs font-semibold text-sky-300">Consumer Apps</span>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <span class="inline-flex items-center rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300"
+                      >Open</span
+                    >
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">15</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Lena Novak</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 24, 2023</td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <button
+                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
+                      >
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Generate JD
+                      </button>
+                      <button
+                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                      >
+                        <span class="material-symbols-outlined text-xl">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-slate-900/60">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-white">Data Scientist</span>
+                      <span class="text-xs font-semibold text-sky-300">Analytics Guild</span>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <span class="inline-flex items-center rounded-full bg-slate-500/20 px-2.5 py-0.5 text-xs font-semibold text-slate-300"
+                      >Closed</span
+                    >
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">89</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Alex Ibarra</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 22, 2023</td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <button
+                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
+                      >
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Generate JD
+                      </button>
+                      <button
+                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                      >
+                        <span class="material-symbols-outlined text-xl">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-slate-900/60">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-white">UX Researcher</span>
+                      <span class="text-xs font-semibold text-sky-300">Insights Lab</span>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <span class="inline-flex items-center rounded-full bg-orange-500/20 px-2.5 py-0.5 text-xs font-semibold text-orange-300"
+                      >On Hold</span
+                    >
+                  </td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">23</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Priya Raman</td>
+                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 21, 2023</td>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <button
+                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
+                      >
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Generate JD
+                      </button>
+                      <button
+                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                      >
+                        <span class="material-symbols-outlined text-xl">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="flex items-center justify-between border-t border-slate-800 bg-slate-900/60 px-6 py-3">
+              <p class="text-sm text-slate-400">
+                Showing <span class="font-semibold text-white">1</span> to
+                <span class="font-semibold text-white">4</span> of
+                <span class="font-semibold text-white">48</span> results
+              </p>
+              <nav class="flex items-center gap-1">
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                >
+                  <span class="material-symbols-outlined text-xl">chevron_left</span>
+                </a>
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg bg-primary/30 text-sm font-bold text-white"
+                  >1</a
+                >
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+                  >2</a
+                >
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+                  >3</a
+                >
+                <span class="flex size-9 items-center justify-center text-sm font-medium text-slate-500">…</span>
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
+                  >12</a
+                >
+                <a
+                  href="#"
+                  class="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                >
+                  <span class="material-symbols-outlined text-xl">chevron_right</span>
+                </a>
+              </nav>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-
-    <div class="modal" id="project-modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
-      <div class="modal-content">
-        <button class="modal-close" type="button" data-close="project-modal" aria-label="Close">×</button>
-        <h3 id="project-modal-title" style="font-size: 20px; font-weight: 600; color: var(--primary-dark)">Create project</h3>
-        <form id="project-form" class="form-grid">
-          <label>
-            Project name
-            <input type="text" id="project-name" name="name" required placeholder="Eg. Red Line Extension" />
-          </label>
-          <label>
-            Client / PMO
-            <input type="text" id="project-client" name="client" placeholder="Client or sponsor" />
-          </label>
-          <label>
-            Region / Location
-            <input type="text" id="project-location" name="location_region" placeholder="Location or region" />
-          </label>
-          <label>
-            Sector
-            <input type="text" id="project-sector" name="sector" placeholder="Infrastructure, energy, aviation…" />
-          </label>
-          <label>
-            Summary
-            <textarea id="project-summary" name="summary" placeholder="High-level goals and scope"></textarea>
-          </label>
-          <label>
-            Tags (comma separated)
-            <input type="text" id="project-tags" name="tags" placeholder="megaproject, pmo, design" />
-          </label>
-          <label>
-            Team members (comma separated)
-            <input type="text" id="project-team" name="team_members" placeholder="Alex, Morgan" />
-          </label>
-          <label>
-            Target hires
-            <input type="number" id="project-target" name="target_hires" min="0" value="0" />
-          </label>
-          <div style="display: flex; gap: 12px; justify-content: flex-end">
-            <button class="ghost-btn" type="button" data-close="project-modal">Cancel</button>
-            <button class="primary-btn" type="submit">Create Project</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="modal" id="position-modal" role="dialog" aria-modal="true" aria-labelledby="position-modal-title">
-      <div class="modal-content">
-        <button class="modal-close" type="button" data-close="position-modal" aria-label="Close">×</button>
-        <h3 id="position-modal-title" style="font-size: 20px; font-weight: 600; color: var(--primary-dark)">Edit position</h3>
-        <form id="position-form" class="form-grid">
-          <input type="hidden" id="position-id" />
-          <label>
-            Title
-            <input type="text" id="position-title" required />
-          </label>
-          <label>
-            Location
-            <input type="text" id="position-location" />
-          </label>
-          <label>
-            Status
-            <select id="position-status">
-              <option value="draft">Draft</option>
-              <option value="open">Open</option>
-              <option value="closed">Closed</option>
-            </select>
-          </label>
-          <label>
-            Openings
-            <input type="number" id="position-openings" min="0" value="1" />
-          </label>
-          <label>
-            Responsibilities (one per line)
-            <textarea id="position-responsibilities"></textarea>
-          </label>
-          <label>
-            Requirements (one per line)
-            <textarea id="position-requirements"></textarea>
-          </label>
-          <label>
-            Description
-            <textarea id="position-description"></textarea>
-          </label>
-          <div style="display: flex; gap: 12px; justify-content: flex-end">
-            <button class="ghost-btn" type="button" data-close="position-modal">Cancel</button>
-            <button class="primary-btn" type="submit">Save changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <script>
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.getElementById('main-content');
-      const menuToggle = document.getElementById('menu-toggle');
-
-      menuToggle.addEventListener('click', () => {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-          sidebar.classList.toggle('active');
-        } else {
-          sidebar.classList.toggle('collapsed');
-          mainContent.classList.toggle('expanded');
-        }
-      });
-
-      const DEMO_DASHBOARD = {
-        projects: 3,
-        candidates: 28,
-        pipeline: {
-          total: 28,
-          sourcing: 6,
-          screening: 9,
-          interviews: 7,
-          offers: 6,
-        },
-        featured_candidate: {
-          name: 'Jordan Patel',
-          summary: 'Senior Product Designer · 92% match · ready for final interviews',
-          tags: ['Portfolio reviewed', 'Culture add', 'AI ready'],
-        },
-        suggestions: [
-          'Upload your latest project brief to auto-generate positions and outreach sequences.',
-          'Run an AI screening batch to keep the pipeline moving overnight.',
-          'Schedule market intelligence to compare your offer against competitors.',
-        ],
-      };
-
-      const DEMO_ACTIVITY_STREAM = [
-        { type: 'project', message: 'Project Mercury uploaded', detail: 'Kickoff brief synced' },
-        { type: 'candidate', message: 'Jordan Patel rated 92%', detail: 'Screening batch completed' },
-        { type: 'workflow', message: 'Outreach campaign scheduled', detail: 'Sequence starts at 09:00' },
-      ];
-
-      const DEMO_PROJECTS = [
-        {
-          project_id: 'demo-mercury',
-          name: 'Mercury Launch',
-          client: 'Aperture Labs',
-          status: 'Active',
-          priority: 'High',
-          summary: 'Scaling product design and research hires ahead of the Q3 launch window.',
-          location_region: 'Hybrid · San Francisco',
-          tags: ['Design', 'Product', 'Growth'],
-          team_members: ['Jordan P.', 'Mia L.'],
-          created_at: '2024-05-14T14:00:00Z',
-        },
-        {
-          project_id: 'demo-atlas',
-          name: 'Atlas Data Platform',
-          client: 'Northwind Analytics',
-          status: 'On Hold',
-          priority: 'Medium',
-          summary: 'Paused pending budget approval. Ready to restart for data engineering roles.',
-          location_region: 'Remote · North America',
-          tags: ['Data', 'Engineering'],
-          team_members: ['Evan T.'],
-          created_at: '2024-03-02T09:30:00Z',
-        },
-        {
-          project_id: 'demo-radiant',
-          name: 'Radiant CX Refresh',
-          client: 'Lumen HQ',
-          status: 'Draft',
-          priority: 'Low',
-          summary: 'Exploring potential hires to refresh the customer experience organization.',
-          location_region: 'On-site · Austin',
-          tags: ['Customer Success', 'Enablement'],
-          team_members: ['Priya S.', 'Jon K.'],
-          created_at: '2024-04-22T16:45:00Z',
-        },
-      ];
-
-      let cachedProjects = [];
-      let cachedPositions = [];
-      let knowledgeBaseDocs = [];
-      let selectedProjectId = '';
-      let demoStreamBootstrapped = false;
-
-      function formatDateTime(value) {
-        const date = new Date(value);
-        if (Number.isNaN(date.valueOf())) {
-          return value;
-        }
-        return date.toLocaleString();
-      }
-
-      function formatTitle(value, fallback = '') {
-        if (!value) return fallback;
-        return value
-          .toString()
-          .split(/\s+/)
-          .filter(Boolean)
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-          .join(' ');
-      }
-
-      function normaliseText(value) {
-        if (value === null || value === undefined) return undefined;
-        const trimmed = value.toString().trim();
-        return trimmed === '' ? undefined : trimmed;
-      }
-
-      function parseListField(value) {
-        if (!value) return [];
-        return value
-          .toString()
-          .split(/[\n,;]/)
-          .map((item) => item.trim())
-          .filter(Boolean);
-      }
-
-      function openModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-          modal.classList.add('active');
-        }
-      }
-
-      function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-        modal.classList.remove('active');
-        const form = modal.querySelector('form');
-        if (form) {
-          form.reset();
-        }
-      }
-
-      function getProjectName(projectId) {
-        const project = cachedProjects.find((entry) => entry.project_id === projectId);
-        return project?.name || '';
-      }
-
-      function setProjectListMessage(message = '') {
-        const messageEl = document.getElementById('project-list-message');
-        if (!messageEl) return;
-        messageEl.textContent = message;
-        messageEl.style.display = message ? 'block' : 'none';
-      }
-
-      function updateIntegrationSyncStatus(status) {
-        const el = document.getElementById('integration-sync-status');
-        if (el) {
-          el.textContent = status;
-        }
-      }
-
-      function renderProjectList(projects) {
-        const list = document.getElementById('project-list');
-        const emptyState = document.getElementById('project-empty-state');
-        if (!list || !emptyState) return;
-
-        cachedProjects = Array.isArray(projects) ? [...projects] : [];
-        updateProjectSelectors(cachedProjects);
-
-        list.innerHTML = '';
-        emptyState.textContent = 'No active projects yet. Create a project via the API or upload a brief to get started.';
-
-        if (!Array.isArray(projects) || projects.length === 0) {
-          emptyState.style.display = 'block';
-          renderKnowledgeBase([]);
-          return;
-        }
-
-        emptyState.style.display = 'none';
-
-        if (!selectedProjectId && cachedProjects.length) {
-          selectedProjectId = cachedProjects[0].project_id;
-          const uploadSelect = document.getElementById('project-upload-select');
-          if (uploadSelect && !uploadSelect.value) {
-            uploadSelect.value = selectedProjectId;
-          }
-        }
-
-        projects.forEach((project) => {
-          const card = document.createElement('article');
-          card.className = 'project-card';
-
-          const header = document.createElement('div');
-          header.className = 'project-card-header';
-          const title = document.createElement('h3');
-          title.textContent = project?.name || 'Untitled project';
-          const statusLabel = document.createElement('span');
-          const statusValue = project?.status || 'Draft';
-          const statusClass = statusValue.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          statusLabel.className = ['project-status', statusClass].filter(Boolean).join(' ');
-          statusLabel.textContent = formatTitle(statusValue, 'Draft');
-          header.appendChild(title);
-          header.appendChild(statusLabel);
-          card.appendChild(header);
-
-          const summary = document.createElement('p');
-          summary.className = 'project-summary';
-          summary.textContent =
-            project?.summary || 'Add a project summary to keep the team aligned on goals and deliverables.';
-          card.appendChild(summary);
-
-          const meta = document.createElement('div');
-          meta.className = 'project-meta';
-          [
-            { icon: '👥', text: project?.client || 'Internal project' },
-            { icon: '📍', text: project?.location_region || 'Flexible location' },
-            { icon: '⭐', text: `${formatTitle(project?.priority || 'Medium')} priority` },
-          ].forEach(({ icon, text }) => {
-            const span = document.createElement('span');
-            span.textContent = `${icon} ${text}`;
-            meta.appendChild(span);
-          });
-          card.appendChild(meta);
-
-          const tags = Array.isArray(project?.tags) ? project.tags.filter(Boolean) : [];
-          if (tags.length) {
-            const tagContainer = document.createElement('div');
-            tagContainer.className = 'project-tags';
-            tags.slice(0, 6).forEach((tag) => {
-              const badge = document.createElement('span');
-              badge.className = 'project-tag';
-              badge.textContent = tag;
-              tagContainer.appendChild(badge);
-            });
-            card.appendChild(tagContainer);
-          }
-
-          const team = Array.isArray(project?.team_members) ? project.team_members.filter(Boolean) : [];
-          if (team.length) {
-            const teamContainer = document.createElement('div');
-            teamContainer.className = 'project-team';
-            team.slice(0, 6).forEach((member) => {
-              const badge = document.createElement('span');
-              badge.className = 'project-member';
-              badge.textContent = member;
-              teamContainer.appendChild(badge);
-            });
-            card.appendChild(teamContainer);
-          }
-
-          const footer = document.createElement('div');
-          footer.className = 'project-card-footer';
-          const updated = project?.updated_at || project?.created_at || new Date().toISOString();
-          footer.textContent = `Updated ${formatDateTime(updated)}`;
-          card.appendChild(footer);
-
-          list.appendChild(card);
-        });
-
-        if (selectedProjectId) {
-          loadKnowledgeBase(selectedProjectId);
-        }
-      }
-
-      function renderKnowledgeBase(documents) {
-        const list = document.getElementById('knowledge-base-list');
-        const emptyState = document.getElementById('knowledge-base-empty');
-        if (!list || !emptyState) return;
-        knowledgeBaseDocs = Array.isArray(documents) ? documents : [];
-        list.innerHTML = '';
-        if (!knowledgeBaseDocs.length) {
-          emptyState.style.display = 'block';
-          list.style.display = 'none';
-          return;
-        }
-        emptyState.style.display = 'none';
-        list.style.display = 'flex';
-        knowledgeBaseDocs.forEach((doc) => {
-          const item = document.createElement('div');
-          item.className = 'knowledge-item';
-          const uploaded = doc?.uploaded_at ? formatDateTime(doc.uploaded_at) : formatDateTime(new Date());
-          item.innerHTML = `
-            <strong>${doc.filename}</strong>
-            <span>${doc.mime_type || 'document'} • ${uploaded}</span>
-          `;
-          list.appendChild(item);
-        });
-      }
-
-      async function loadKnowledgeBase(projectId) {
-        const statusEl = document.getElementById('project-upload-status');
-        if (!projectId) {
-          renderKnowledgeBase([]);
-          if (statusEl) {
-            statusEl.textContent = 'Select a project to upload supporting documents.';
-          }
-          return;
-        }
-        if (statusEl) {
-          statusEl.textContent = 'Syncing project knowledge base…';
-        }
-        try {
-          const res = await fetch(`/api/projects/${projectId}/documents`);
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          const documents = await res.json();
-          renderKnowledgeBase(documents);
-          if (statusEl) {
-            statusEl.textContent = documents.length
-              ? `Last upload ${formatDateTime(documents[0].uploaded_at || new Date())}`
-              : 'No documents uploaded for this project yet.';
-          }
-        } catch (error) {
-          console.warn('Unable to load knowledge base', error);
-          renderKnowledgeBase([]);
-          if (statusEl) {
-            statusEl.textContent = 'Unable to load knowledge base. Sign in to sync project files.';
-          }
-        }
-      }
-
-      function initProjectCreation() {
-        const createBtn = document.getElementById('new-project-btn');
-        const form = document.getElementById('project-form');
-        if (!createBtn || !form) {
-          return;
-        }
-
-        createBtn.addEventListener('click', () => {
-          openModal('project-modal');
-          const nameField = document.getElementById('project-name');
-          if (nameField) {
-            nameField.focus();
-          }
-        });
-
-        form.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const formData = new FormData(form);
-          const hiresValue = Number(formData.get('target_hires'));
-          const payload = {
-            name: normaliseText(formData.get('name')),
-            client: normaliseText(formData.get('client')),
-            location_region: normaliseText(formData.get('location_region')),
-            sector: normaliseText(formData.get('sector')),
-            summary: normaliseText(formData.get('summary')),
-            tags: normaliseText(formData.get('tags')),
-            team_members: normaliseText(formData.get('team_members')),
-            target_hires: Number.isNaN(hiresValue) || hiresValue < 0 ? 0 : hiresValue,
-          };
-
-          if (!payload.name) {
-            return;
-          }
-
-          try {
-            const res = await fetch('/api/projects', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}`);
-            }
-            const project = await res.json();
-            pushActivity(`Created project ${project.name}`, {
-              event_type: 'project',
-              detail: 'Workspace updated.',
-            });
-            closeModal('project-modal');
-            selectedProjectId = project.project_id;
-            await loadProjects();
-          } catch (error) {
-            console.warn('Unable to create project', error);
-            pushActivity('Unable to create project', {
-              event_type: 'error',
-              detail: error?.message || 'Request failed',
-            });
-          }
-        });
-      }
-
-      async function loadProjects() {
-        const emptyState = document.getElementById('project-empty-state');
-        if (emptyState) {
-          emptyState.textContent = 'Loading projects…';
-          emptyState.style.display = 'block';
-        }
-        setProjectListMessage('');
-        updateIntegrationSyncStatus('checking…');
-
-        try {
-          const res = await fetch('/api/projects', { headers: { Accept: 'application/json' } });
-          if (!res.ok) {
-            const error = new Error(`HTTP ${res.status}`);
-            error.status = res.status;
-            throw error;
-          }
-          const projects = await res.json();
-          renderProjectList(projects);
-          setProjectListMessage(projects.length ? '' : 'Create your first project to unlock automation workflows.');
-          updateIntegrationSyncStatus(formatDateTime(new Date()));
-        } catch (error) {
-          console.warn('Unable to load projects', error);
-          renderProjectList(DEMO_PROJECTS);
-          if (error?.status === 401 || error?.status === 403) {
-            setProjectListMessage('Sign in to RecruitPro to see your workspace. Showing demo projects instead.');
-          } else {
-            setProjectListMessage('We could not reach the API. Displaying demo projects so you can keep exploring the UI.');
-          }
-          updateIntegrationSyncStatus('demo mode');
-        }
-      }
-
-      function applyMetrics(data) {
-        document.getElementById('metric-projects').textContent = data.projects ?? '0';
-        document.getElementById('metric-candidates').textContent = data.candidates ?? '0';
-        const totalPipeline = (data.pipeline ?? {}).total ?? null;
-        if (totalPipeline !== null) {
-          document.getElementById('pipeline-count').textContent = totalPipeline;
-        }
-        const sourcing = (data.pipeline ?? {}).sourcing ?? null;
-        if (sourcing !== null) {
-          document.getElementById('count-sourcing').textContent = sourcing;
-        }
-        const screening = (data.pipeline ?? {}).screening ?? null;
-        if (screening !== null) {
-          document.getElementById('count-screening').textContent = screening;
-        }
-        const interviews = (data.pipeline ?? {}).interviews ?? null;
-        if (interviews !== null) {
-          document.getElementById('count-interviews').textContent = interviews;
-        }
-        const offers = (data.pipeline ?? {}).offers ?? null;
-        if (offers !== null) {
-          document.getElementById('count-offers').textContent = offers;
-        }
-        if (data.featured_candidate) {
-          const candidate = data.featured_candidate;
-          document.getElementById('candidate-name').textContent = candidate.name ?? 'Candidate';
-          document.getElementById('candidate-summary').textContent = candidate.summary ?? 'AI insights pending';
-          const tagContainer = document.getElementById('candidate-tags');
-          tagContainer.innerHTML = '';
-          (candidate.tags ?? []).forEach((tag) => {
-            const badge = document.createElement('span');
-            badge.className = 'tag';
-            badge.textContent = tag;
-            tagContainer.appendChild(badge);
-          });
-        }
-        if (Array.isArray(data.suggestions) && data.suggestions.length) {
-          const suggestions = document.getElementById('suggestions');
-          suggestions.innerHTML = '';
-          data.suggestions.forEach((tip) => {
-            const item = document.createElement('div');
-            item.className = 'suggestion-item';
-            item.textContent = tip;
-            suggestions.appendChild(item);
-          });
-        }
-      }
-
-      function updateSourcingButtonState() {
-        const button = document.getElementById('start-sourcing-btn');
-        if (!button) return;
-        const selected = document.querySelectorAll('.position-checkbox:checked');
-        button.disabled = selected.length === 0;
-      }
-
-      function renderPositionsTable(messageOverride) {
-        const table = document.getElementById('positions-table');
-        const message = document.getElementById('positions-message');
-        if (!table || !message) return;
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        if (messageOverride) {
-          message.textContent = messageOverride;
-          message.style.display = 'block';
-          updateSourcingButtonState();
-          return;
-        }
-
-        const filterSelect = document.getElementById('positions-project-filter');
-        const filterValue = filterSelect ? filterSelect.value : '';
-        const rows = !filterValue
-          ? cachedPositions
-          : cachedPositions.filter((pos) => pos.project_id === filterValue);
-
-        if (!rows.length) {
-          message.textContent = cachedPositions.length
-            ? 'No positions match this filter yet.'
-            : 'No positions available. Upload a project brief to auto-generate roles.';
-          message.style.display = 'block';
-          updateSourcingButtonState();
-          return;
-        }
-
-        message.textContent = '';
-        message.style.display = 'none';
-
-        rows.forEach((position) => {
-          const row = document.createElement('tr');
-          row.dataset.positionId = position.position_id;
-          const statusLabel = formatTitle(position.status || 'draft', 'Draft');
-          row.innerHTML = `
-            <td><input type="checkbox" class="position-checkbox" data-position-id="${position.position_id}" /></td>
-            <td>${position.title || 'Untitled role'}</td>
-            <td>${getProjectName(position.project_id) || '—'}</td>
-            <td><span class="badge">${statusLabel}</span></td>
-            <td>${position.location || '—'}</td>
-            <td>${position.openings ?? 0}</td>
-            <td class="position-actions"><button class="link-btn edit-position" data-position-id="${position.position_id}">Edit</button></td>
-          `;
-          tbody.appendChild(row);
-        });
-
-        const selectAll = document.getElementById('positions-select-all');
-        if (selectAll) {
-          selectAll.checked = false;
-          selectAll.indeterminate = false;
-        }
-        updateSourcingButtonState();
-      }
-
-      async function loadPositions() {
-        try {
-          const res = await fetch('/api/positions');
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          const positions = await res.json();
-          cachedPositions = Array.isArray(positions) ? positions : [];
-          renderPositionsTable();
-        } catch (error) {
-          console.warn('Unable to load positions', error);
-          cachedPositions = [];
-          renderPositionsTable('We could not load positions. Sign in to view live data.');
-        }
-      }
-
-      async function startSourcingForSelectedPositions() {
-        const selected = Array.from(document.querySelectorAll('.position-checkbox:checked'));
-        if (!selected.length) {
-          return;
-        }
-        const button = document.getElementById('start-sourcing-btn');
-        if (button) {
-          button.disabled = true;
-        }
-        for (const checkbox of selected) {
-          const position = cachedPositions.find((pos) => pos.position_id === checkbox.dataset.positionId);
-          if (!position) {
-            continue;
-          }
-          try {
-            const payload = {
-              project_id: position.project_id,
-              position_id: position.position_id,
-              title: position.title,
-              location: position.location,
-              skills: position.requirements || [],
-              seniority: position.experience,
-            };
-            const res = await fetch('/api/ai/source-candidates', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}`);
-            }
-            pushActivity(`AI sourcing queued for ${position.title}`, {
-              event_type: 'ai_sourcing',
-              detail: `Job ${position.position_id}`,
-            });
-          } catch (error) {
-            console.warn('Unable to start sourcing', error);
-            pushActivity(`Unable to start sourcing for ${position?.title || 'position'}`, {
-              event_type: 'error',
-              detail: error?.message || 'Request failed',
-            });
-          }
-        }
-        document.querySelectorAll('.position-checkbox').forEach((checkbox) => {
-          checkbox.checked = false;
-        });
-        const selectAll = document.getElementById('positions-select-all');
-        if (selectAll) {
-          selectAll.checked = false;
-          selectAll.indeterminate = false;
-        }
-        updateSourcingButtonState();
-        if (button) {
-          button.disabled = false;
-        }
-      }
-
-      function openPositionEditor(positionId) {
-        const position = cachedPositions.find((pos) => pos.position_id === positionId);
-        if (!position) {
-          pushActivity('Position not found', { event_type: 'error', detail: positionId });
-          return;
-        }
-        document.getElementById('position-id').value = position.position_id;
-        document.getElementById('position-title').value = position.title || '';
-        document.getElementById('position-location').value = position.location || '';
-        document.getElementById('position-status').value = position.status || 'draft';
-        document.getElementById('position-openings').value = position.openings ?? 0;
-        document.getElementById('position-responsibilities').value = (position.responsibilities || []).join('\n');
-        document.getElementById('position-requirements').value = (position.requirements || []).join('\n');
-        document.getElementById('position-description').value = position.description || '';
-        openModal('position-modal');
-      }
-
-      function initPositionEditor() {
-        const form = document.getElementById('position-form');
-        if (!form) return;
-        form.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const positionId = document.getElementById('position-id').value;
-          if (!positionId) {
-            return;
-          }
-          const payload = {
-            title: normaliseText(document.getElementById('position-title').value),
-            location: normaliseText(document.getElementById('position-location').value),
-            status: document.getElementById('position-status').value || 'draft',
-            openings: Number(document.getElementById('position-openings').value) || 0,
-            responsibilities: parseListField(document.getElementById('position-responsibilities').value),
-            requirements: parseListField(document.getElementById('position-requirements').value),
-            description: normaliseText(document.getElementById('position-description').value),
-          };
-          try {
-            const res = await fetch(`/api/positions/${positionId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}`);
-            }
-            pushActivity(`Updated ${payload.title || 'position'}`, {
-              event_type: 'position',
-              detail: 'Position details refreshed.',
-            });
-            closeModal('position-modal');
-            await loadPositions();
-          } catch (error) {
-            console.warn('Unable to update position', error);
-            pushActivity('Unable to update position', {
-              event_type: 'error',
-              detail: error?.message || 'Request failed',
-            });
-          }
-        });
-      }
-
-      function bootstrapDemoEvents() {
-        if (demoStreamBootstrapped) return;
-        demoStreamBootstrapped = true;
-        DEMO_ACTIVITY_STREAM.forEach((event, index) => {
-          setTimeout(() => {
-            pushActivity(event.message, { event_type: event.type, detail: event.detail });
-          }, index * 800);
-        });
-      }
-
-      async function refreshMetrics() {
-        try {
-          const res = await fetch('/api/dashboard/stats');
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          applyMetrics(data);
-        } catch (err) {
-          console.warn('Unable to fetch metrics', err);
-          applyMetrics(DEMO_DASHBOARD);
-        }
-      }
-
-      function pushActivity(message = 'Activity update', meta = {}) {
-        const feed = document.getElementById('activity-timeline');
-        const item = document.createElement('div');
-        item.className = 'activity-item';
-        const title = message || 'Activity update';
-        const timestamp = formatDateTime(new Date());
-        item.innerHTML = `
-          <div class="activity-icon">⚡</div>
-          <div class="activity-content">
-            <div class="activity-title">${title}</div>
-            <div class="activity-description">${meta.detail ?? 'Automated event captured by RecruitPro.'}</div>
-            <div class="activity-time">${timestamp} · ${meta.event_type || 'event'}</div>
-          </div>
-        `;
-        feed.prepend(item);
-        const jobsEl = document.getElementById('metric-ai');
-        const current = Number(jobsEl.textContent || '0');
-        jobsEl.textContent = current + 1;
-      }
-
-      function attachActivityStream() {
-        if (!('EventSource' in window)) {
-          pushActivity('Browser does not support live updates.', { event_type: 'system' });
-          return;
-        }
-        const source = new EventSource('/api/activity/stream');
-        source.onmessage = (event) => {
-          try {
-            const payload = JSON.parse(event.data || '{}');
-            if (!payload.message) {
-              return;
-            }
-            pushActivity(payload.message, { event_type: event.type, detail: payload.detail });
-          } catch (err) {
-            console.warn('Malformed activity payload', err);
-          }
-        };
-        source.onerror = () => {
-          pushActivity('Realtime connection lost. Retrying…', { event_type: 'system' });
-          bootstrapDemoEvents();
-        };
-      }
-
-      function initDemoInteractions() {
-        document.querySelectorAll('.action-card').forEach((button) => {
-          button.addEventListener('click', () => {
-            pushActivity(`Triggered ${button.dataset.action.replace('-', ' ')} workflow`, {
-              event_type: 'manual',
-              detail: 'Workflow dispatched via UI',
-            });
-          });
-        });
-      }
-
-      function initKnowledgeBaseUpload() {
-        const uploadBtn = document.getElementById('upload-project-file-btn');
-        const fileInput = document.getElementById('project-file-input');
-        const statusEl = document.getElementById('project-upload-status');
-        const projectSelect = document.getElementById('project-upload-select');
-        if (!uploadBtn || !fileInput || !statusEl || !projectSelect) {
-          return;
-        }
-
-        projectSelect.addEventListener('change', (event) => {
-          selectedProjectId = event.target.value || '';
-          loadKnowledgeBase(selectedProjectId);
-        });
-
-        uploadBtn.addEventListener('click', () => {
-          if (!projectSelect.value) {
-            statusEl.textContent = 'Select a project before uploading.';
-            return;
-          }
-          fileInput.click();
-        });
-
-        fileInput.addEventListener('change', async (event) => {
-          const [file] = event.target.files || [];
-          if (!file) {
-            return;
-          }
-          const projectId = projectSelect.value;
-          if (!projectId) {
-            statusEl.textContent = 'Select a project before uploading.';
-            fileInput.value = '';
-            return;
-          }
-
-          statusEl.textContent = `Uploading ${file.name}…`;
-
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('filename', file.name);
-            formData.append('mime_type', file.type || 'application/octet-stream');
-            formData.append('scope', 'project');
-            formData.append('scope_id', projectId);
-
-            const res = await fetch('/api/documents/upload', {
-              method: 'POST',
-              body: formData,
-            });
-
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}`);
-            }
-
-            const doc = await res.json();
-            statusEl.textContent = `Uploaded ${doc.filename} • ${formatDateTime(doc.uploaded_at || new Date())}`;
-            pushActivity(`Uploaded ${doc.filename}`, {
-              event_type: 'document',
-              detail: 'Knowledge base updated.',
-            });
-            await loadKnowledgeBase(projectId);
-          } catch (error) {
-            console.warn('Project upload failed', error);
-            statusEl.textContent = 'Upload failed. Please try again when you are signed in.';
-            pushActivity(`Stored ${file.name} locally`, {
-              event_type: 'document',
-              detail: error?.message || 'Offline fallback storage',
-            });
-          } finally {
-            fileInput.value = '';
-          }
-        });
-      }
-
-      document.querySelectorAll('[data-close]').forEach((button) => {
-        button.addEventListener('click', () => closeModal(button.dataset.close));
-      });
-
-      const positionsTable = document.getElementById('positions-table');
-      if (positionsTable) {
-        positionsTable.addEventListener('change', (event) => {
-          if (event.target.id === 'positions-select-all') {
-            const checked = event.target.checked;
-            positionsTable.querySelectorAll('.position-checkbox').forEach((checkbox) => {
-              checkbox.checked = checked;
-            });
-            updateSourcingButtonState();
-          } else if (event.target.classList.contains('position-checkbox')) {
-            const selectAll = document.getElementById('positions-select-all');
-            if (selectAll) {
-              const checkboxes = positionsTable.querySelectorAll('.position-checkbox');
-              const total = checkboxes.length;
-              const checkedCount = [...checkboxes].filter((input) => input.checked).length;
-              selectAll.checked = total > 0 && checkedCount === total;
-              selectAll.indeterminate = checkedCount > 0 && checkedCount < total;
-            }
-            updateSourcingButtonState();
-          }
-        });
-        positionsTable.addEventListener('click', (event) => {
-          const button = event.target.closest('.edit-position');
-          if (button) {
-            event.preventDefault();
-            openPositionEditor(button.dataset.positionId);
-          }
-        });
-      }
-
-      const positionsFilter = document.getElementById('positions-project-filter');
-      if (positionsFilter) {
-        positionsFilter.addEventListener('change', () => {
-          renderPositionsTable();
-        });
-      }
-
-      const refreshPositionsBtn = document.getElementById('refresh-positions-btn');
-      if (refreshPositionsBtn) {
-        refreshPositionsBtn.addEventListener('click', () => {
-          loadPositions();
-        });
-      }
-
-      const sourcingBtn = document.getElementById('start-sourcing-btn');
-      if (sourcingBtn) {
-        sourcingBtn.addEventListener('click', () => {
-          startSourcingForSelectedPositions();
-        });
-      }
-
-      initProjectCreation();
-      initKnowledgeBaseUpload();
-      initPositionEditor();
-      loadProjects();
-      loadPositions();
-      refreshMetrics();
-      attachActivityStream();
-      initDemoInteractions();
-    </script>
   </body>
 </html>

@@ -83,7 +83,7 @@ def smartrecruiters_bulk(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> Dict[str, Any]:
-    job = start_smartrecruiters_bulk(db, payload.dict(), current_user.user_id)
+    job = start_smartrecruiters_bulk(db, payload.model_dump(), current_user.user_id)
     log_activity(
         db,
         actor_type="ai",

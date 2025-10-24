@@ -40,6 +40,34 @@ class Settings(BaseSettings):
             "RECRUITPRO_GOOGLE_CSE_ID",
         ),
     )
+    smartrecruiters_email: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "SMARTRECRUITERS_EMAIL",
+            "RECRUITPRO_SMARTRECRUITERS_EMAIL",
+        ),
+    )
+    smartrecruiters_password: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "SMARTRECRUITERS_PASSWORD",
+            "RECRUITPRO_SMARTRECRUITERS_PASSWORD",
+        ),
+    )
+    smartrecruiters_company_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "SMARTRECRUITERS_COMPANY_ID",
+            "RECRUITPRO_SMARTRECRUITERS_COMPANY_ID",
+        ),
+    )
+    smartrecruiters_base_url: str = Field(
+        default="https://app.smartrecruiters.com",
+        validation_alias=AliasChoices(
+            "SMARTRECRUITERS_BASE_URL",
+            "RECRUITPRO_SMARTRECRUITERS_BASE_URL",
+        ),
+    )
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
@@ -68,6 +96,10 @@ class Settings(BaseSettings):
     @property
     def google_search_api_key_value(self) -> str:
         return self._secret_value(self.google_search_api_key)
+
+    @property
+    def smartrecruiters_password_value(self) -> str:
+        return self._secret_value(self.smartrecruiters_password)
 
 
 @lru_cache

@@ -25,6 +25,7 @@ from .activity import log_activity
 from .gemini import CandidatePersona, gemini
 from .queue import background_queue
 from .realtime import events
+from .smartrecruiters import SmartRecruitersError, run_smartrecruiters_bulk
 
 
 # ---------------------------------------------------------------------------
@@ -297,14 +298,22 @@ def _handle_smartrecruiters(payload: Dict[str, Any]) -> None:
             return
         mark_job_running(session, job)
         request = job.request_json or {}
-        plan = gemini.smartrecruiters_plan(request)
-        mark_job_completed(session, job, plan)
+        try:
+            summary = run_smartrecruiters_bulk(session, request)
+        except SmartRecruitersError as exc:
+            mark_job_failed(session, job, str(exc))
+            return
+        mark_job_completed(session, job, summary)
+        imported = summary.get("imported", 0)
+        message = "Imported SmartRecruiters candidates"
+        if imported:
+            message = f"Imported {imported} SmartRecruiters candidate{'s' if imported != 1 else ''}"
         log_activity(
             session,
             actor_type="ai",
             actor_id=request.get("user_id"),
             project_id=request.get("project_id"),
-            message="SmartRecruiters automation queued",
+            message=message,
             event_type="smartrecruiters",
         )
 

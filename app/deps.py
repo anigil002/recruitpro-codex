@@ -9,12 +9,14 @@ from sqlalchemy.orm import Session
 from .database import get_session
 from .models import User
 from .utils.security import decode_token
+from .services.bootstrap import ensure_super_admin
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def get_db() -> Session:
     with get_session() as session:
+        ensure_super_admin(session)
         yield session
 
 

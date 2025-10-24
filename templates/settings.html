@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecruitPro - Settings</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2563EB",
+              "background-light": "#F8FAFC",
+              "background-dark": "#0F172A",
+              success: "#10B981",
+              error: "#EF4444",
+              warning: "#F59E0B",
+              "slate-50": "#F8FAFC",
+              "slate-100": "#F1F5F9",
+              "slate-200": "#E2E8F0",
+              "slate-300": "#CBD5E1",
+              "slate-400": "#94A3B8",
+              "slate-500": "#64748B",
+              "slate-600": "#475569",
+              "slate-700": "#334155",
+              "slate-800": "#1E293B",
+              "slate-900": "#0F172A",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light font-display text-slate-800 dark:bg-background-dark dark:text-slate-200"
+  >
+    <div class="flex min-h-screen w-full">
+      <!-- SideNavBar -->
+      <aside
+        class="flex w-64 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+      >
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 px-2">
+            <div
+              class="size-10 rounded-full bg-cover bg-center bg-no-repeat"
+              data-alt="RecruitPro company logo"
+              style="background-image: url('{{ sidebar.logo_url }}');"
+            ></div>
+            <div class="flex flex-col">
+              <h1 class="text-base font-semibold leading-normal text-slate-900 dark:text-white">
+                {{ sidebar.workspace_name }}
+              </h1>
+              <p class="text-sm font-normal leading-normal text-slate-500 dark:text-slate-400">
+                {{ sidebar.workspace_context }}
+              </p>
+            </div>
+          </div>
+          <nav class="mt-4 flex flex-col gap-1">
+            {% for item in sidebar.menu %}
+            <a
+              class="flex items-center gap-3 rounded px-3 py-2 {{ 'bg-primary/10 text-primary dark:bg-primary/20' if item.active else 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' }}"
+              href="{{ item.href }}"
+            >
+              <span class="material-symbols-outlined" {% if item.icon_filled %}style="font-variation-settings: 'FILL' 1;"{% endif %}>{{ item.icon }}</span>
+              <p class="text-sm font-medium leading-normal">{{ item.label }}</p>
+            </a>
+            {% endfor %}
+          </nav>
+        </div>
+        <div class="mt-auto flex flex-col gap-1">
+          {% for item in sidebar.secondary_menu %}
+          <a
+            class="flex items-center gap-3 rounded px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            href="{{ item.href }}"
+          >
+            <span class="material-symbols-outlined">{{ item.icon }}</span>
+            <p class="text-sm font-medium leading-normal">{{ item.label }}</p>
+          </a>
+          {% endfor %}
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <main class="flex-1">
+        <div class="mx-auto max-w-4xl p-6 lg:p-10">
+          <!-- PageHeading -->
+          <header>
+            <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-slate-900 dark:text-white">
+              Settings
+            </h1>
+          </header>
+          <div class="mt-8 flex flex-col gap-8">
+            <!-- SectionHeader -->
+            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+              API Keys Management
+            </h2>
+            <!-- Gemini API Card -->
+            <section
+              class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+                  Gemini API
+                </h3>
+                {% if gemini.configured %}
+                <div class="flex items-center gap-2 text-sm font-medium text-success">
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                  <span>Connected</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span class="material-symbols-outlined text-base">help</span>
+                  <span>Not Configured</span>
+                </div>
+                {% endif %}
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                  for="gemini-api"
+                  >Gemini API Key</label
+                >
+                <div class="relative flex w-full items-stretch">
+                  <input
+                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded rounded-r-none border border-slate-300 border-r-0 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
+                    id="gemini-api"
+                    name="gemini_api_key"
+                    type="password"
+                    value="{{ gemini.value }}"
+                    placeholder="Enter your Gemini API key"
+                  />
+                  <button
+                    class="toggle-visibility flex items-center justify-center rounded-r border border-l-0 border-slate-300 bg-transparent p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                    type="button"
+                    data-target="gemini-api"
+                  >
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  Your API key is stored securely and encrypted.
+                  <a class="text-primary hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
+                </p>
+              </div>
+              <div class="flex items-center justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+                <button
+                  class="inline-flex items-center justify-center rounded px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  type="button"
+                >
+                  Test Connection
+                </button>
+              </div>
+            </section>
+            <!-- Google Custom Search Card -->
+            <section
+              class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+                  Google Custom Search
+                </h3>
+                {% if google.configured %}
+                <div class="flex items-center gap-2 text-sm font-medium text-success">
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                  <span>Connected</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span class="material-symbols-outlined text-base">help</span>
+                  <span>Not Configured</span>
+                </div>
+                {% endif %}
+              </div>
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    for="google-api"
+                    >Google API Key</label
+                  >
+                  <div class="relative flex w-full items-stretch">
+                    <input
+                      class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded rounded-r-none border border-slate-300 border-r-0 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
+                      id="google-api"
+                      name="google_api_key"
+                      type="password"
+                      value="{{ google.value }}"
+                      placeholder="Enter your Google API key"
+                    />
+                    <button
+                      class="toggle-visibility flex items-center justify-center rounded-r border border-l-0 border-slate-300 bg-transparent p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                      type="button"
+                      data-target="google-api"
+                    >
+                      <span class="material-symbols-outlined">visibility_off</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    for="search-engine-id"
+                    >Custom Search Engine ID</label
+                  >
+                  <div class="relative flex w-full items-stretch">
+                    <input
+                      class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded border border-slate-300 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
+                      id="search-engine-id"
+                      name="google_cse_id"
+                      type="text"
+                      value="{{ google.search_engine_id }}"
+                      placeholder="Enter your Search Engine ID"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Find your API key and Search Engine ID in the
+                <a class="text-primary hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
+              </p>
+              <div class="flex items-center justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+                <button
+                  class="inline-flex items-center justify-center rounded px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  type="button"
+                >
+                  Test Connection
+                </button>
+              </div>
+            </section>
+          </div>
+          <footer class="mt-10 flex items-center justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+            <button
+              class="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:outline-none dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:opacity-50"
+              type="button"
+              disabled
+            >
+              Save Changes
+            </button>
+          </footer>
+        </div>
+      </main>
+    </div>
+    <script>
+      const toggleButtons = document.querySelectorAll('.toggle-visibility');
+      toggleButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const targetId = button.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          if (!input) {
+            return;
+          }
+          if (input.type === 'password') {
+            input.type = 'text';
+            button.querySelector('.material-symbols-outlined').textContent = 'visibility_off';
+          } else {
+            input.type = 'password';
+            button.querySelector('.material-symbols-outlined').textContent = 'visibility';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

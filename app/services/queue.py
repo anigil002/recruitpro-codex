@@ -30,6 +30,12 @@ class BackgroundQueue:
     def enqueue(self, job_type: str, payload: Dict[str, Any]) -> None:
         self._queue.put((job_type, payload))
 
+    def registered_job_types(self) -> Dict[str, Callable[[Dict[str, Any]], None]]:
+        """Return a copy of the registered job handlers."""
+
+        with self._lock:
+            return dict(self._handlers)
+
     def start(self) -> None:
         with self._lock:
             if self._thread and self._thread.is_alive():

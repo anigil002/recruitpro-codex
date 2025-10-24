@@ -675,7 +675,7 @@ def upload_document(project_id, file, generate_jd=False):
     return {"status": "queued", "file_url": url}
 
 def analyze_file_job(project_id, file_url, generate_jd):
-    ai = Gemini(model="gemini-2.5-flash-lite", temperature=0.15)
+    ai = Gemini(model="gemini-flash-lite-latest", temperature=0.15)
     result = ai.analyze_file(file_url)  # prompt 4.1
 
     # 1) project info → market research (once)
@@ -696,14 +696,14 @@ def analyze_file_job(project_id, file_url, generate_jd):
 
 def run_market_research_job(project_id, region, sector, summary):
     db.set_project_research_status(project_id, 'in_progress')
-    ai = Gemini(model="gemini-2.5-flash-lite", temperature=0.15)
+    ai = Gemini(model="gemini-flash-lite-latest", temperature=0.15)
     findings = ai.market_research(region, sector, summary)  # prompt 4.2
     db.insert_project_research(project_id, region, findings)
     db.mark_project_research_done(project_id)
     activity.log(project_id, "market_research_completed", "Research written to insights")
 
 def generate_jd_job(position_id, pos_hint):
-    ai = Gemini(model="gemini-2.5-flash-lite", temperature=0.2)
+    ai = Gemini(model="gemini-flash-lite-latest", temperature=0.2)
     jd = ai.generate_jd(pos_hint)  # prompt 4.3
     db.update_position_with_jd(position_id, jd)
 

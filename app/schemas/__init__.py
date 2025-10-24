@@ -309,10 +309,18 @@ class CandidateBulkActionRequest(BaseModel):
     export_format: Optional[str] = Field(default="csv", pattern="^(csv|xlsx)$")
 
 
+class CandidateBulkError(BaseModel):
+    candidate_id: str
+    error: str
+
+
 class CandidateBulkActionResult(BaseModel):
     updated: Optional[int] = None
     deleted: Optional[int] = None
     message: Optional[str] = None
+    success_count: Optional[int] = None
+    failed_count: Optional[int] = None
+    errors: Optional[List[CandidateBulkError]] = None
 
 
 class SmartRecruitersBulkRequest(BaseModel):

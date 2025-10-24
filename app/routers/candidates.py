@@ -1,7 +1,7 @@
 """Candidate endpoints."""
 
 from datetime import datetime
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, Tuple
 
 import csv
 import io
@@ -25,9 +25,23 @@ from ..schemas import (
     CandidateUpdate,
 )
 from ..services.activity import log_activity
+from ..utils.storage import delete_storage_file
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["candidates"])
+
+
+def _ensure_candidate_access(candidate: Candidate, current_user, db: Session) -> None:
+    """Ensure the current user can manage the given candidate."""
+
+    if candidate.project_id:
+        project = db.get(Project, candidate.project_id)
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        if project.created_by != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    elif current_user.role not in {"admin", "recruiter"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
 
 def _recalculate_project_hires(db: Session, project_id: str | None) -> None:
@@ -67,6 +81,52 @@ def _recalculate_many(
         _recalculate_project_hires(db, project_id)
     for position_id in seen_positions:
         _recalculate_position_applicants(db, position_id)
+
+
+def _delete_candidate_record(
+    db: Session,
+    candidate: Candidate,
+    current_user,
+    *,
+    recalc_metrics: bool = True,
+) -> Tuple[Set[str], Set[str]]:
+    """Delete a candidate and perform the required cleanup."""
+
+    _ensure_candidate_access(candidate, current_user, db)
+
+    project_ids: Set[str] = set()
+    position_ids: Set[str] = set()
+
+    candidate_name = candidate.name
+    project_id = candidate.project_id
+    position_id = candidate.position_id
+    was_hired = candidate.status == "hired"
+
+    if candidate.resume_url:
+        delete_storage_file(candidate.resume_url)
+
+    db.delete(candidate)
+    log_activity(
+        db,
+        actor_type="user",
+        actor_id=current_user.user_id,
+        project_id=project_id,
+        position_id=position_id,
+        candidate_id=None,
+        message=f"Deleted candidate {candidate_name}",
+        event_type="candidate_deleted",
+    )
+    db.flush()
+
+    if was_hired and project_id:
+        project_ids.add(project_id)
+    if position_id:
+        position_ids.add(position_id)
+
+    if recalc_metrics:
+        _recalculate_many(db, project_ids, position_ids)
+
+    return project_ids, position_ids
 
 
 @router.get("/candidates", response_model=List[CandidateRead])
@@ -308,25 +368,7 @@ def delete_candidate(candidate_id: str, db: Session = Depends(get_db), current_u
     candidate = db.get(Candidate, candidate_id)
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
-    if candidate.project_id:
-        project = db.get(Project, candidate.project_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
-    previous_project_id = candidate.project_id if candidate.status == "hired" else None
-    previous_position_id = candidate.position_id
-    db.delete(candidate)
-    log_activity(
-        db,
-        actor_type="user",
-        actor_id=current_user.user_id,
-        project_id=candidate.project_id,
-        position_id=candidate.position_id,
-        candidate_id=candidate.candidate_id,
-        message=f"Deleted candidate {candidate.name}",
-        event_type="candidate_deleted",
-    )
-    db.flush()
-    _recalculate_many(db, [previous_project_id] if previous_project_id else [], [previous_position_id] if previous_position_id else [])
+    _delete_candidate_record(db, candidate, current_user)
 
 
 @router.post("/candidates/bulk-action")
@@ -343,21 +385,17 @@ def candidates_bulk_action(
         .filter(Candidate.candidate_id.in_(payload.candidate_ids))
         .all()
     )
-    if not candidates:
-        return CandidateBulkActionResult(updated=0, deleted=0, message="No candidates matched")
-
-    for candidate in candidates:
-        if candidate.project_id:
-            project = db.get(Project, candidate.project_id)
-            if not project or project.created_by != current_user.user_id:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Candidate outside your projects")
+    candidate_map = {candidate.candidate_id: candidate for candidate in candidates}
 
     action = payload.action.lower()
+    if action != "delete" and not candidates:
+        return CandidateBulkActionResult(updated=0, deleted=0, message="No candidates matched")
     if action == "add_tag":
         if not payload.tag:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="tag is required for add_tag")
         updated = 0
         for candidate in candidates:
+            _ensure_candidate_access(candidate, current_user, db)
             tags = set(candidate.tags or [])
             if payload.tag not in tags:
                 tags.add(payload.tag)
@@ -374,26 +412,46 @@ def candidates_bulk_action(
         return CandidateBulkActionResult(updated=updated, message="Tag applied")
 
     if action == "delete":
-        deleted = 0
+        success_count = 0
+        failed_count = 0
+        errors: List[dict] = []
         project_ids: Set[str] = set()
         position_ids: Set[str] = set()
-        for candidate in candidates:
-            if candidate.status == "hired" and candidate.project_id:
-                project_ids.add(candidate.project_id)
-            if candidate.position_id:
-                position_ids.add(candidate.position_id)
-            db.delete(candidate)
-            deleted += 1
-        log_activity(
-            db,
-            actor_type="user",
-            actor_id=current_user.user_id,
-            message=f"Bulk deleted {deleted} candidates",
-            event_type="candidate_bulk_delete",
+
+        for candidate_id in payload.candidate_ids:
+            candidate = candidate_map.get(candidate_id)
+            if not candidate:
+                failed_count += 1
+                errors.append({"candidate_id": candidate_id, "error": "Candidate not found"})
+                continue
+            try:
+                candidate_project_ids, candidate_position_ids = _delete_candidate_record(
+                    db,
+                    candidate,
+                    current_user,
+                    recalc_metrics=False,
+                )
+            except HTTPException as exc:
+                failed_count += 1
+                errors.append({"candidate_id": candidate_id, "error": exc.detail})
+                continue
+
+            project_ids.update(candidate_project_ids)
+            position_ids.update(candidate_position_ids)
+            success_count += 1
+            candidate_map.pop(candidate_id, None)
+
+        if success_count:
+            _recalculate_many(db, project_ids, position_ids)
+
+        message = "Candidates deleted" if success_count else "No candidates deleted"
+        return CandidateBulkActionResult(
+            deleted=success_count,
+            message=message,
+            success_count=success_count,
+            failed_count=failed_count if failed_count else None,
+            errors=errors or None,
         )
-        db.flush()
-        _recalculate_many(db, project_ids, position_ids)
-        return CandidateBulkActionResult(deleted=deleted, message="Candidates deleted")
 
     if action == "export":
         headers = ["Candidate ID", "Name", "Email", "Phone", "Status", "Source", "Tags"]

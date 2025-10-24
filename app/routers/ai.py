@@ -40,6 +40,7 @@ from ..services.ai import (
     record_screening,
     start_sourcing_job,
 )
+from ..services.chatbot import chatbot_orchestrator
 from ..services.gemini import gemini
 from ..utils.security import generate_id
 
@@ -224,26 +225,34 @@ def chatbot(
         .order_by(ChatbotMessage.created_at.asc())
         .all()
     )
-    db.add(
-        ChatbotMessage(
-            message_id=generate_id(),
-            session_id=session.session_id,
-            role="user",
-            content=payload.message,
-            created_at=datetime.utcnow(),
-        )
-    )
     history_payload = [{"role": msg.role, "content": msg.content} for msg in history]
-    reply_payload = gemini.generate_chatbot_reply(history_payload, payload.message)
-    db.add(
-        ChatbotMessage(
-            message_id=generate_id(),
-            session_id=session.session_id,
-            role="assistant",
-            content=reply_payload["reply"],
-            created_at=datetime.utcnow(),
-        )
+
+    user_message = ChatbotMessage(
+        message_id=generate_id(),
+        session_id=session.session_id,
+        role="user",
+        content=payload.message,
+        created_at=datetime.utcnow(),
     )
+    db.add(user_message)
+    history.append(user_message)
+
+    reply_payload = chatbot_orchestrator.handle_message(
+        db,
+        session,
+        history_payload,
+        user_id=current_user.user_id,
+        message=payload.message,
+    )
+
+    assistant_message = ChatbotMessage(
+        message_id=generate_id(),
+        session_id=session.session_id,
+        role="assistant",
+        content=reply_payload["reply"],
+        created_at=datetime.utcnow(),
+    )
+    db.add(assistant_message)
     session.updated_at = datetime.utcnow()
     db.add(session)
     job = create_ai_job(
@@ -255,7 +264,7 @@ def chatbot(
     return ChatbotMessageResponse(
         session_id=session.session_id,
         reply=reply_payload["reply"],
-        tools_suggested=[],
+        tools_suggested=reply_payload.get("tools_suggested", []),
         context_echo=reply_payload.get("context_echo"),
     )
 

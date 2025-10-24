@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RecruitPro - AI Sourcing</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2563EB",
+              secondary: "#14B8A6",
+              "background-light": "#F3F4F6",
+              "background-dark": "#0F172A",
+              "container-light": "#FFFFFF",
+              "container-dark": "#1E293B",
+              "text-light": "#111827",
+              "text-dark": "#E2E8F0",
+              "text-secondary-light": "#6B7280",
+              "text-secondary-dark": "#94A3B8",
+              "border-light": "#E5E7EB",
+              "border-dark": "#334155",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="antialiased font-display bg-background-light dark:bg-background-dark">
+    <div class="relative flex min-h-screen w-full flex-row">
+      <!-- Side Navigation -->
+      <aside
+        class="sticky top-0 flex h-screen flex-col justify-between border-r border-border-light bg-container-light p-4 dark:border-border-dark dark:bg-container-dark"
+      >
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 px-2 py-2">
+            <div class="rounded-lg bg-primary p-2 text-white">
+              <span class="material-symbols-outlined !text-2xl">insights</span>
+            </div>
+            <h1 class="text-xl font-bold leading-normal text-text-light dark:text-text-dark">
+              RecruitPro
+            </h1>
+          </div>
+          <div class="flex flex-col gap-2 pt-4">
+            <a
+              class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+              href="#"
+            >
+              <span class="material-symbols-outlined">dashboard</span>
+              <p class="text-sm font-medium leading-normal">Dashboard</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+              href="#"
+            >
+              <span class="material-symbols-outlined">work</span>
+              <p class="text-sm font-medium leading-normal">Jobs</p>
+            </a>
+            <a
+              class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary"
+              href="#"
+            >
+              <span class="material-symbols-outlined">auto_awesome</span>
+              <p class="text-sm font-medium leading-normal">AI Sourcing</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+              href="#"
+            >
+              <span class="material-symbols-outlined">group</span>
+              <p class="text-sm font-medium leading-normal">Candidates</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+              href="#"
+            >
+              <span class="material-symbols-outlined">bar_chart</span>
+              <p class="text-sm font-medium leading-normal">Analytics</p>
+            </a>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+            href="#"
+          >
+            <span class="material-symbols-outlined">settings</span>
+            <p class="text-sm font-medium leading-normal">Settings</p>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark"
+            href="#"
+          >
+            <span class="material-symbols-outlined">logout</span>
+            <p class="text-sm font-medium leading-normal">Logout</p>
+          </a>
+          <div class="my-2 border-t border-border-light dark:border-border-dark"></div>
+          <div class="flex items-center gap-3 px-2 py-1">
+            <div
+              class="size-10 rounded-full bg-cover bg-center bg-no-repeat"
+              data-alt="User avatar of Eleanor Vance"
+              style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB11rl1BfoQZzr-mtytnxV6J3I1QCljoLY0e2O0CB5UngynWeNaQ2H6rC4H57cGkwK5ZuQqbA2KOip0PKXfsSuP4e5Tp1X7BMNS9qHFouy8nKLRLmSsigcQfk1y5tec_k0YoIbZkHdWanhcbRWFxBYncxUkvhhnB8dJ48nVTaynCT1dr0BIbnCHkPXO55wOkZHuGf6YUL-QmtgSgNSQ0UMqW1k_Qn87TCtRtWTJi_RZ8xxDhXLVQaq7mgZNNJqW29XZemdXcOzJL5Q');"
+            ></div>
+            <div class="flex flex-col">
+              <h1 class="text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+                Eleanor Vance
+              </h1>
+              <p class="text-xs font-normal leading-normal text-text-secondary-light dark:text-text-secondary-dark">
+                Recruiter
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 lg:p-8">
+        <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
+          <!-- Controls column -->
+          <div class="sticky top-8 flex flex-col gap-8 lg:col-span-1">
+            <div class="flex min-w-72 flex-col gap-2">
+              <p class="text-4xl font-black leading-tight tracking-[-0.033em] text-text-light dark:text-text-dark">
+                AI Sourcing
+              </p>
+              <p class="text-base font-normal leading-normal text-text-secondary-light dark:text-text-secondary-dark">
+                Configure and launch jobs to find top talent automatically.
+              </p>
+            </div>
+
+            <section
+              class="flex flex-col rounded-xl border border-border-light bg-container-light dark:border-border-dark dark:bg-container-dark"
+            >
+              <header class="border-b border-border-light p-6 dark:border-border-dark">
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-text-light dark:text-text-dark">
+                  Start a New Sourcing Job
+                </h2>
+              </header>
+              <div class="flex flex-col gap-6 p-6">
+                <label class="flex w-full flex-col">
+                  <p class="pb-2 text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+                    Job Title
+                  </p>
+                  <input
+                    class="form-input h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-border-light bg-background-light px-3 text-sm text-text-light placeholder:text-text-secondary-light focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-text-secondary-dark"
+                    placeholder="e.g., Senior Software Engineer"
+                    type="text"
+                  />
+                </label>
+                <label class="flex w-full flex-col">
+                  <p class="pb-2 text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+                    Location
+                  </p>
+                  <input
+                    class="form-input h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-border-light bg-background-light px-3 text-sm text-text-light placeholder:text-text-secondary-light focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-text-secondary-dark"
+                    placeholder="e.g., San Francisco, CA or Remote"
+                    type="text"
+                  />
+                </label>
+                <div class="flex w-full flex-col">
+                  <p class="pb-2 text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+                    Key Skills/Keywords
+                  </p>
+                  <div
+                    class="flex flex-wrap items-center gap-2 rounded-lg border border-border-light bg-background-light p-2 dark:border-border-dark dark:bg-background-dark"
+                  >
+                    <span class="flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
+                      >React
+                      <button class="text-primary/70 transition-colors hover:text-primary">
+                        <span class="material-symbols-outlined !text-sm">close</span>
+                      </button>
+                    </span>
+                    <span class="flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
+                      >Node.js
+                      <button class="text-primary/70 transition-colors hover:text-primary">
+                        <span class="material-symbols-outlined !text-sm">close</span>
+                      </button>
+                    </span>
+                    <span class="flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
+                      >TypeScript
+                      <button class="text-primary/70 transition-colors hover:text-primary">
+                        <span class="material-symbols-outlined !text-sm">close</span>
+                      </button>
+                    </span>
+                    <input
+                      class="min-w-20 flex-1 bg-transparent text-sm text-text-light placeholder:text-text-secondary-light focus:outline-none dark:text-text-dark dark:placeholder:text-text-secondary-dark"
+                      placeholder="Add a skill..."
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div class="flex w-full flex-col gap-2">
+                  <p class="text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+                    Platforms
+                  </p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label
+                      class="has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex items-center gap-3 rounded-lg border border-border-light p-3 transition-colors dark:border-border-dark"
+                    >
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" checked type="checkbox" />
+                      <span class="text-sm font-medium text-text-light dark:text-text-dark">LinkedIn</span>
+                    </label>
+                    <label
+                      class="has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex items-center gap-3 rounded-lg border border-border-light p-3 transition-colors dark:border-border-dark"
+                    >
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" checked type="checkbox" />
+                      <span class="text-sm font-medium text-text-light dark:text-text-dark">Google X-Ray</span>
+                    </label>
+                    <label
+                      class="has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex items-center gap-3 rounded-lg border border-border-light p-3 transition-colors dark:border-border-dark"
+                    >
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                      <span class="text-sm font-medium text-text-light dark:text-text-dark">SmartRecruiters</span>
+                    </label>
+                  </div>
+                </div>
+                <button
+                  class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary font-semibold text-white transition-colors hover:bg-primary/90"
+                >
+                  <span class="material-symbols-outlined">auto_awesome</span>
+                  Start Sourcing
+                </button>
+              </div>
+            </section>
+
+            <section
+              class="flex flex-col rounded-xl border border-border-light bg-container-light dark:border-border-dark dark:bg-container-dark"
+            >
+              <header class="border-b border-border-light p-6 dark:border-border-dark">
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-text-light dark:text-text-dark">
+                  Sourcing in Progress
+                </h2>
+              </header>
+              <div class="flex flex-col gap-4 p-6">
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-text-light dark:text-text-dark">Senior Software Engineer</p>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">75%</p>
+                  </div>
+                  <div class="h-2 w-full rounded-full bg-background-light dark:bg-background-dark">
+                    <div class="h-2 rounded-full bg-secondary" style="width: 75%"></div>
+                  </div>
+                  <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                    Scanning LinkedIn...
+                  </p>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-text-light dark:text-text-dark">Product Manager, AI</p>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">32%</p>
+                  </div>
+                  <div class="h-2 w-full rounded-full bg-background-light dark:bg-background-dark">
+                    <div class="h-2 rounded-full bg-secondary" style="width: 32%"></div>
+                  </div>
+                  <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                    Scanning Google X-Ray...
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Candidate results column -->
+          <section
+            class="rounded-xl border border-border-light bg-container-light dark:border-border-dark dark:bg-container-dark lg:col-span-2"
+          >
+            <header
+              class="flex flex-wrap items-center justify-between gap-4 border-b border-border-light p-6 dark:border-border-dark"
+            >
+              <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-text-light dark:text-text-dark">
+                Sourced Candidates
+              </h2>
+              <div class="flex items-center gap-2">
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark"
+                    >search</span
+                  >
+                  <input
+                    class="form-input h-10 w-full rounded-lg border border-border-light bg-background-light pl-10 pr-4 text-sm text-text-light placeholder:text-text-secondary-light focus:outline-none focus:ring-2 focus:ring-primary/50 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-text-secondary-dark md:w-64"
+                    placeholder="Search candidates..."
+                    type="text"
+                  />
+                </div>
+                <button
+                  class="flex h-10 items-center gap-2 rounded-lg border border-border-light bg-container-light px-4 text-sm font-medium text-text-light transition-colors hover:bg-background-light dark:border-border-dark dark:bg-container-dark dark:text-text-dark dark:hover:bg-background-dark"
+                >
+                  <span class="material-symbols-outlined !text-xl">filter_list</span>
+                  Filter
+                </button>
+              </div>
+            </header>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-background-light text-xs uppercase text-text-secondary-light dark:bg-background-dark dark:text-text-secondary-dark">
+                  <tr>
+                    <th scope="col" class="p-4">
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                    </th>
+                    <th scope="col" class="px-6 py-3">Candidate</th>
+                    <th scope="col" class="px-6 py-3">Source</th>
+                    <th scope="col" class="px-6 py-3">AI Match Score</th>
+                    <th scope="col" class="px-6 py-3">Status</th>
+                    <th scope="col" class="px-6 py-3">Date</th>
+                    <th scope="col" class="px-6 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-border-light transition-colors hover:bg-background-light dark:border-border-dark dark:hover:bg-background-dark">
+                    <td class="p-4">
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <img
+                          class="size-10 rounded-full"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxicc11ZbN-GDK6qS_P12tz6nrQvDq-fd47x3Eb7eieihWfeUdIPO3T7d77jgEdVbyotvIAvJy1h7Ahjx-CWKJb1Ex_78kaUrz4tfpJFJPi4zKBWjBRkj1k5Sjzx4_qNNQBDjdxKws1ZY5VGdRv-67A2YK06H6iLVVcNdfOikNrcx3RBIA9W-yas0G8b4ETA3DJ59-fwsr_uChFaKzSuaD9WJFLf1Yt9TgFYs19paeb498Z6Tm-b4qwsU-8fxJ7y_DRM3VPibhY70"
+                          data-alt="Avatar of Liam Johnson"
+                          alt="Liam Johnson"
+                        />
+                        <div>
+                          <div class="font-semibold text-text-light dark:text-text-dark">Liam Johnson</div>
+                          <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                            liam.johnson@example.com
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                      <span class="material-symbols-outlined" title="LinkedIn">public</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-green-600 dark:text-green-400">92%</span>
+                        <div class="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
+                          <div class="h-1.5 rounded-full bg-green-500" style="width: 92%"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="mr-2 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                        >New</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">Apr 15, 2024</td>
+                    <td class="px-6 py-4">
+                      <button class="text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-border-light transition-colors hover:bg-background-light dark:border-border-dark dark:hover:bg-background-dark">
+                    <td class="p-4">
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <img
+                          class="size-10 rounded-full"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcrsfzFihgdi5Dbj26e8fsbJiEIHPY94QrGqX2zG72uGzlghvOczyucRc6uJjkZz8oLoh5t595HYjLlg_9EBAGYymg_j0dqX7FjRF6HFw0HLA9vHECWLmK02fWxAJJ5AJj2b0Y0k0jobZh6yeyavHxxaFGX89k3Lg8uS8hYRt5DL4V_KDMrY48qU-AUPncD1NOFEKGfHjLrFJpD0pA5PeLf-HgmXW6I_CNGo37GfcZGmga2Bn_U-GXadHvMGLsw4sBSZxId5YasjQ"
+                          data-alt="Avatar of Olivia Chen"
+                          alt="Olivia Chen"
+                        />
+                        <div>
+                          <div class="font-semibold text-text-light dark:text-text-dark">Olivia Chen</div>
+                          <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                            olivia.chen@example.com
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                      <span class="material-symbols-outlined" title="Google X-Ray">travel_explore</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-orange-500 dark:text-orange-400">78%</span>
+                        <div class="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
+                          <div class="h-1.5 rounded-full bg-orange-500" style="width: 78%"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="mr-2 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
+                        >Contacted</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">Apr 14, 2024</td>
+                    <td class="px-6 py-4">
+                      <button class="text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-border-light transition-colors hover:bg-background-light dark:border-border-dark dark:hover:bg-background-dark">
+                    <td class="p-4">
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <img
+                          class="size-10 rounded-full"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfh0emp-Me1OKizOlZjjkASm6j8-GGsdIgbemKyGuY7ppZ-DJeBHzqwWGWv9OIu1wA2dZ5yG_FZB2UeAtrdNc3AFtcWY8rDjW1CdTJzCOP_4AI1yc1yf9saBZ5RP5Qbc0wmRWBVHeWu28wpH3OCFEInEVjveDaDDZSXxBQw04ZLqVarR6oEw0p1TViC6EFdafWbVSYgXr5zb6XWWjjpROnlCalGrTi7HuT841W0OiHUtVl0XFbEogVGNgiuW65KWGARNI5zG-eMt0"
+                          data-alt="Avatar of Benjamin Carter"
+                          alt="Benjamin Carter"
+                        />
+                        <div>
+                          <div class="font-semibold text-text-light dark:text-text-dark">Benjamin Carter</div>
+                          <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                            ben.carter@example.com
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                      <span class="material-symbols-outlined" title="SmartRecruiters">business_center</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-orange-500 dark:text-orange-400">65%</span>
+                        <div class="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
+                          <div class="h-1.5 rounded-full bg-orange-500" style="width: 65%"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="mr-2 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+                        >Interviewing</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">Apr 12, 2024</td>
+                    <td class="px-6 py-4">
+                      <button class="text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-border-light transition-colors hover:bg-background-light dark:border-border-dark dark:hover:bg-background-dark">
+                    <td class="p-4">
+                      <input class="form-checkbox rounded text-primary focus:ring-primary/50" type="checkbox" />
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <img
+                          class="size-10 rounded-full"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWaXpWHBHF4Julma_hjsDmYF16uuEBKXNtLsunuZc-1wOUHaT6j14rr7xrrNVJ22CD9-AZgI0qaks4CO1iZtKRAiGh3H7Hr4YKLadxlVlTlW6Lj1W8DJwixCYFcH1MUR-e8Cnsg83xVx7PaAtOeZmuTivCgJrgQu-WA8S8O_K6LGbES9GCc_BdP3cgLKsi6haxFMsi4lop9gwPqYAZizzJPkRNPFgL9HpNuyTS0WpLDInfZpYNM-Xkcle7qvXxAPBcVyfzzi8-TzI"
+                          data-alt="Avatar of Sophia Rodriguez"
+                          alt="Sophia Rodriguez"
+                        />
+                        <div>
+                          <div class="font-semibold text-text-light dark:text-text-dark">Sophia Rodriguez</div>
+                          <div class="text-text-secondary-light dark:text-text-secondary-dark">
+                            sophia.r@example.com
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                      <span class="material-symbols-outlined" title="LinkedIn">public</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-red-500 dark:text-red-400">45%</span>
+                        <div class="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
+                          <div class="h-1.5 rounded-full bg-red-500" style="width: 45%"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="mr-2 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                        >Rejected</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">Apr 10, 2024</td>
+                    <td class="px-6 py-4">
+                      <button class="text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <footer
+              class="flex flex-col items-center justify-between gap-4 border-t border-border-light p-4 text-sm text-text-secondary-light dark:border-border-dark dark:text-text-secondary-dark md:flex-row"
+            >
+              <p>
+                Showing <span class="font-semibold text-text-light dark:text-text-dark">1-4</span> of
+                <span class="font-semibold text-text-light dark:text-text-dark">128</span>
+              </p>
+              <div class="flex items-center gap-2">
+                <button
+                  class="rounded-md border border-border-light px-3 py-1.5 transition-colors hover:bg-background-light disabled:opacity-50 dark:border-border-dark dark:hover:bg-background-dark"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  class="rounded-md border border-border-light px-3 py-1.5 transition-colors hover:bg-background-light dark:border-border-dark dark:hover:bg-background-dark"
+                >
+                  Next
+                </button>
+              </div>
+            </footer>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

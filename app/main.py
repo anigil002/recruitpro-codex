@@ -158,3 +158,53 @@ async def candidate_profile_page(
         }
     )
     return templates.TemplateResponse("candidate_profile.html", context)
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request) -> HTMLResponse:
+    """Render the workspace settings configuration UI."""
+
+    sidebar = {
+        "logo_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuC1J7UyLIViqxSyACOj8r849gKCUxlXYhUoJzEPigDkrZrbTnpsbhrACpejUnyYK6Ec_01VMtmnR7HmFzI5uclry4cYgWo9ECs4m1Lrot4i24aa9HaRaQ4P9njXkzBgSX_DBdqPqROdPX9mAun8S9oQQG3xgY4WjAj_EuZANnFsAo00q5hkvrENCWOtcycFa37bqnznIWTyTu8boN53lb4heHut2Zzi4Bd_wKPg-vjsR8mVfVnVhrfdDfihlo7aMo00Ffg1XMG3UX0",
+        "workspace_name": settings.app_name,
+        "workspace_context": "Workspace Settings",
+        "menu": [
+            {"icon": "account_circle", "label": "Profile", "href": "#", "active": False},
+            {"icon": "notifications", "label": "Notifications", "href": "#", "active": False},
+            {
+                "icon": "key",
+                "label": "API Keys",
+                "href": "#",
+                "active": True,
+                "icon_filled": True,
+            },
+            {"icon": "extension", "label": "Integrations", "href": "#", "active": False},
+            {"icon": "database", "label": "Data & Storage", "href": "#", "active": False},
+        ],
+        "secondary_menu": [
+            {"icon": "help_outline", "label": "Help Center", "href": "#"},
+            {"icon": "logout", "label": "Logout", "href": "#"},
+        ],
+    }
+
+    gemini = {
+        "configured": bool(settings.gemini_api_key_value),
+        "value": settings.gemini_api_key_value,
+        "learn_more_url": "https://ai.google.dev/gemini-api/docs/api-key",
+    }
+
+    google = {
+        "configured": bool(settings.google_search_api_key_value and settings.google_custom_search_engine_id),
+        "value": settings.google_search_api_key_value,
+        "search_engine_id": settings.google_custom_search_engine_id or "",
+        "learn_more_url": "https://developers.google.com/custom-search/v1/overview",
+    }
+
+    context = {
+        "request": request,
+        "sidebar": sidebar,
+        "gemini": gemini,
+        "google": google,
+    }
+
+    return templates.TemplateResponse("settings.html", context)

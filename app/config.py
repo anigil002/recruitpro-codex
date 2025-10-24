@@ -24,6 +24,22 @@ class Settings(BaseSettings):
     )
     storage_path: str = Field(default="storage")
     cors_allowed_origins: List[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    gemini_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GEMINI_API_KEY", "RECRUITPRO_GEMINI_API_KEY"),
+    )
+    google_search_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GOOGLE_API_KEY", "RECRUITPRO_GOOGLE_API_KEY"),
+    )
+    google_custom_search_engine_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "GOOGLE_CSE_ID",
+            "GOOGLE_CUSTOM_SEARCH_ENGINE_ID",
+            "RECRUITPRO_GOOGLE_CSE_ID",
+        ),
+    )
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
@@ -40,6 +56,18 @@ class Settings(BaseSettings):
     @property
     def secret_key_value(self) -> str:
         return self.secret_key.get_secret_value()
+
+    @staticmethod
+    def _secret_value(secret: SecretStr | None) -> str:
+        return secret.get_secret_value() if secret else ""
+
+    @property
+    def gemini_api_key_value(self) -> str:
+        return self._secret_value(self.gemini_api_key)
+
+    @property
+    def google_search_api_key_value(self) -> str:
+        return self._secret_value(self.google_search_api_key)
 
 
 @lru_cache

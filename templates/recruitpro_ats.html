@@ -234,6 +234,183 @@
         font-size: 1.05rem;
       }
 
+      .kanban-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 16px 0 12px;
+      }
+
+      .kanban-filter {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        min-width: 180px;
+      }
+
+      .kanban-board {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(220px, 1fr);
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        margin-bottom: 24px;
+        scrollbar-width: thin;
+      }
+
+      .kanban-board::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .kanban-board::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.35);
+        border-radius: 999px;
+      }
+
+      @media (min-width: 1280px) {
+        .kanban-board {
+          grid-auto-flow: initial;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+      }
+
+      .kanban-column {
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid var(--panel-border);
+        border-top: 4px solid var(--column-accent, var(--accent));
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .kanban-column.is-over {
+        box-shadow: 0 0 0 2px var(--column-accent, var(--accent));
+        transform: translateY(-2px);
+        background: rgba(17, 24, 39, 0.72);
+      }
+
+      .kanban-column-header {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: 1px solid var(--panel-border);
+      }
+
+      .kanban-column-title {
+        font-weight: 600;
+        color: var(--column-accent, var(--accent));
+      }
+
+      .kanban-column-count {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+
+      .kanban-column-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        flex: 1;
+      }
+
+      .kanban-empty {
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px dashed rgba(148, 163, 184, 0.35);
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .kanban-card {
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.65);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        cursor: grab;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+      }
+
+      .kanban-card:active {
+        cursor: grabbing;
+      }
+
+      .kanban-card.is-dragging {
+        opacity: 0.65;
+        transform: scale(0.98);
+        box-shadow: 0 16px 32px -16px rgba(96, 165, 250, 0.45);
+      }
+
+      .kanban-card--updated {
+        box-shadow: 0 0 0 2px var(--column-accent, var(--accent));
+      }
+
+      .kanban-card-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .kanban-card-meta,
+      .kanban-card-detail {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .kanban-card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .kanban-card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .kanban-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: rgba(148, 163, 184, 0.22);
+        color: var(--text);
+      }
+
+      .kanban-card-link {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--accent);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        align-self: flex-start;
+      }
+
+      .kanban-card-link:hover,
+      .kanban-card-link:focus {
+        text-decoration: underline;
+        color: var(--accent-soft);
+      }
+
       .empty-state {
         padding: 18px;
         border-radius: 12px;
@@ -698,7 +875,17 @@
           <section>
             <h3>Candidates</h3>
             <p class="muted" style="margin-top: 4px;">Track talent pipeline and jump into detailed profiles.</p>
-            <ul class="item-list" id="candidates-list"></ul>
+            <div class="kanban-controls">
+              <label class="kanban-filter">
+                Project filter
+                <select id="candidate-filter-project"></select>
+              </label>
+              <label class="kanban-filter">
+                Position filter
+                <select id="candidate-filter-position"></select>
+              </label>
+            </div>
+            <div class="kanban-board" id="candidate-board" aria-live="polite"></div>
             <form id="candidate-form" autocomplete="off">
               <h4>Add candidate</h4>
               <label>
@@ -795,6 +982,10 @@
         linkedinJobs: [],
         activities: [],
         activityKeys: new Set(),
+        candidateFilters: {
+          projectId: "all",
+          positionId: "all",
+        },
       };
 
       let activitySource = null;
@@ -811,7 +1002,9 @@
       const statCandidates = document.getElementById("stat-candidates");
       const projectsList = document.getElementById("projects-list");
       const positionsList = document.getElementById("positions-list");
-      const candidatesList = document.getElementById("candidates-list");
+      const candidateBoard = document.getElementById("candidate-board");
+      const candidateFilterProjectSelect = document.getElementById("candidate-filter-project");
+      const candidateFilterPositionSelect = document.getElementById("candidate-filter-position");
       const activityFeedList = document.getElementById("activity-feed-list");
       const activityEmpty = document.getElementById("activity-empty");
       const activityStatus = document.getElementById("activity-status");
@@ -827,6 +1020,19 @@
       const linkedinJobsList = document.getElementById("linkedin-xray-jobs");
       const refreshButton = document.getElementById("refresh-button");
       const logoutButton = document.getElementById("logout-button");
+
+      const KANBAN_STATUSES = [
+        { key: "new", label: "New", color: "#3b82f6" },
+        { key: "screening", label: "Screening", color: "#22d3ee" },
+        { key: "interviewing", label: "Interviewing", color: "#f97316" },
+        { key: "offer", label: "Offer", color: "#facc15" },
+        { key: "hired", label: "Hired", color: "#22c55e" },
+        { key: "rejected", label: "Rejected", color: "#ef4444" },
+        { key: "withdrawn", label: "Withdrawn", color: "#a855f7" },
+      ];
+      const KNOWN_STATUS_SET = new Set(KANBAN_STATUSES.map((status) => status.key));
+      let draggingCandidateId = null;
+      let draggingCandidateStatus = null;
 
       function setMessage(text, variant = "info") {
         if (!text) {
@@ -1571,12 +1777,21 @@
         state.linkedinJobs = [];
         state.activities = [];
         state.activityKeys = new Set();
+        state.candidateFilters = { projectId: "all", positionId: "all" };
         window.localStorage.removeItem("recruitproToken");
         authPanel.classList.remove("hidden");
         appPanel.classList.add("hidden");
         projectsList.innerHTML = "";
         positionsList.innerHTML = "";
-        candidatesList.innerHTML = "";
+        if (candidateBoard) {
+          candidateBoard.innerHTML = "";
+        }
+        if (candidateFilterProjectSelect) {
+          candidateFilterProjectSelect.innerHTML = "";
+        }
+        if (candidateFilterPositionSelect) {
+          candidateFilterPositionSelect.innerHTML = "";
+        }
         if (linkedinJobsList) {
           linkedinJobsList.innerHTML = "";
         }
@@ -1706,58 +1921,367 @@
         });
       }
 
+      function getStatusLabel(statusKey) {
+        const entry = KANBAN_STATUSES.find((item) => item.key === statusKey);
+        return entry ? entry.label : statusKey;
+      }
+
+      function escapeSelector(value) {
+        if (typeof CSS !== "undefined" && CSS.escape) {
+          return CSS.escape(value);
+        }
+        return value.replace(/([\0-\x1f\x7f-\x9f\s!"#$%&'()*+,./:;<=>?@\[\]^`{|}~])/g, "\\$1");
+      }
+
+      function getFilteredCandidates() {
+        const projectFilter = state.candidateFilters.projectId || "all";
+        const positionFilter = state.candidateFilters.positionId || "all";
+        return state.candidates.filter((candidate) => {
+          const candidateProjectId = candidate.project_id || "";
+          const candidatePositionId = candidate.position_id || "";
+
+          if (projectFilter === "unassigned" && candidateProjectId) {
+            return false;
+          }
+          if (projectFilter !== "all" && projectFilter !== "unassigned" && candidateProjectId !== projectFilter) {
+            return false;
+          }
+
+          if (positionFilter === "unassigned" && candidatePositionId) {
+            return false;
+          }
+          if (positionFilter !== "all" && positionFilter !== "unassigned" && candidatePositionId !== positionFilter) {
+            return false;
+          }
+
+          return true;
+        });
+      }
+
+      function createCandidateCard(candidate) {
+        const card = document.createElement("article");
+        card.className = "kanban-card";
+        card.draggable = true;
+        card.dataset.candidateId = candidate.candidate_id;
+        const statusKey = candidate.status && KNOWN_STATUS_SET.has(candidate.status) ? candidate.status : "new";
+        card.dataset.status = statusKey;
+
+        card.addEventListener("dragstart", (event) => {
+          draggingCandidateId = candidate.candidate_id;
+          draggingCandidateStatus = statusKey;
+          card.classList.add("is-dragging");
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", candidate.candidate_id);
+          }
+        });
+
+        card.addEventListener("dragend", () => {
+          draggingCandidateId = null;
+          draggingCandidateStatus = null;
+          card.classList.remove("is-dragging");
+        });
+
+        const title = document.createElement("h4");
+        title.className = "kanban-card-title";
+        title.textContent = candidate.name || "Unnamed candidate";
+        card.appendChild(title);
+
+        const meta = document.createElement("div");
+        meta.className = "kanban-card-meta";
+        const position = positionLookup(candidate.position_id);
+        const project = projectLookup(candidate.project_id);
+
+        const emailLine = document.createElement("span");
+        emailLine.textContent = candidate.email ? `Email: ${candidate.email}` : "Email: —";
+        meta.appendChild(emailLine);
+
+        const positionLine = document.createElement("span");
+        positionLine.textContent = position ? `Position: ${position.title}` : "Position: Unassigned";
+        meta.appendChild(positionLine);
+
+        const projectLine = document.createElement("span");
+        projectLine.textContent = project ? `Project: ${project.name}` : "Project: Unassigned";
+        meta.appendChild(projectLine);
+
+        const sourceLine = document.createElement("span");
+        sourceLine.textContent = candidate.source ? `Source: ${candidate.source}` : "Source: —";
+        meta.appendChild(sourceLine);
+
+        card.appendChild(meta);
+
+        const ratingLine = document.createElement("p");
+        ratingLine.className = "kanban-card-detail";
+        ratingLine.textContent = `Rating: ${candidate.rating ?? "—"}`;
+        card.appendChild(ratingLine);
+
+        const tagsLabel = document.createElement("p");
+        tagsLabel.className = "kanban-card-detail";
+        tagsLabel.textContent = "Tags:";
+        card.appendChild(tagsLabel);
+
+        const tagsWrap = document.createElement("div");
+        tagsWrap.className = "kanban-card-tags";
+        const tags = Array.isArray(candidate.tags) ? candidate.tags.filter(Boolean) : [];
+        if (tags.length === 0) {
+          const placeholderTag = document.createElement("span");
+          placeholderTag.className = "kanban-tag";
+          placeholderTag.style.opacity = "0.6";
+          placeholderTag.textContent = "No tags";
+          tagsWrap.appendChild(placeholderTag);
+        } else {
+          tags.slice(0, 6).forEach((tag) => {
+            const tagEl = document.createElement("span");
+            tagEl.className = "kanban-tag";
+            tagEl.textContent = tag;
+            tagsWrap.appendChild(tagEl);
+          });
+        }
+        card.appendChild(tagsWrap);
+
+        const link = document.createElement("a");
+        link.className = "kanban-card-link";
+        link.textContent = "Open profile";
+        link.href = `/candidate-profile?candidate_id=${encodeURIComponent(candidate.candidate_id)}${
+          state.token ? `&token=${encodeURIComponent(state.token)}` : ""
+        }`;
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        card.appendChild(link);
+
+        return card;
+      }
+
       function renderCandidates() {
-        candidatesList.innerHTML = "";
-        if (state.candidates.length === 0) {
-          const empty = document.createElement("li");
-          empty.className = "empty-state";
-          empty.textContent = "No candidates recorded. Add talent to start building your pipeline.";
-          candidatesList.appendChild(empty);
+        if (!candidateBoard) {
           return;
         }
 
-        state.candidates.forEach((candidate) => {
-          const item = document.createElement("li");
-          item.className = "item-card";
+        const filteredCandidates = getFilteredCandidates();
+        const grouped = new Map(KANBAN_STATUSES.map((status) => [status.key, []]));
+        filteredCandidates.forEach((candidate) => {
+          const statusKey = candidate.status && KNOWN_STATUS_SET.has(candidate.status) ? candidate.status : "new";
+          grouped.get(statusKey).push(candidate);
+        });
 
-          const title = document.createElement("h4");
-          title.textContent = candidate.name;
-          item.appendChild(title);
+        candidateBoard.innerHTML = "";
 
-          const meta = document.createElement("p");
-          meta.className = "muted";
-          const source = candidate.source ? `Source: ${candidate.source}` : "";
-          const status = `Status: ${candidate.status}`;
-          meta.textContent = [source, status].filter(Boolean).join(" • ");
-          item.appendChild(meta);
+        KANBAN_STATUSES.forEach((status) => {
+          const column = document.createElement("section");
+          column.className = "kanban-column";
+          column.dataset.status = status.key;
+          column.style.setProperty("--column-accent", status.color);
 
-          const project = projectLookup(candidate.project_id);
-          const position = positionLookup(candidate.position_id);
-          if (project || position) {
-            const assignment = document.createElement("p");
-            assignment.className = "muted";
-            const parts = [];
-            if (project) {
-              parts.push(`Project: ${project.name}`);
+          column.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            column.classList.add("is-over");
+            if (event.dataTransfer) {
+              event.dataTransfer.dropEffect = "move";
             }
-            if (position) {
-              parts.push(`Role: ${position.title}`);
+          });
+
+          column.addEventListener("dragenter", (event) => {
+            event.preventDefault();
+            column.classList.add("is-over");
+          });
+
+          column.addEventListener("dragleave", (event) => {
+            if (!column.contains(event.relatedTarget)) {
+              column.classList.remove("is-over");
             }
-            assignment.textContent = parts.join(" • ");
-            item.appendChild(assignment);
+          });
+
+          column.addEventListener("drop", (event) => {
+            event.preventDefault();
+            column.classList.remove("is-over");
+            if (!draggingCandidateId) {
+              return;
+            }
+            const candidateId = draggingCandidateId;
+            const previousStatus = draggingCandidateStatus;
+            draggingCandidateId = null;
+            draggingCandidateStatus = null;
+            if (previousStatus === status.key) {
+              renderCandidates();
+              return;
+            }
+            moveCandidateToStatus(candidateId, status.key, previousStatus);
+          });
+
+          const header = document.createElement("div");
+          header.className = "kanban-column-header";
+
+          const title = document.createElement("span");
+          title.className = "kanban-column-title";
+          title.textContent = status.label;
+          header.appendChild(title);
+
+          const count = document.createElement("span");
+          count.className = "kanban-column-count";
+          count.textContent = grouped.get(status.key).length.toString();
+          header.appendChild(count);
+
+          const body = document.createElement("div");
+          body.className = "kanban-column-body";
+
+          const candidatesForColumn = grouped.get(status.key);
+          if (candidatesForColumn.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "kanban-empty";
+            empty.textContent = "No candidates";
+            body.appendChild(empty);
+          } else {
+            candidatesForColumn
+              .slice()
+              .sort((a, b) => {
+                const ratingA = a.rating ?? -Infinity;
+                const ratingB = b.rating ?? -Infinity;
+                if (ratingA === ratingB) {
+                  const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                  const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                  return dateB - dateA;
+                }
+                return ratingB - ratingA;
+              })
+              .forEach((candidate) => {
+                const card = createCandidateCard(candidate);
+                body.appendChild(card);
+              });
           }
 
-          const link = document.createElement("a");
-          link.textContent = "Open profile";
-          link.href = `/candidate-profile?candidate_id=${encodeURIComponent(candidate.candidate_id)}${
-            state.token ? `&token=${encodeURIComponent(state.token)}` : ""
-          }`;
-          link.target = "_blank";
-          link.rel = "noreferrer";
-          item.appendChild(link);
-
-          candidatesList.appendChild(item);
+          column.appendChild(header);
+          column.appendChild(body);
+          candidateBoard.appendChild(column);
         });
+      }
+
+      function highlightCandidateCard(candidateId) {
+        if (!candidateId || !candidateBoard) {
+          return;
+        }
+        window.requestAnimationFrame(() => {
+          const selector = `.kanban-card[data-candidate-id="${escapeSelector(candidateId)}"]`;
+          const card = candidateBoard.querySelector(selector);
+          if (!card) {
+            return;
+          }
+          card.classList.add("kanban-card--updated");
+          window.setTimeout(() => {
+            card.classList.remove("kanban-card--updated");
+          }, 600);
+        });
+      }
+
+      async function moveCandidateToStatus(candidateId, nextStatus, previousStatus = null) {
+        if (!candidateId || !KNOWN_STATUS_SET.has(nextStatus)) {
+          return;
+        }
+        const index = state.candidates.findIndex((candidate) => candidate.candidate_id === candidateId);
+        if (index === -1) {
+          return;
+        }
+        const currentCandidate = state.candidates[index];
+        const originalStatus = previousStatus ?? currentCandidate.status;
+        if (originalStatus === nextStatus) {
+          return;
+        }
+
+        state.candidates[index] = { ...currentCandidate, status: nextStatus };
+        renderCandidates();
+
+        try {
+          const updated = await apiFetch(`/api/candidates/${encodeURIComponent(candidateId)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: nextStatus }),
+          });
+          state.candidates[index] = { ...state.candidates[index], ...updated };
+          renderStats();
+          renderCandidates();
+          highlightCandidateCard(candidateId);
+          setMessage(`Candidate moved to ${getStatusLabel(nextStatus)} stage.`, "success");
+        } catch (error) {
+          state.candidates[index] = currentCandidate;
+          renderCandidates();
+          setMessage(error.message, "error");
+        }
+      }
+
+      function refreshCandidateFilterProjectOptions() {
+        if (!candidateFilterProjectSelect) {
+          return false;
+        }
+        const currentValue = state.candidateFilters.projectId || "all";
+        const options = [
+          { value: "all", label: "All projects" },
+          { value: "unassigned", label: "Unassigned" },
+        ];
+        state.projects.forEach((project) => {
+          options.push({ value: project.project_id, label: project.name });
+        });
+
+        candidateFilterProjectSelect.innerHTML = "";
+        options.forEach((option) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = option.value;
+          optionEl.textContent = option.label;
+          candidateFilterProjectSelect.appendChild(optionEl);
+        });
+
+        const hasCurrent = options.some((option) => option.value === currentValue);
+        const nextValue = hasCurrent ? currentValue : "all";
+        state.candidateFilters.projectId = nextValue;
+        candidateFilterProjectSelect.value = nextValue;
+        return nextValue !== currentValue;
+      }
+
+      function refreshCandidateFilterPositionOptions() {
+        if (!candidateFilterPositionSelect) {
+          return false;
+        }
+        const projectFilter = state.candidateFilters.projectId || "all";
+        const currentValue = state.candidateFilters.positionId || "all";
+
+        const baseOptions = [
+          { value: "all", label: "All positions" },
+          { value: "unassigned", label: "Unassigned" },
+        ];
+        const relevantPositions = projectFilter === "all"
+          ? state.positions
+          : state.positions.filter((position) => position.project_id === projectFilter);
+
+        candidateFilterPositionSelect.innerHTML = "";
+        baseOptions.forEach((option) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = option.value;
+          optionEl.textContent = option.label;
+          candidateFilterPositionSelect.appendChild(optionEl);
+        });
+
+        relevantPositions.forEach((position) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = position.position_id;
+          optionEl.textContent = position.title;
+          candidateFilterPositionSelect.appendChild(optionEl);
+        });
+
+        const validValues = new Set([
+          ...baseOptions.map((option) => option.value),
+          ...relevantPositions.map((position) => position.position_id),
+        ]);
+        const nextValue = validValues.has(currentValue) ? currentValue : "all";
+        state.candidateFilters.positionId = nextValue;
+        candidateFilterPositionSelect.value = nextValue;
+        candidateFilterPositionSelect.disabled = relevantPositions.length === 0 && projectFilter !== "unassigned";
+        return nextValue !== currentValue;
+      }
+
+      function refreshCandidateFilterOptions() {
+        const projectChanged = refreshCandidateFilterProjectOptions();
+        const positionChanged = refreshCandidateFilterPositionOptions();
+        if (projectChanged || positionChanged) {
+          renderCandidates();
+        }
       }
 
       function refreshProjectOptions() {
@@ -1813,6 +2337,7 @@
         }
 
         refreshCandidatePositionOptions();
+        refreshCandidateFilterOptions();
       }
 
       function refreshCandidatePositionOptions() {
@@ -2193,6 +2718,8 @@
         }
       }
 
+      refreshCandidateFilterOptions();
+
       document.getElementById("register-form").addEventListener("submit", registerUser);
       document.getElementById("login-form").addEventListener("submit", loginUser);
       document.getElementById("project-form").addEventListener("submit", createProject);
@@ -2205,6 +2732,20 @@
       document.getElementById("position-form").addEventListener("submit", createPosition);
       document.getElementById("candidate-form").addEventListener("submit", createCandidate);
       candidateProjectSelect.addEventListener("change", refreshCandidatePositionOptions);
+      if (candidateFilterProjectSelect) {
+        candidateFilterProjectSelect.addEventListener("change", (event) => {
+          state.candidateFilters.projectId = event.target.value;
+          state.candidateFilters.positionId = "all";
+          refreshCandidateFilterPositionOptions();
+          renderCandidates();
+        });
+      }
+      if (candidateFilterPositionSelect) {
+        candidateFilterPositionSelect.addEventListener("change", (event) => {
+          state.candidateFilters.positionId = event.target.value;
+          renderCandidates();
+        });
+      }
       refreshButton.addEventListener("click", () => {
         if (!state.token) {
           setMessage("Sign in to refresh workspace data.", "error");

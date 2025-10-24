@@ -1,9 +1,9 @@
 """Pydantic schemas for API payloads."""
 
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import AnyHttpUrl, BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class Token(BaseModel):
@@ -323,10 +323,36 @@ class CandidateBulkActionResult(BaseModel):
     errors: Optional[List[CandidateBulkError]] = None
 
 
+class SmartRecruitersJobImport(BaseModel):
+    position_id: str
+    job_url: Optional[AnyHttpUrl] = None
+    job_id: Optional[str] = None
+    filters: Optional[Dict[str, Any]] = None
+
+    @model_validator(mode="after")
+    def _ensure_target(self) -> "SmartRecruitersJobImport":
+        if not self.job_url and not self.job_id:
+            raise ValueError("job_url or job_id must be provided")
+        return self
+
+
 class SmartRecruitersBulkRequest(BaseModel):
-    position_ids: List[str]
-    notes: Optional[str]
-    project_id: Optional[str]
+    project_id: str
+    jobs: List[SmartRecruitersJobImport] = Field(default_factory=list)
+    notes: Optional[str] = None
+    default_filters: Optional[Dict[str, Any]] = None
+    position_ids: Optional[List[str]] = None
+
+    @model_validator(mode="after")
+    def _populate_jobs(self) -> "SmartRecruitersBulkRequest":
+        if self.position_ids and not self.jobs:
+            raise ValueError(
+                "jobs must be provided when using the deprecated position_ids field; "
+                "include job_url or job_id for each position"
+            )
+        if not self.jobs:
+            raise ValueError("At least one SmartRecruiters job must be provided")
+        return self
 
 
 class SourcingJobStatusResponse(BaseModel):

@@ -511,31 +511,212 @@
         color: var(--gray);
       }
 
-      .project-upload-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      .ghost-btn {
+        border: 1px solid rgba(0, 167, 139, 0.5);
+        background: rgba(0, 167, 139, 0.08);
+        color: var(--teal-dark);
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .ghost-btn:hover {
+        background: rgba(0, 167, 139, 0.16);
+        transform: translateY(-1px);
+      }
+
+      .knowledge-upload {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .knowledge-upload select,
+      .select-control {
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        padding: 10px 12px;
+        font-size: 13px;
+        background: var(--white);
+        min-width: 200px;
+      }
+
+      .knowledge-base {
+        background: rgba(0, 167, 139, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .knowledge-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .knowledge-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .knowledge-item {
+        background: var(--white);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .knowledge-item strong {
+        color: var(--primary-dark);
+        font-weight: 600;
+      }
+
+      .knowledge-item span {
+        font-size: 12px;
+        color: var(--gray);
+      }
+
+      .knowledge-empty {
+        font-size: 13px;
+        color: var(--gray);
+      }
+
+      .positions-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .positions-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+      }
+
+      .positions-table th,
+      .positions-table td {
+        padding: 12px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        text-align: left;
+        font-size: 13px;
+      }
+
+      .positions-table th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--gray);
+      }
+
+      .positions-table tr:hover {
+        background: var(--gray-light);
+      }
+
+      .position-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .link-btn {
+        border: none;
+        background: none;
+        color: var(--teal);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .link-btn:hover {
+        text-decoration: underline;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        padding: 20px;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 24px;
+        width: min(520px, 100%);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        position: relative;
+        display: flex;
+        flex-direction: column;
         gap: 16px;
       }
 
-      .project-upload-card {
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        border-radius: 12px;
-        padding: 16px;
-        background: rgba(0, 167, 139, 0.05);
+      .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        border: none;
+        background: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--gray);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .form-grid label {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-      }
-
-      .project-upload-card h3 {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--primary-dark);
-      }
-
-      .project-upload-card span {
-        font-size: 12px;
+        gap: 6px;
+        font-size: 13px;
         color: var(--gray);
+      }
+
+      .form-grid input,
+      .form-grid textarea,
+      .form-grid select {
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .form-grid textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      .badge {
+        background: rgba(117, 161, 210, 0.2);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        color: var(--primary-dark);
+        font-weight: 600;
       }
 
       .project-list {
@@ -908,6 +1089,10 @@
               <span class="nav-icon">📁</span>
               Projects
             </a>
+            <a class="nav-item" href="#positions">
+              <span class="nav-icon">🧾</span>
+              Positions
+            </a>
             <a class="nav-item" href="#candidates">
               <span class="nav-icon">🧑‍💼</span>
               Candidates
@@ -1025,16 +1210,61 @@
             <div class="panel-heading">
               <h2 class="panel-title">Projects</h2>
               <div class="panel-heading-actions">
-                <input type="file" id="project-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.html,.md" hidden />
-                <button class="primary-btn" id="add-project-btn">Add Project</button>
+                <button class="primary-btn" id="new-project-btn">New Project</button>
+                <div class="knowledge-upload">
+                  <select id="project-upload-select" class="select-control" aria-label="Select project"></select>
+                  <input
+                    type="file"
+                    id="project-file-input"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.html,.md,.csv"
+                    hidden
+                  />
+                  <button class="ghost-btn" id="upload-project-file-btn">Upload Document</button>
+                </div>
               </div>
             </div>
             <p class="upload-hint">Upload project briefs or scope documents to kick off sourcing automation instantly.</p>
             <div class="project-list" id="project-list"></div>
             <div class="info-banner" id="project-list-message" role="status"></div>
             <div class="upload-hint" id="project-empty-state">No active projects yet. Create a project via the API or upload a brief to get started.</div>
-            <div class="upload-hint" id="project-upload-status">No project files uploaded yet.</div>
-            <div class="project-upload-grid" id="project-upload-grid"></div>
+            <div class="knowledge-base" id="project-knowledge-base">
+              <div class="knowledge-header">
+                <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-dark)">Knowledge Base</h3>
+                <span class="upload-hint" id="project-upload-status">Select a project to upload supporting documents.</span>
+              </div>
+              <div class="knowledge-empty" id="knowledge-base-empty">Choose a project to see synced documents and analysis.</div>
+              <div class="knowledge-list" id="knowledge-base-list"></div>
+            </div>
+          </section>
+
+          <section class="panel-card" id="positions">
+            <div class="panel-heading">
+              <h2 class="panel-title">Positions</h2>
+              <div class="positions-controls">
+                <select id="positions-project-filter" class="select-control" aria-label="Filter positions by project">
+                  <option value="">All projects</option>
+                </select>
+                <button class="ghost-btn" id="refresh-positions-btn">Refresh</button>
+                <button class="primary-btn" id="start-sourcing-btn" disabled>Start AI Sourcing</button>
+              </div>
+            </div>
+            <div class="info-banner" id="positions-message" role="status"></div>
+            <div class="table-wrapper">
+              <table class="positions-table" id="positions-table">
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" id="positions-select-all" /></th>
+                    <th>Title</th>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Location</th>
+                    <th>Openings</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </section>
 
           <div class="split-panels">
@@ -1154,6 +1384,97 @@
       </div>
     </div>
 
+    <div class="modal" id="project-modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+      <div class="modal-content">
+        <button class="modal-close" type="button" data-close="project-modal" aria-label="Close">×</button>
+        <h3 id="project-modal-title" style="font-size: 20px; font-weight: 600; color: var(--primary-dark)">Create project</h3>
+        <form id="project-form" class="form-grid">
+          <label>
+            Project name
+            <input type="text" id="project-name" name="name" required placeholder="Eg. Red Line Extension" />
+          </label>
+          <label>
+            Client / PMO
+            <input type="text" id="project-client" name="client" placeholder="Client or sponsor" />
+          </label>
+          <label>
+            Region / Location
+            <input type="text" id="project-location" name="location_region" placeholder="Location or region" />
+          </label>
+          <label>
+            Sector
+            <input type="text" id="project-sector" name="sector" placeholder="Infrastructure, energy, aviation…" />
+          </label>
+          <label>
+            Summary
+            <textarea id="project-summary" name="summary" placeholder="High-level goals and scope"></textarea>
+          </label>
+          <label>
+            Tags (comma separated)
+            <input type="text" id="project-tags" name="tags" placeholder="megaproject, pmo, design" />
+          </label>
+          <label>
+            Team members (comma separated)
+            <input type="text" id="project-team" name="team_members" placeholder="Alex, Morgan" />
+          </label>
+          <label>
+            Target hires
+            <input type="number" id="project-target" name="target_hires" min="0" value="0" />
+          </label>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <button class="ghost-btn" type="button" data-close="project-modal">Cancel</button>
+            <button class="primary-btn" type="submit">Create Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="position-modal" role="dialog" aria-modal="true" aria-labelledby="position-modal-title">
+      <div class="modal-content">
+        <button class="modal-close" type="button" data-close="position-modal" aria-label="Close">×</button>
+        <h3 id="position-modal-title" style="font-size: 20px; font-weight: 600; color: var(--primary-dark)">Edit position</h3>
+        <form id="position-form" class="form-grid">
+          <input type="hidden" id="position-id" />
+          <label>
+            Title
+            <input type="text" id="position-title" required />
+          </label>
+          <label>
+            Location
+            <input type="text" id="position-location" />
+          </label>
+          <label>
+            Status
+            <select id="position-status">
+              <option value="draft">Draft</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <label>
+            Openings
+            <input type="number" id="position-openings" min="0" value="1" />
+          </label>
+          <label>
+            Responsibilities (one per line)
+            <textarea id="position-responsibilities"></textarea>
+          </label>
+          <label>
+            Requirements (one per line)
+            <textarea id="position-requirements"></textarea>
+          </label>
+          <label>
+            Description
+            <textarea id="position-description"></textarea>
+          </label>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <button class="ghost-btn" type="button" data-close="position-modal">Cancel</button>
+            <button class="primary-btn" type="submit">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
       const sidebar = document.getElementById('sidebar');
       const mainContent = document.getElementById('main-content');
@@ -1236,7 +1557,10 @@
         },
       ];
 
-      const projectUploads = [];
+      let cachedProjects = [];
+      let cachedPositions = [];
+      let knowledgeBaseDocs = [];
+      let selectedProjectId = '';
       let demoStreamBootstrapped = false;
 
       function formatDateTime(value) {
@@ -1255,6 +1579,43 @@
           .filter(Boolean)
           .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
           .join(' ');
+      }
+
+      function normaliseText(value) {
+        if (value === null || value === undefined) return undefined;
+        const trimmed = value.toString().trim();
+        return trimmed === '' ? undefined : trimmed;
+      }
+
+      function parseListField(value) {
+        if (!value) return [];
+        return value
+          .toString()
+          .split(/[\n,;]/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.classList.add('active');
+        }
+      }
+
+      function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.remove('active');
+        const form = modal.querySelector('form');
+        if (form) {
+          form.reset();
+        }
+      }
+
+      function getProjectName(projectId) {
+        const project = cachedProjects.find((entry) => entry.project_id === projectId);
+        return project?.name || '';
       }
 
       function setProjectListMessage(message = '') {
@@ -1276,15 +1637,27 @@
         const emptyState = document.getElementById('project-empty-state');
         if (!list || !emptyState) return;
 
+        cachedProjects = Array.isArray(projects) ? [...projects] : [];
+        updateProjectSelectors(cachedProjects);
+
         list.innerHTML = '';
         emptyState.textContent = 'No active projects yet. Create a project via the API or upload a brief to get started.';
 
         if (!Array.isArray(projects) || projects.length === 0) {
           emptyState.style.display = 'block';
+          renderKnowledgeBase([]);
           return;
         }
 
         emptyState.style.display = 'none';
+
+        if (!selectedProjectId && cachedProjects.length) {
+          selectedProjectId = cachedProjects[0].project_id;
+          const uploadSelect = document.getElementById('project-upload-select');
+          if (uploadSelect && !uploadSelect.value) {
+            uploadSelect.value = selectedProjectId;
+          }
+        }
 
         projects.forEach((project) => {
           const card = document.createElement('article');
@@ -1355,6 +1728,129 @@
           card.appendChild(footer);
 
           list.appendChild(card);
+        });
+
+        if (selectedProjectId) {
+          loadKnowledgeBase(selectedProjectId);
+        }
+      }
+
+      function renderKnowledgeBase(documents) {
+        const list = document.getElementById('knowledge-base-list');
+        const emptyState = document.getElementById('knowledge-base-empty');
+        if (!list || !emptyState) return;
+        knowledgeBaseDocs = Array.isArray(documents) ? documents : [];
+        list.innerHTML = '';
+        if (!knowledgeBaseDocs.length) {
+          emptyState.style.display = 'block';
+          list.style.display = 'none';
+          return;
+        }
+        emptyState.style.display = 'none';
+        list.style.display = 'flex';
+        knowledgeBaseDocs.forEach((doc) => {
+          const item = document.createElement('div');
+          item.className = 'knowledge-item';
+          const uploaded = doc?.uploaded_at ? formatDateTime(doc.uploaded_at) : formatDateTime(new Date());
+          item.innerHTML = `
+            <strong>${doc.filename}</strong>
+            <span>${doc.mime_type || 'document'} • ${uploaded}</span>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      async function loadKnowledgeBase(projectId) {
+        const statusEl = document.getElementById('project-upload-status');
+        if (!projectId) {
+          renderKnowledgeBase([]);
+          if (statusEl) {
+            statusEl.textContent = 'Select a project to upload supporting documents.';
+          }
+          return;
+        }
+        if (statusEl) {
+          statusEl.textContent = 'Syncing project knowledge base…';
+        }
+        try {
+          const res = await fetch(`/api/projects/${projectId}/documents`);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const documents = await res.json();
+          renderKnowledgeBase(documents);
+          if (statusEl) {
+            statusEl.textContent = documents.length
+              ? `Last upload ${formatDateTime(documents[0].uploaded_at || new Date())}`
+              : 'No documents uploaded for this project yet.';
+          }
+        } catch (error) {
+          console.warn('Unable to load knowledge base', error);
+          renderKnowledgeBase([]);
+          if (statusEl) {
+            statusEl.textContent = 'Unable to load knowledge base. Sign in to sync project files.';
+          }
+        }
+      }
+
+      function initProjectCreation() {
+        const createBtn = document.getElementById('new-project-btn');
+        const form = document.getElementById('project-form');
+        if (!createBtn || !form) {
+          return;
+        }
+
+        createBtn.addEventListener('click', () => {
+          openModal('project-modal');
+          const nameField = document.getElementById('project-name');
+          if (nameField) {
+            nameField.focus();
+          }
+        });
+
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const hiresValue = Number(formData.get('target_hires'));
+          const payload = {
+            name: normaliseText(formData.get('name')),
+            client: normaliseText(formData.get('client')),
+            location_region: normaliseText(formData.get('location_region')),
+            sector: normaliseText(formData.get('sector')),
+            summary: normaliseText(formData.get('summary')),
+            tags: normaliseText(formData.get('tags')),
+            team_members: normaliseText(formData.get('team_members')),
+            target_hires: Number.isNaN(hiresValue) || hiresValue < 0 ? 0 : hiresValue,
+          };
+
+          if (!payload.name) {
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/projects', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+            const project = await res.json();
+            pushActivity(`Created project ${project.name}`, {
+              event_type: 'project',
+              detail: 'Workspace updated.',
+            });
+            closeModal('project-modal');
+            selectedProjectId = project.project_id;
+            await loadProjects();
+          } catch (error) {
+            console.warn('Unable to create project', error);
+            pushActivity('Unable to create project', {
+              event_type: 'error',
+              detail: error?.message || 'Request failed',
+            });
+          }
         });
       }
 
@@ -1438,19 +1934,201 @@
         }
       }
 
-      function addProjectCard(entry) {
-        const grid = document.getElementById('project-upload-grid');
-        const card = document.createElement('div');
-        card.className = 'project-upload-card';
-        const statusLine = entry.synced ? 'Synced to workspace' : 'Saved locally';
-        const description = entry.description || 'Project document';
-        card.innerHTML = `
-          <h3>${entry.filename}</h3>
-          <span>${description}</span>
-          <span>${statusLine} · ${formatDateTime(entry.uploadedAt)}</span>
-        `;
-        grid.prepend(card);
-        projectUploads.push(entry);
+      function updateSourcingButtonState() {
+        const button = document.getElementById('start-sourcing-btn');
+        if (!button) return;
+        const selected = document.querySelectorAll('.position-checkbox:checked');
+        button.disabled = selected.length === 0;
+      }
+
+      function renderPositionsTable(messageOverride) {
+        const table = document.getElementById('positions-table');
+        const message = document.getElementById('positions-message');
+        if (!table || !message) return;
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (messageOverride) {
+          message.textContent = messageOverride;
+          message.style.display = 'block';
+          updateSourcingButtonState();
+          return;
+        }
+
+        const filterSelect = document.getElementById('positions-project-filter');
+        const filterValue = filterSelect ? filterSelect.value : '';
+        const rows = !filterValue
+          ? cachedPositions
+          : cachedPositions.filter((pos) => pos.project_id === filterValue);
+
+        if (!rows.length) {
+          message.textContent = cachedPositions.length
+            ? 'No positions match this filter yet.'
+            : 'No positions available. Upload a project brief to auto-generate roles.';
+          message.style.display = 'block';
+          updateSourcingButtonState();
+          return;
+        }
+
+        message.textContent = '';
+        message.style.display = 'none';
+
+        rows.forEach((position) => {
+          const row = document.createElement('tr');
+          row.dataset.positionId = position.position_id;
+          const statusLabel = formatTitle(position.status || 'draft', 'Draft');
+          row.innerHTML = `
+            <td><input type="checkbox" class="position-checkbox" data-position-id="${position.position_id}" /></td>
+            <td>${position.title || 'Untitled role'}</td>
+            <td>${getProjectName(position.project_id) || '—'}</td>
+            <td><span class="badge">${statusLabel}</span></td>
+            <td>${position.location || '—'}</td>
+            <td>${position.openings ?? 0}</td>
+            <td class="position-actions"><button class="link-btn edit-position" data-position-id="${position.position_id}">Edit</button></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        const selectAll = document.getElementById('positions-select-all');
+        if (selectAll) {
+          selectAll.checked = false;
+          selectAll.indeterminate = false;
+        }
+        updateSourcingButtonState();
+      }
+
+      async function loadPositions() {
+        try {
+          const res = await fetch('/api/positions');
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const positions = await res.json();
+          cachedPositions = Array.isArray(positions) ? positions : [];
+          renderPositionsTable();
+        } catch (error) {
+          console.warn('Unable to load positions', error);
+          cachedPositions = [];
+          renderPositionsTable('We could not load positions. Sign in to view live data.');
+        }
+      }
+
+      async function startSourcingForSelectedPositions() {
+        const selected = Array.from(document.querySelectorAll('.position-checkbox:checked'));
+        if (!selected.length) {
+          return;
+        }
+        const button = document.getElementById('start-sourcing-btn');
+        if (button) {
+          button.disabled = true;
+        }
+        for (const checkbox of selected) {
+          const position = cachedPositions.find((pos) => pos.position_id === checkbox.dataset.positionId);
+          if (!position) {
+            continue;
+          }
+          try {
+            const payload = {
+              project_id: position.project_id,
+              position_id: position.position_id,
+              title: position.title,
+              location: position.location,
+              skills: position.requirements || [],
+              seniority: position.experience,
+            };
+            const res = await fetch('/api/ai/source-candidates', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+            pushActivity(`AI sourcing queued for ${position.title}`, {
+              event_type: 'ai_sourcing',
+              detail: `Job ${position.position_id}`,
+            });
+          } catch (error) {
+            console.warn('Unable to start sourcing', error);
+            pushActivity(`Unable to start sourcing for ${position?.title || 'position'}`, {
+              event_type: 'error',
+              detail: error?.message || 'Request failed',
+            });
+          }
+        }
+        document.querySelectorAll('.position-checkbox').forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+        const selectAll = document.getElementById('positions-select-all');
+        if (selectAll) {
+          selectAll.checked = false;
+          selectAll.indeterminate = false;
+        }
+        updateSourcingButtonState();
+        if (button) {
+          button.disabled = false;
+        }
+      }
+
+      function openPositionEditor(positionId) {
+        const position = cachedPositions.find((pos) => pos.position_id === positionId);
+        if (!position) {
+          pushActivity('Position not found', { event_type: 'error', detail: positionId });
+          return;
+        }
+        document.getElementById('position-id').value = position.position_id;
+        document.getElementById('position-title').value = position.title || '';
+        document.getElementById('position-location').value = position.location || '';
+        document.getElementById('position-status').value = position.status || 'draft';
+        document.getElementById('position-openings').value = position.openings ?? 0;
+        document.getElementById('position-responsibilities').value = (position.responsibilities || []).join('\n');
+        document.getElementById('position-requirements').value = (position.requirements || []).join('\n');
+        document.getElementById('position-description').value = position.description || '';
+        openModal('position-modal');
+      }
+
+      function initPositionEditor() {
+        const form = document.getElementById('position-form');
+        if (!form) return;
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const positionId = document.getElementById('position-id').value;
+          if (!positionId) {
+            return;
+          }
+          const payload = {
+            title: normaliseText(document.getElementById('position-title').value),
+            location: normaliseText(document.getElementById('position-location').value),
+            status: document.getElementById('position-status').value || 'draft',
+            openings: Number(document.getElementById('position-openings').value) || 0,
+            responsibilities: parseListField(document.getElementById('position-responsibilities').value),
+            requirements: parseListField(document.getElementById('position-requirements').value),
+            description: normaliseText(document.getElementById('position-description').value),
+          };
+          try {
+            const res = await fetch(`/api/positions/${positionId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+            pushActivity(`Updated ${payload.title || 'position'}`, {
+              event_type: 'position',
+              detail: 'Position details refreshed.',
+            });
+            closeModal('position-modal');
+            await loadPositions();
+          } catch (error) {
+            console.warn('Unable to update position', error);
+            pushActivity('Unable to update position', {
+              event_type: 'error',
+              detail: error?.message || 'Request failed',
+            });
+          }
+        });
       }
 
       function bootstrapDemoEvents() {
@@ -1529,28 +2207,39 @@
         });
       }
 
-      function initProjectUpload() {
-        const addProjectBtn = document.getElementById('add-project-btn');
+      function initKnowledgeBaseUpload() {
+        const uploadBtn = document.getElementById('upload-project-file-btn');
         const fileInput = document.getElementById('project-file-input');
         const statusEl = document.getElementById('project-upload-status');
-        if (!addProjectBtn || !fileInput || !statusEl) {
+        const projectSelect = document.getElementById('project-upload-select');
+        if (!uploadBtn || !fileInput || !statusEl || !projectSelect) {
           return;
         }
 
-        addProjectBtn.addEventListener('click', () => fileInput.click());
+        projectSelect.addEventListener('change', (event) => {
+          selectedProjectId = event.target.value || '';
+          loadKnowledgeBase(selectedProjectId);
+        });
+
+        uploadBtn.addEventListener('click', () => {
+          if (!projectSelect.value) {
+            statusEl.textContent = 'Select a project before uploading.';
+            return;
+          }
+          fileInput.click();
+        });
 
         fileInput.addEventListener('change', async (event) => {
           const [file] = event.target.files || [];
           if (!file) {
             return;
           }
-
-          const entry = {
-            filename: file.name,
-            description: `${(file.size / 1024).toFixed(1)} KB • ${file.type || 'Unknown type'}`,
-            uploadedAt: new Date().toISOString(),
-            synced: false,
-          };
+          const projectId = projectSelect.value;
+          if (!projectId) {
+            statusEl.textContent = 'Select a project before uploading.';
+            fileInput.value = '';
+            return;
+          }
 
           statusEl.textContent = `Uploading ${file.name}…`;
 
@@ -1560,7 +2249,7 @@
             formData.append('filename', file.name);
             formData.append('mime_type', file.type || 'application/octet-stream');
             formData.append('scope', 'project');
-            formData.append('scope_id', '');
+            formData.append('scope_id', projectId);
 
             const res = await fetch('/api/documents/upload', {
               method: 'POST',
@@ -1572,33 +2261,88 @@
             }
 
             const doc = await res.json();
-            entry.synced = true;
-            entry.uploadedAt = doc.uploaded_at || entry.uploadedAt;
-            entry.description = `${doc.mime_type || 'application/octet-stream'} • Ready for analysis`;
-            statusEl.textContent = `Uploaded ${doc.filename} • ${formatDateTime(entry.uploadedAt)}`;
-            pushActivity(`Uploaded project document ${doc.filename}`, {
+            statusEl.textContent = `Uploaded ${doc.filename} • ${formatDateTime(doc.uploaded_at || new Date())}`;
+            pushActivity(`Uploaded ${doc.filename}`, {
               event_type: 'document',
-              detail: 'File synchronized with RecruitPro.',
+              detail: 'Knowledge base updated.',
             });
+            await loadKnowledgeBase(projectId);
           } catch (error) {
             console.warn('Project upload failed', error);
-            statusEl.textContent = 'Upload failed. Stored locally until you sign in.';
-            pushActivity(`Stored ${entry.filename} locally`, {
+            statusEl.textContent = 'Upload failed. Please try again when you are signed in.';
+            pushActivity(`Stored ${file.name} locally`, {
               event_type: 'document',
               detail: error?.message || 'Offline fallback storage',
             });
           } finally {
-            addProjectCard(entry);
             fileInput.value = '';
           }
         });
       }
 
+      document.querySelectorAll('[data-close]').forEach((button) => {
+        button.addEventListener('click', () => closeModal(button.dataset.close));
+      });
+
+      const positionsTable = document.getElementById('positions-table');
+      if (positionsTable) {
+        positionsTable.addEventListener('change', (event) => {
+          if (event.target.id === 'positions-select-all') {
+            const checked = event.target.checked;
+            positionsTable.querySelectorAll('.position-checkbox').forEach((checkbox) => {
+              checkbox.checked = checked;
+            });
+            updateSourcingButtonState();
+          } else if (event.target.classList.contains('position-checkbox')) {
+            const selectAll = document.getElementById('positions-select-all');
+            if (selectAll) {
+              const checkboxes = positionsTable.querySelectorAll('.position-checkbox');
+              const total = checkboxes.length;
+              const checkedCount = [...checkboxes].filter((input) => input.checked).length;
+              selectAll.checked = total > 0 && checkedCount === total;
+              selectAll.indeterminate = checkedCount > 0 && checkedCount < total;
+            }
+            updateSourcingButtonState();
+          }
+        });
+        positionsTable.addEventListener('click', (event) => {
+          const button = event.target.closest('.edit-position');
+          if (button) {
+            event.preventDefault();
+            openPositionEditor(button.dataset.positionId);
+          }
+        });
+      }
+
+      const positionsFilter = document.getElementById('positions-project-filter');
+      if (positionsFilter) {
+        positionsFilter.addEventListener('change', () => {
+          renderPositionsTable();
+        });
+      }
+
+      const refreshPositionsBtn = document.getElementById('refresh-positions-btn');
+      if (refreshPositionsBtn) {
+        refreshPositionsBtn.addEventListener('click', () => {
+          loadPositions();
+        });
+      }
+
+      const sourcingBtn = document.getElementById('start-sourcing-btn');
+      if (sourcingBtn) {
+        sourcingBtn.addEventListener('click', () => {
+          startSourcingForSelectedPositions();
+        });
+      }
+
+      initProjectCreation();
+      initKnowledgeBaseUpload();
+      initPositionEditor();
       loadProjects();
+      loadPositions();
       refreshMetrics();
       attachActivityStream();
       initDemoInteractions();
-      initProjectUpload();
     </script>
   </body>
 </html>

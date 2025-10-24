@@ -102,7 +102,10 @@ def _handle_file_analysis_job(payload: Dict[str, Any]) -> None:
         if not document:
             mark_job_failed(session, job, "Document not found")
             return
-        project = session.get(Project, request.get("project_id") or getattr(document, "project_id", None))
+        project_id = request.get("project_id") or getattr(document, "project_id", None)
+        if not project_id and getattr(document, "scope", None) == "project":
+            project_id = getattr(document, "scope_id", None)
+        project = session.get(Project, project_id) if project_id else None
         try:
             path = resolve_storage_path(document.file_url)
         except ValueError:
@@ -134,24 +137,25 @@ def _handle_file_analysis_job(payload: Dict[str, Any]) -> None:
         if project:
             from ..models import Position
 
-            existing_titles = {pos.title for pos in project.positions}
+            existing_titles = {pos.title.lower() for pos in project.positions if pos.title}
             for role in analysis["positions"]:
-                if role["title"] in existing_titles:
+                title = (role.get("title") or "").strip()
+                if not title or title.lower() in existing_titles:
                     continue
                 position = Position(
                     position_id=generate_id(),
                     project_id=project.project_id,
-                    title=role["title"],
+                    title=title,
                     department=role.get("department"),
                     experience=role.get("experience"),
-                    responsibilities=role.get("responsibilities"),
-                    requirements=role.get("requirements"),
+                    responsibilities=role.get("responsibilities") or [],
+                    requirements=role.get("requirements") or [],
                     location=role.get("location"),
                     description=role.get("description"),
-                    status="draft",
+                    status=role.get("status") or "draft",
                 )
                 session.add(position)
-                existing_titles.add(role["title"])
+                existing_titles.add(title.lower())
         mark_job_completed(session, job, analysis)
         if project:
             log_activity(
@@ -159,10 +163,10 @@ def _handle_file_analysis_job(payload: Dict[str, Any]) -> None:
                 actor_type="ai",
                 actor_id=request.get("user_id"),
                 project_id=project.project_id,
-                message=f"Analyzed document {document.filename}",
+                message=f"Analyzed {analysis.get('document_type', 'document')} {document.filename}",
                 event_type="file_analyzed",
             )
-            if request.get("trigger_market_research") and not project.research_done:
+            if analysis.get("market_research_recommended") and not project.research_done:
                 enqueue_market_research_job(session, project.project_id, request.get("user_id"))
 
 

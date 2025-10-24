@@ -1,9 +1,10 @@
 """RecruitPro FastAPI application."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 from .config import get_settings
 from .routers import (
@@ -59,3 +60,10 @@ app.include_router(system.router)
 @app.get("/")
 def index():
     return {"status": "ok", "message": "RecruitPro backend is running."}
+
+
+@app.get("/candidate-profile", response_class=HTMLResponse)
+async def candidate_profile_page(request: Request):
+    """Render the static candidate profile concept page."""
+
+    return templates.TemplateResponse("candidate_profile.html", {"request": request})

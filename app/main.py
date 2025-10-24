@@ -6,7 +6,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .config import get_settings
-from .database import Base, engine
 from .routers import (
     activity,
     admin,
@@ -20,19 +19,20 @@ from .routers import (
     system,
 )
 
-Base.metadata.create_all(bind=engine)
+settings = get_settings()
 
-app = FastAPI(title="RecruitPro ATS")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title=settings.app_name)
+
+if settings.cors_allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"],
+    )
 
 templates = Jinja2Templates(directory="templates")
-settings = get_settings()
 
 try:
     from .utils.storage import ensure_storage_dir

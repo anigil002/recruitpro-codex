@@ -16,25 +16,45 @@ This repository provides an executable reference implementation of the RecruitPr
 ### 1. Install Dependencies
 
 ```bash
-pip install pdm
-pdm install
+python -m pip install --upgrade pip
+python -m pip install -e .[dev]
 ```
 
-### 2. Launch the API
+If you prefer a non-editable install, use `python -m pip install .[dev]` instead.
+
+### 2. Configure Environment
+
+Set the required secrets and runtime configuration before starting the API:
 
 ```bash
-pdm run uvicorn app.main:app --reload
+export RECRUITPRO_SECRET_KEY="change-me"
+export RECRUITPRO_DATABASE_URL="sqlite:///./data/recruitpro.db"
+export RECRUITPRO_CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:8000"
+```
+
+### 3. Initialize the Database
+
+Create the schema locally by running:
+
+```bash
+python -m app.database
+```
+
+### 4. Launch the API
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 Visit `http://localhost:8000/docs` for the interactive Swagger UI and `http://localhost:8000/` for a simple status response.
 
-### 3. Run Tests
+### 5. Run Tests
 
 ```bash
-pdm run pytest
+pytest
 ```
 
-The tests ensure critical endpoints (health, version, and auth flow) operate correctly.
+The tests now cover authentication, project flows, AI helpers, and admin-protected activity endpoints.
 
 ### 4. Storage Directory
 

@@ -78,6 +78,13 @@ async def application_shell(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("recruitpro_ats.html", {"request": request})
 
 
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request) -> HTMLResponse:
+    """Render the RecruitPro login experience."""
+
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
 @app.get("/candidate-profile", response_class=HTMLResponse)
 async def candidate_profile_page(
     request: Request,

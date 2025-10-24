@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecruitPro - Project Phoenix</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1173d4",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body class="bg-background-dark font-display text-white">
+    <div class="flex h-screen w-full">
+      <!-- SideNavBar -->
+      <aside
+        class="flex h-full flex-col justify-between bg-[#111a22] p-4 border-r border-r-[#233648]"
+      >
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-3 items-center">
+            <div
+              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+              data-alt="User avatar image"
+              style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBV_BAK7bSJMoTeUjuCkvSTO061MGqLxtCRoV_L66-KqLHacmTw3J3gZw3KRi_ZN-_0V6GPzGtpZGpbOo6bvg_KNyjNSoKAf4hQ1pOd4RWvADsEHRyP4Mq6gxifviUQtiA5j2wGzz1tKGKuRQPLLVpLwZC1_-l5Ki9-bGRN84Kwj3nO2tF0t8QWO0oKT9cYjvxs1PfKBGUJsVXBUBG05UY5Y4MAwYeltHNRDxmXxCspEXEi5S3YnrQz1nT6IDQp7YvYHq_uHgRxAAQ');"
+            ></div>
+            <div class="flex flex-col">
+              <h1 class="text-white text-base font-medium leading-normal">
+                Eleanor Vance
+              </h1>
+              <p class="text-[#92adc9] text-sm font-normal leading-normal">
+                Recruiter
+              </p>
+            </div>
+          </div>
+          <nav class="flex flex-col gap-2">
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-white text-2xl"
+                >dashboard</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">
+                Dashboard
+              </p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#233648]"
+              href="#"
+            >
+              <span
+                class="material-symbols-outlined text-white text-2xl"
+                style="font-variation-settings: 'FILL' 1;"
+                >folder</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">
+                Projects
+              </p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-white text-2xl"
+                >group</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">
+                Candidates
+              </p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-white text-2xl"
+                >analytics</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">
+                Analytics
+              </p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-white text-2xl"
+                >settings</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">
+                Settings
+              </p>
+            </a>
+          </nav>
+        </div>
+        <div class="flex flex-col gap-4">
+          <button
+            class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
+          >
+            <span class="truncate">New Project</span>
+          </button>
+          <div class="flex flex-col gap-1">
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-white text-2xl"
+                >help_outline</span
+              >
+              <p class="text-white text-sm font-medium leading-normal">Help</p>
+            </a>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- TopNavBar -->
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#233648] px-10 py-3 bg-[#111a22]"
+        >
+          <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 text-white">
+              <div class="size-6 text-primary">
+                <svg
+                  fill="none"
+                  viewBox="0 0 48 48"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2
+                class="text-white text-lg font-bold leading-tight tracking-[-0.015em]"
+              >
+                RecruitPro
+              </h2>
+            </div>
+            <label class="flex flex-col min-w-40 !h-10 max-w-64">
+              <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                <div
+                  class="text-[#92adc9] flex bg-[#233648] items-center justify-center pl-3 rounded-l-lg"
+                >
+                  <span class="material-symbols-outlined">search</span>
+                </div>
+                <input
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-white focus:outline-0 focus:ring-0 border-none bg-[#233648] focus:border-none h-full placeholder:text-[#92adc9] px-4 text-base font-normal leading-normal"
+                  placeholder="Search"
+                  value=""
+                />
+              </div>
+            </label>
+          </div>
+          <div class="flex flex-1 justify-end items-center gap-6">
+            <div class="flex gap-2">
+              <button
+                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#233648] text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              >
+                <span class="material-symbols-outlined text-xl">notifications</span>
+              </button>
+              <button
+                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#233648] text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              >
+                <span class="material-symbols-outlined text-xl">chat_bubble</span>
+              </button>
+            </div>
+            <div
+              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+              data-alt="User avatar image"
+              style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_nObz3fYxTkrgZVBOzyIBOiGjlT4pVw_U7fwlj_le_56hBC917GuKYbBflg0EYfq8HXvfsf95cHwp9uYHVjWYP9dwqhS6i844-FFSlkRxjj7vhbUcyRnn_AGJaNIi-jBNoA60x3a3yZq6aFoTAWUR8pyUTAa5LN1EmlSHgGlKk0gYEJIwxJxc3TOkYbxxg2HZKkBKdVTMB2YBGXqiHMaRjVDTRAPflKmG3EX2ux3vXVgHVnycxRNhswBHDv1C36MK-au8cS8aS6A');"
+            ></div>
+          </div>
+        </header>
+        <!-- Page Content -->
+        <main class="flex-1 overflow-y-auto p-8 bg-background-dark">
+          <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+              <!-- Page Heading -->
+              <div class="flex flex-wrap justify-between items-start gap-4">
+                <div class="flex flex-col gap-2">
+                  <p
+                    class="text-white text-4xl font-black leading-tight tracking-[-0.033em]"
+                  >
+                    Project Phoenix - Engineering Team Expansion
+                  </p>
+                  <p class="text-[#92adc9] text-base font-normal leading-normal">
+                    Client: Innovate Inc.
+                  </p>
+                </div>
+                <div
+                  class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#233648] px-4"
+                >
+                  <p class="text-white text-sm font-medium leading-normal">Active</p>
+                </div>
+              </div>
+              <!-- Accordions -->
+              <div
+                class="flex flex-col bg-[#111a22] border border-[#233648] rounded-lg p-4"
+              >
+                <details
+                  class="flex flex-col border-b border-b-[#324d67] py-2 group"
+                  open
+                >
+                  <summary
+                    class="flex cursor-pointer items-center justify-between gap-6 py-2 list-none"
+                  >
+                    <p class="text-white text-lg font-medium leading-normal">
+                      Project Brief
+                    </p>
+                    <span
+                      class="material-symbols-outlined text-white transition-transform group-open:rotate-180"
+                      >expand_more</span
+                    >
+                  </summary>
+                  <p
+                    class="text-[#92adc9] text-sm font-normal leading-normal pt-2 pb-2 max-w-prose"
+                  >
+                    A summary of the project's goals, scope, and key deliverables. The
+                    primary objective is to expand the core engineering team by hiring
+                    five senior software engineers and two product managers over the
+                    next quarter to support the development of our new flagship product.
+                  </p>
+                </details>
+                <details
+                  class="flex flex-col border-b border-b-[#324d67] py-2 group"
+                >
+                  <summary
+                    class="flex cursor-pointer items-center justify-between gap-6 py-2 list-none"
+                  >
+                    <p class="text-white text-lg font-medium leading-normal">
+                      Open Positions
+                    </p>
+                    <span
+                      class="material-symbols-outlined text-white transition-transform group-open:rotate-180"
+                      >expand_more</span
+                    >
+                  </summary>
+                  <p
+                    class="text-[#92adc9] text-sm font-normal leading-normal pt-2 pb-2 max-w-prose"
+                  >
+                    Details about the open roles, including titles, key responsibilities,
+                    and required qualifications will be listed here.
+                  </p>
+                </details>
+                <details class="flex flex-col py-2 group">
+                  <summary
+                    class="flex cursor-pointer items-center justify-between gap-6 py-2 list-none"
+                  >
+                    <p class="text-white text-lg font-medium leading-normal">
+                      Associated Documents
+                    </p>
+                    <span
+                      class="material-symbols-outlined text-white transition-transform group-open:rotate-180"
+                      >expand_more</span
+                    >
+                  </summary>
+                  <p
+                    class="text-[#92adc9] text-sm font-normal leading-normal pt-2 pb-2 max-w-prose"
+                  >
+                    A list or table of all project-related documents, such as job
+                    descriptions, interview guides, and candidate profiles will be
+                    displayed here.
+                  </p>
+                </details>
+              </div>
+            </div>
+            <!-- Right Column -->
+            <div class="lg:col-span-1 flex flex-col gap-6">
+              <!-- File Uploader Card -->
+              <div
+                class="bg-[#111a22] border border-[#233648] rounded-lg p-6 flex flex-col gap-4"
+              >
+                <h3 class="text-white text-lg font-bold">Add New Documents</h3>
+                <div
+                  class="border-2 border-dashed border-[#324d67] rounded-lg p-8 text-center flex flex-col items-center gap-3"
+                >
+                  <span class="material-symbols-outlined text-4xl text-[#92adc9]"
+                    >upload_file</span
+                  >
+                  <p class="text-[#92adc9] text-sm">
+                    Drag & drop files or
+                    <button class="font-semibold text-primary hover:underline">
+                      browse
+                    </button>
+                  </p>
+                  <p class="text-xs text-slate-500">PDF, DOCX, TXT up to 10MB</p>
+                </div>
+                <div class="flex items-center gap-3 mt-2">
+                  <input
+                    class="h-4 w-4 rounded border-[#324d67] bg-[#111a22] text-primary focus:ring-primary focus:ring-offset-background-dark"
+                    id="generate-jd"
+                    type="checkbox"
+                  />
+                  <label class="text-sm text-white font-medium" for="generate-jd"
+                    >Generate JD for new positions</label
+                  >
+                </div>
+              </div>
+              <!-- Market Research Card -->
+              <div
+                class="bg-[#111a22] border border-[#233648] rounded-lg p-6 flex flex-col gap-4"
+              >
+                <h3 class="text-white text-lg font-bold">Market Research</h3>
+                <div class="flex items-center gap-2">
+                  <div
+                    class="size-2 rounded-full bg-green-500"
+                    data-alt="Green status indicator dot"
+                  ></div>
+                  <p class="text-sm text-green-500 font-medium">Completed</p>
+                </div>
+                <p class="text-sm text-[#92adc9]">
+                  Status: Completed on 24th July 2024
+                </p>
+                <button
+                  class="flex w-full cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-[#324d67] text-white text-sm font-bold hover:bg-[#233648] transition-colors"
+                >
+                  Re-run Analysis
+                </button>
+              </div>
+              <!-- In-Progress Status Example Card -->
+              <div
+                class="bg-[#111a22] border border-[#233648] rounded-lg p-6 flex flex-col gap-4"
+              >
+                <h3 class="text-white text-lg font-bold">AI Screening</h3>
+                <div class="flex items-center gap-2">
+                  <div
+                    class="size-2 rounded-full bg-orange-400"
+                    data-alt="Orange status indicator dot"
+                  ></div>
+                  <p class="text-sm text-orange-400 font-medium">In Progress</p>
+                </div>
+                <p class="text-sm text-[#92adc9]">
+                  Status: Screening 15 new candidates...
+                </p>
+                <button
+                  class="flex w-full cursor-not-allowed items-center justify-center rounded-lg h-10 px-4 border border-[#324d67] text-slate-400 text-sm font-bold opacity-60"
+                  disabled
+                >
+                  View Progress
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

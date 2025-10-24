@@ -1,625 +1,1085 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RecruitPro - Control Center</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#1173d4",
-              "primary-soft": "#1f8bff",
-              "background-light": "#f6f7f8",
-              "background-dark": "#101922",
-              "card-dark": "#111a22",
-            },
-            fontFamily: {
-              display: ["Inter", "sans-serif"],
-            },
-            borderRadius: {
-              lg: "0.75rem",
-              xl: "1rem",
-            },
-            boxShadow: {
-              soft: "0 20px 45px -20px rgba(17, 115, 212, 0.35)",
-              inset: "inset 0 1px 0 0 rgba(255,255,255,0.05)",
-            },
-          },
-        },
-      };
-    </script>
+    <title>RecruitPro Local Console</title>
     <style>
-      .material-symbols-outlined {
-        font-variation-settings:
-          "FILL" 0,
-          "wght" 400,
-          "GRAD" 0,
-          "opsz" 24;
+      :root {
+        color-scheme: dark light;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --bg: #0f172a;
+        --panel: #111a22;
+        --panel-border: #1e2a3a;
+        --accent: #3b82f6;
+        --accent-soft: #60a5fa;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --success: #22c55e;
+        --error: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        padding: 40px 16px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .shell {
+        width: min(1200px, 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 20px 45px -20px rgba(17, 115, 212, 0.25);
+      }
+
+      .panel + .panel {
+        margin-top: 0;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .grid-two {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid-three {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 960px) {
+        .grid-two {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .grid-three {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      textarea {
+        font: inherit;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.6);
+        color: inherit;
+      }
+
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+        background: var(--accent);
+        color: #0f172a;
+        align-self: flex-start;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px -12px rgba(96, 165, 250, 0.6);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .messages {
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: none;
+        line-height: 1.4;
+      }
+
+      .messages[data-state="visible"] {
+        display: block;
+      }
+
+      .messages[data-variant="success"] {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: var(--success);
+      }
+
+      .messages[data-variant="error"] {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: var(--error);
+      }
+
+      .messages[data-variant="info"] {
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.35);
+        color: var(--accent-soft);
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 768px) {
+        .stat-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      .stat-card {
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.65);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .stat-card strong {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .item-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .item-card {
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.55);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .item-card h4 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .empty-state {
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px dashed var(--panel-border);
+        background: rgba(15, 23, 42, 0.4);
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        background: rgba(59, 130, 246, 0.18);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        color: var(--accent-soft);
+      }
+
+      .hidden {
+        display: none !important;
       }
     </style>
   </head>
-  <body class="font-display bg-background-light text-slate-200 antialiased dark:bg-background-dark">
-    <div class="relative flex min-h-screen w-full flex-row">
-      <nav
-        class="flex h-screen min-h-full w-64 flex-col justify-between border-r border-slate-300/10 bg-[#111a22] p-5"
-      >
-        <div class="flex flex-col gap-5">
-          <div class="flex items-center gap-3 px-2">
-            <div
-              class="size-11 rounded-xl bg-[url('https://lh3.googleusercontent.com/aida-public/AB6AXuBABvct9KgKcFoPkdeNzGyqDA14dGhOyoAgqCSPQ33U2r15Ti1rrmA3GffcszzSex5cKCrvoFS_RhYY9m0EoVYN6lYoiSeuszCjEA7pPL18hRFCgt7VCXIAcBtQpySPINIYivyiQnFgRqzz5xpofWiYvfl02jQfn40qHS4-k-UcAll6cV_JbB1_Mq049qZhIR1o-8If4RFvQGRDFMphdY_5Tc22Ty_NOriGHBD28nx1z1H1B-4iW-UdMVJc7MiV-g3bnQvP55f1Sz0')] bg-cover bg-center bg-no-repeat"
-            ></div>
-            <div class="flex flex-col">
-              <span class="text-sm font-semibold text-white">RecruitPro</span>
-              <span class="text-xs font-medium text-slate-400">Control Center</span>
-            </div>
+  <body>
+    <main class="shell">
+      <header class="panel">
+        <div class="panel-header">
+          <div>
+            <h1>RecruitPro Local Console</h1>
+            <p class="muted">
+              Register, sign in, and manage projects, positions, and candidates powered by the FastAPI backend.
+            </p>
           </div>
-          <div class="flex flex-col gap-1">
-            <span class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
-              >Overview</span
-            >
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-white transition-colors"
-            >
-              <span class="material-symbols-outlined">dashboard</span>
-              Dashboard
-            </a>
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-slate-400">bar_chart</span>
-              Analytics
-            </a>
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-slate-400">auto_awesome</span>
-              AI Playbooks
-            </a>
+          <button id="refresh-button" type="button">Refresh data</button>
+        </div>
+        <p class="muted" style="margin-top: 4px;">
+          The console talks directly to the REST API. All numbers below reflect the live SQLite database on your machine.
+        </p>
+      </header>
+
+      <div class="messages" id="messages" role="status" aria-live="polite"></div>
+
+      <section class="panel" id="auth-panel">
+        <h2>Get started locally</h2>
+        <p class="muted" style="margin-top: 8px;">
+          Create an account for local testing or sign in with an existing RecruitPro user. Passwords never leave your machine.
+        </p>
+        <div class="grid-two" style="margin-top: 24px;">
+          <form id="register-form">
+            <h3>Create account</h3>
+            <label>
+              Name
+              <input name="name" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <label>
+              Role
+              <select name="role">
+                <option value="recruiter">Recruiter</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <button type="submit">Register</button>
+            <p class="muted">The account is stored in SQLite and can be reused when you return.</p>
+          </form>
+
+          <form id="login-form">
+            <h3>Sign in</h3>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit">Log in</button>
+            <p class="muted">Successful login stores a token in your browser for reuse.</p>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="app-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Workspace</h2>
+            <p class="muted" id="workspace-user">Signed in as —</p>
           </div>
-          <div class="flex flex-col gap-1">
-            <span class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
-              >Recruiting</span
-            >
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-slate-400">folder</span>
-              Projects
-            </a>
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-slate-400">group</span>
-              Candidates
-            </a>
-            <a
-              href="#"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-slate-400">event</span>
-              Interviews
-            </a>
+          <div class="actions">
+            <span class="badge" id="workspace-role"></span>
+            <button id="logout-button" type="button">Log out</button>
           </div>
         </div>
-        <div class="flex flex-col gap-1">
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-          >
-            <span class="material-symbols-outlined text-slate-400">settings</span>
-            Settings
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-          >
-            <span class="material-symbols-outlined text-slate-400">help</span>
-            Help Center
-          </a>
-          <div class="mt-3 rounded-xl border border-slate-700/60 bg-slate-900/50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Current Plan
-            </p>
-            <p class="mt-1 text-sm font-medium text-white">Talent Ops Suite</p>
-            <button
-              class="mt-4 w-full rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90"
-            >
-              Upgrade
-            </button>
-          </div>
+
+        <div class="stat-grid" style="margin-bottom: 32px;">
+          <article class="stat-card">
+            <span class="muted">Projects</span>
+            <strong id="stat-projects">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Positions</span>
+            <strong id="stat-positions">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Open positions</span>
+            <strong id="stat-open-positions">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Candidates</span>
+            <strong id="stat-candidates">0</strong>
+          </article>
         </div>
-      </nav>
-      <main class="flex min-h-screen flex-1 flex-col gap-8 p-8">
-        <header class="flex flex-wrap items-center justify-between gap-5">
-          <div class="flex flex-col gap-1">
-            <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Thursday, October 26th
-            </p>
-            <h1 class="text-3xl font-bold leading-tight text-white">RecruitPro ATS Dashboard</h1>
-            <p class="text-sm text-slate-400">
-              Monitor hiring progress, candidate flow and AI automations in a single view.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button
-              class="flex h-10 items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-            >
-              <span class="material-symbols-outlined text-base">upload_file</span>
-              Import from Excel
-            </button>
-            <button
-              class="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-primary/90"
-            >
-              <span class="material-symbols-outlined text-base">add</span>
-              Add Position
-            </button>
-          </div>
-        </header>
 
-        <section class="grid gap-5 xl:grid-cols-12">
-          <div class="grid gap-4 xl:col-span-8 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >Total Positions</span
-                >
-                <span class="material-symbols-outlined text-primary-soft">work</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold text-white">24</p>
-              <p class="mt-2 text-xs font-medium text-emerald-400">
-                <span class="material-symbols-outlined align-middle text-base">arrow_upward</span>
-                12% vs last month
-              </p>
-            </article>
-            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >Active Candidates</span
-                >
-                <span class="material-symbols-outlined text-primary-soft">group</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold text-white">312</p>
-              <p class="mt-2 text-xs font-medium text-emerald-400">
-                <span class="material-symbols-outlined align-middle text-base">arrow_upward</span>
-                8% vs last week
-              </p>
-            </article>
-            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >Interviews this week</span
-                >
-                <span class="material-symbols-outlined text-primary-soft">event</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold text-white">28</p>
-              <p class="mt-2 text-xs font-medium text-orange-300">
-                <span class="material-symbols-outlined align-middle text-base">schedule</span>
-                9 pending coordination
-              </p>
-            </article>
-            <article class="rounded-xl border border-slate-800 bg-card-dark p-5 shadow-inset">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >AI Automations</span
-                >
-                <span class="material-symbols-outlined text-primary-soft">auto_awesome</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold text-white">14</p>
-              <p class="mt-2 text-xs font-medium text-slate-400">
-                Last executed 12 minutes ago
-              </p>
-            </article>
-          </div>
-          <div class="xl:col-span-4">
-            <article class="flex h-full flex-col justify-between gap-4 rounded-xl border border-slate-800 bg-gradient-to-br from-primary/20 via-card-dark to-card-dark p-5">
-              <div class="flex items-start justify-between">
-                <div>
-                  <h2 class="text-lg font-semibold text-white">AI Knowledge Hub</h2>
-                  <p class="mt-1 text-sm text-slate-300">
-                    Give the assistant more company context to automate recruiting actions.
-                  </p>
-                </div>
-                <span class="material-symbols-outlined text-primary-soft">rocket</span>
-              </div>
-              <ul class="space-y-3 text-sm text-slate-300">
-                <li class="flex items-center justify-between rounded-lg border border-primary/10 bg-primary/10 px-3 py-2">
-                  <span>Employee Value Proposition</span>
-                  <span class="text-xs font-semibold text-primary-soft">Updated 2d ago</span>
-                </li>
-                <li class="flex items-center justify-between rounded-lg border border-slate-700/60 px-3 py-2">
-                  <span>Interview Process Playbook</span>
-                  <span class="text-xs font-semibold text-slate-500">Draft</span>
-                </li>
-                <li class="flex items-center justify-between rounded-lg border border-slate-700/60 px-3 py-2">
-                  <span>Competitive Intel Repository</span>
-                  <span class="text-xs font-semibold text-slate-500">In review</span>
-                </li>
-              </ul>
-              <button
-                class="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-primary/90"
-              >
-                <span class="material-symbols-outlined text-base">upload</span>
-                Upload briefing to hub
-              </button>
-            </article>
-          </div>
-        </section>
+        <div class="grid-three">
+          <section>
+            <h3>Projects</h3>
+            <p class="muted" style="margin-top: 4px;">Manage client workstreams and define hiring goals.</p>
+            <ul class="item-list" id="projects-list"></ul>
+            <form id="project-form" autocomplete="off">
+              <h4>Create project</h4>
+              <label>
+                Project name
+                <input name="name" type="text" required />
+              </label>
+              <label>
+                Client name
+                <input name="client" type="text" />
+              </label>
+              <label>
+                Region / Location
+                <input name="location_region" type="text" />
+              </label>
+              <label>
+                Summary
+                <textarea name="summary" placeholder="Short internal description"></textarea>
+              </label>
+              <label>
+                Tags (comma separated)
+                <input name="tags" type="text" placeholder="fintech, remote, senior" />
+              </label>
+              <label>
+                Team members (comma separated)
+                <input name="team_members" type="text" placeholder="alex@example.com, taylor@example.com" />
+              </label>
+              <label>
+                Target hires
+                <input name="target_hires" type="number" min="0" step="1" />
+              </label>
+              <button type="submit">Save project</button>
+            </form>
+          </section>
 
-        <section class="grid gap-5 lg:grid-cols-2">
-          <article class="rounded-xl border border-slate-800 bg-card-dark p-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-white">Pipeline Overview</h2>
-                <p class="text-sm text-slate-400">Live status across all open positions</p>
-              </div>
-              <button
-                class="flex items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-800"
-              >
-                View full board
-                <span class="material-symbols-outlined text-base">chevron_right</span>
-              </button>
-            </div>
-            <div class="mt-5 grid gap-4 md:grid-cols-2">
-              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Screening</span>
-                  <span class="rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300"
-                    >64</span
-                  >
-                </div>
-                <p class="mt-3 text-sm text-slate-400">
-                  12 awaiting hiring manager review
-                </p>
-              </div>
-              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Interviews</span>
-                  <span class="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300"
-                    >38</span
-                  >
-                </div>
-                <p class="mt-3 text-sm text-slate-400">
-                  9 candidates scheduled in the next 48 hours
-                </p>
-              </div>
-              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Offers</span>
-                  <span class="rounded-full bg-orange-500/20 px-2.5 py-0.5 text-xs font-semibold text-orange-300"
-                    >12</span
-                  >
-                </div>
-                <p class="mt-3 text-sm text-slate-400">
-                  Offer acceptance rate at 78%
-                </p>
-              </div>
-              <div class="rounded-lg border border-slate-700/60 bg-slate-900/40 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Hired</span>
-                  <span class="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs font-semibold text-purple-300"
-                    >6</span
-                  >
-                </div>
-                <p class="mt-3 text-sm text-slate-400">
-                  Avg. time-to-fill: 31 days
-                </p>
-              </div>
-            </div>
-          </article>
-          <article class="rounded-xl border border-slate-800 bg-card-dark p-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-white">Automation Timeline</h2>
-                <p class="text-sm text-slate-400">Latest actions executed by RecruitPro AI</p>
-              </div>
-              <button
-                class="flex items-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-800"
-              >
-                Manage automations
-                <span class="material-symbols-outlined text-base">settings</span>
-              </button>
-            </div>
-            <ol class="mt-5 space-y-4">
-              <li class="flex gap-4">
-                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
-                  <span class="material-symbols-outlined">auto_awesome</span>
-                </span>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-white">JD Enhancement completed</p>
-                  <p class="text-xs text-slate-400">
-                    AI rewrote Senior Data Scientist description focusing on GenAI skills.
-                  </p>
-                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
-                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
-                    12 minutes ago
-                  </span>
-                </div>
-              </li>
-              <li class="flex gap-4">
-                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
-                  <span class="material-symbols-outlined">campaign</span>
-                </span>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-white">Sourcing campaign launched</p>
-                  <p class="text-xs text-slate-400">
-                    240 candidates added from curated lists for Product Design roles.
-                  </p>
-                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
-                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
-                    1 hour ago
-                  </span>
-                </div>
-              </li>
-              <li class="flex gap-4">
-                <span class="relative flex size-9 items-center justify-center rounded-full bg-primary/20 text-primary-soft">
-                  <span class="material-symbols-outlined">lightbulb</span>
-                </span>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-white">Interview insights generated</p>
-                  <p class="text-xs text-slate-400">
-                    Panel feedback summarized for Full-Stack Engineer candidates.
-                  </p>
-                  <span class="mt-2 inline-flex items-center text-xs font-medium text-slate-500">
-                    <span class="material-symbols-outlined mr-1 text-sm">schedule</span>
-                    Yesterday at 6:42 PM
-                  </span>
-                </div>
-              </li>
-            </ol>
-          </article>
-        </section>
+          <section>
+            <h3>Positions</h3>
+            <p class="muted" style="margin-top: 4px;">Attach open roles to each project to track headcount.</p>
+            <ul class="item-list" id="positions-list"></ul>
+            <form id="position-form" autocomplete="off">
+              <h4>Create position</h4>
+              <label>
+                Project
+                <select id="position-project" name="project_id" required></select>
+              </label>
+              <label>
+                Title
+                <input name="title" type="text" required />
+              </label>
+              <label>
+                Department
+                <input name="department" type="text" />
+              </label>
+              <label>
+                Location
+                <input name="location" type="text" />
+              </label>
+              <label>
+                Status
+                <select name="status">
+                  <option value="draft">Draft</option>
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+              <label>
+                Openings
+                <input name="openings" type="number" min="0" step="1" />
+              </label>
+              <label>
+                Responsibilities (one per line)
+                <textarea name="responsibilities" placeholder="Define interview loop\nPartner with hiring manager"></textarea>
+              </label>
+              <label>
+                Requirements (one per line)
+                <textarea name="requirements" placeholder="5+ years exp\nExperience with SaaS"></textarea>
+              </label>
+              <button type="submit">Save position</button>
+            </form>
+          </section>
 
-        <section class="space-y-4">
-          <div
-            class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-card-dark p-4"
-          >
-            <div class="relative w-full max-w-xs">
-              <span
-                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                >search</span
-              >
-              <input
-                type="text"
-                placeholder="Search positions..."
-                class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900/70 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-              >
-                Status: All
-                <span class="material-symbols-outlined text-base">expand_more</span>
-              </button>
-              <button
-                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-              >
-                Department: All
-                <span class="material-symbols-outlined text-base">expand_more</span>
-              </button>
-              <button
-                class="flex h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-4 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-              >
-                Hiring Manager
-                <span class="material-symbols-outlined text-base">expand_more</span>
-              </button>
-            </div>
-          </div>
-          <div class="overflow-hidden rounded-xl border border-slate-800 bg-card-dark">
-            <table class="min-w-full divide-y divide-slate-800">
-              <thead class="bg-slate-900/60">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Position Title
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Status
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Candidates
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Hiring Manager
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Date Added
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800">
-                <tr class="transition-colors hover:bg-slate-900/60">
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semibold text-white">Senior Full-Stack Engineer</span>
-                      <span class="text-xs font-semibold text-sky-300">Product Platform</span>
-                    </div>
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <span class="inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300"
-                      >Screening</span
-                    >
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">42</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Kai Mendez</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 26, 2023</td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
-                      >
-                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
-                        Generate JD
-                      </button>
-                      <button
-                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                      >
-                        <span class="material-symbols-outlined text-xl">more_vert</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="transition-colors hover:bg-slate-900/60">
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semibold text-white">Product Designer</span>
-                      <span class="text-xs font-semibold text-sky-300">Consumer Apps</span>
-                    </div>
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <span class="inline-flex items-center rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300"
-                      >Open</span
-                    >
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">15</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Lena Novak</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 24, 2023</td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
-                      >
-                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
-                        Generate JD
-                      </button>
-                      <button
-                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                      >
-                        <span class="material-symbols-outlined text-xl">more_vert</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="transition-colors hover:bg-slate-900/60">
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semibold text-white">Data Scientist</span>
-                      <span class="text-xs font-semibold text-sky-300">Analytics Guild</span>
-                    </div>
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <span class="inline-flex items-center rounded-full bg-slate-500/20 px-2.5 py-0.5 text-xs font-semibold text-slate-300"
-                      >Closed</span
-                    >
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">89</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Alex Ibarra</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 22, 2023</td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
-                      >
-                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
-                        Generate JD
-                      </button>
-                      <button
-                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                      >
-                        <span class="material-symbols-outlined text-xl">more_vert</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="transition-colors hover:bg-slate-900/60">
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semibold text-white">UX Researcher</span>
-                      <span class="text-xs font-semibold text-sky-300">Insights Lab</span>
-                    </div>
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <span class="inline-flex items-center rounded-full bg-orange-500/20 px-2.5 py-0.5 text-xs font-semibold text-orange-300"
-                      >On Hold</span
-                    >
-                  </td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">23</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Priya Raman</td>
-                  <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-400">Oct 21, 2023</td>
-                  <td class="whitespace-nowrap px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="flex items-center gap-1.5 rounded-md bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary-soft transition-colors hover:bg-primary/30"
-                      >
-                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
-                        Generate JD
-                      </button>
-                      <button
-                        class="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                      >
-                        <span class="material-symbols-outlined text-xl">more_vert</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="flex items-center justify-between border-t border-slate-800 bg-slate-900/60 px-6 py-3">
-              <p class="text-sm text-slate-400">
-                Showing <span class="font-semibold text-white">1</span> to
-                <span class="font-semibold text-white">4</span> of
-                <span class="font-semibold text-white">48</span> results
-              </p>
-              <nav class="flex items-center gap-1">
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                >
-                  <span class="material-symbols-outlined text-xl">chevron_left</span>
-                </a>
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg bg-primary/30 text-sm font-bold text-white"
-                  >1</a
-                >
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-                  >2</a
-                >
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-                  >3</a
-                >
-                <span class="flex size-9 items-center justify-center text-sm font-medium text-slate-500">…</span>
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-                  >12</a
-                >
-                <a
-                  href="#"
-                  class="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                >
-                  <span class="material-symbols-outlined text-xl">chevron_right</span>
-                </a>
-              </nav>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+          <section>
+            <h3>Candidates</h3>
+            <p class="muted" style="margin-top: 4px;">Track talent pipeline and jump into detailed profiles.</p>
+            <ul class="item-list" id="candidates-list"></ul>
+            <form id="candidate-form" autocomplete="off">
+              <h4>Add candidate</h4>
+              <label>
+                Full name
+                <input name="name" type="text" required />
+              </label>
+              <label>
+                Source
+                <input name="source" type="text" placeholder="LinkedIn, Referral…" required />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" />
+              </label>
+              <label>
+                Project (optional)
+                <select id="candidate-project" name="project_id"></select>
+              </label>
+              <label>
+                Position (optional)
+                <select id="candidate-position" name="position_id"></select>
+              </label>
+              <label>
+                Status
+                <select name="status">
+                  <option value="new">New</option>
+                  <option value="screening">Screening</option>
+                  <option value="interviewing">Interviewing</option>
+                  <option value="offer">Offer</option>
+                  <option value="hired">Hired</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="withdrawn">Withdrawn</option>
+                </select>
+              </label>
+              <button type="submit">Save candidate</button>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        token: window.localStorage.getItem("recruitproToken"),
+        user: null,
+        projects: [],
+        positions: [],
+        candidates: [],
+      };
+
+      const messagesEl = document.getElementById("messages");
+      const authPanel = document.getElementById("auth-panel");
+      const appPanel = document.getElementById("app-panel");
+      const workspaceUser = document.getElementById("workspace-user");
+      const workspaceRole = document.getElementById("workspace-role");
+      const statProjects = document.getElementById("stat-projects");
+      const statPositions = document.getElementById("stat-positions");
+      const statOpenPositions = document.getElementById("stat-open-positions");
+      const statCandidates = document.getElementById("stat-candidates");
+      const projectsList = document.getElementById("projects-list");
+      const positionsList = document.getElementById("positions-list");
+      const candidatesList = document.getElementById("candidates-list");
+      const positionProjectSelect = document.getElementById("position-project");
+      const candidateProjectSelect = document.getElementById("candidate-project");
+      const candidatePositionSelect = document.getElementById("candidate-position");
+      const refreshButton = document.getElementById("refresh-button");
+      const logoutButton = document.getElementById("logout-button");
+
+      function setMessage(text, variant = "info") {
+        if (!text) {
+          messagesEl.dataset.state = "hidden";
+          messagesEl.textContent = "";
+          return;
+        }
+        messagesEl.dataset.state = "visible";
+        messagesEl.dataset.variant = variant;
+        messagesEl.textContent = text;
+      }
+
+      function toList(value) {
+        return value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function toLines(value) {
+        return value
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+      }
+
+      async function apiFetch(path, options = {}) {
+        const config = { method: "GET", headers: { Accept: "application/json" }, ...options };
+        config.headers = new Headers(config.headers);
+
+        if (state.token) {
+          config.headers.set("Authorization", `Bearer ${state.token}`);
+        }
+
+        const response = await fetch(path, config);
+        const text = await response.text();
+        let data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (error) {
+            data = null;
+          }
+        }
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            handleLogout(false);
+          }
+          const detail = data && (data.detail || data.message);
+          throw new Error(detail || `Request failed with status ${response.status}`);
+        }
+
+        return data;
+      }
+
+      async function registerUser(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+          email: formData.get("email").trim().toLowerCase(),
+          password: formData.get("password"),
+          role: formData.get("role"),
+        };
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            throw new Error((data && (data.detail || data.message)) || "Registration failed");
+          }
+
+          form.reset();
+          setMessage("Account created. You can now sign in.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function loginUser(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = new URLSearchParams();
+        payload.set("username", formData.get("email").trim().toLowerCase());
+        payload.set("password", formData.get("password"));
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: payload,
+          });
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            throw new Error((data && (data.detail || data.message)) || "Login failed");
+          }
+
+          state.token = data.access_token;
+          window.localStorage.setItem("recruitproToken", state.token);
+          form.reset();
+          setMessage("Signed in successfully.", "success");
+          await loadWorkspace(false);
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      function handleLogout(showNotice = true) {
+        state.token = null;
+        state.user = null;
+        state.projects = [];
+        state.positions = [];
+        state.candidates = [];
+        window.localStorage.removeItem("recruitproToken");
+        authPanel.classList.remove("hidden");
+        appPanel.classList.add("hidden");
+        projectsList.innerHTML = "";
+        positionsList.innerHTML = "";
+        candidatesList.innerHTML = "";
+        renderStats();
+        if (showNotice) {
+          setMessage("You have been signed out.", "info");
+        } else {
+          setMessage("", "info");
+        }
+      }
+
+      function renderStats() {
+        statProjects.textContent = state.projects.length;
+        statPositions.textContent = state.positions.length;
+        statOpenPositions.textContent = state.positions.filter((item) => item.status === "open").length;
+        statCandidates.textContent = state.candidates.length;
+      }
+
+      function renderProjects() {
+        projectsList.innerHTML = "";
+        if (state.projects.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "No projects yet. Create one to get started.";
+          projectsList.appendChild(empty);
+          return;
+        }
+
+        state.projects.forEach((project) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = project.name;
+          item.appendChild(title);
+
+          const subtitle = document.createElement("p");
+          subtitle.className = "muted";
+          const client = project.client ? `Client: ${project.client}` : "No client assigned";
+          subtitle.textContent = `${client} • Status: ${project.status}`;
+          item.appendChild(subtitle);
+
+          if (project.summary) {
+            const summary = document.createElement("p");
+            summary.textContent = project.summary;
+            item.appendChild(summary);
+          }
+
+          const tags = [];
+          if (project.tags && project.tags.length) {
+            tags.push(`Tags: ${project.tags.join(", ")}`);
+          }
+          if (project.team_members && project.team_members.length) {
+            tags.push(`Team: ${project.team_members.join(", ")}`);
+          }
+          if (tags.length) {
+            const meta = document.createElement("p");
+            meta.className = "muted";
+            meta.textContent = tags.join(" • ");
+            item.appendChild(meta);
+          }
+
+          const hires = document.createElement("p");
+          hires.className = "muted";
+          const target = project.target_hires ?? 0;
+          hires.textContent = `Hires: ${project.hires_count ?? 0} / ${target}`;
+          item.appendChild(hires);
+
+          projectsList.appendChild(item);
+        });
+      }
+
+      function projectLookup(projectId) {
+        return state.projects.find((project) => project.project_id === projectId);
+      }
+
+      function positionLookup(positionId) {
+        return state.positions.find((position) => position.position_id === positionId);
+      }
+
+      function renderPositions() {
+        positionsList.innerHTML = "";
+        if (state.positions.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "No positions yet. Link a role to a project to begin tracking.";
+          positionsList.appendChild(empty);
+          return;
+        }
+
+        state.positions.forEach((position) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = position.title;
+          item.appendChild(title);
+
+          const project = projectLookup(position.project_id);
+          const details = document.createElement("p");
+          details.className = "muted";
+          const projectName = project ? project.name : "Unassigned";
+          details.textContent = `${projectName} • Status: ${position.status}`;
+          item.appendChild(details);
+
+          if (position.location) {
+            const location = document.createElement("p");
+            location.textContent = `Location: ${position.location}`;
+            item.appendChild(location);
+          }
+
+          const openings = document.createElement("p");
+          openings.className = "muted";
+          openings.textContent = `Openings: ${position.openings ?? 0} • Applicants: ${position.applicants_count ?? 0}`;
+          item.appendChild(openings);
+
+          positionsList.appendChild(item);
+        });
+      }
+
+      function renderCandidates() {
+        candidatesList.innerHTML = "";
+        if (state.candidates.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "No candidates recorded. Add talent to start building your pipeline.";
+          candidatesList.appendChild(empty);
+          return;
+        }
+
+        state.candidates.forEach((candidate) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = candidate.name;
+          item.appendChild(title);
+
+          const meta = document.createElement("p");
+          meta.className = "muted";
+          const source = candidate.source ? `Source: ${candidate.source}` : "";
+          const status = `Status: ${candidate.status}`;
+          meta.textContent = [source, status].filter(Boolean).join(" • ");
+          item.appendChild(meta);
+
+          const project = projectLookup(candidate.project_id);
+          const position = positionLookup(candidate.position_id);
+          if (project || position) {
+            const assignment = document.createElement("p");
+            assignment.className = "muted";
+            const parts = [];
+            if (project) {
+              parts.push(`Project: ${project.name}`);
+            }
+            if (position) {
+              parts.push(`Role: ${position.title}`);
+            }
+            assignment.textContent = parts.join(" • ");
+            item.appendChild(assignment);
+          }
+
+          const link = document.createElement("a");
+          link.textContent = "Open profile";
+          link.href = `/candidate-profile?candidate_id=${encodeURIComponent(candidate.candidate_id)}${
+            state.token ? `&token=${encodeURIComponent(state.token)}` : ""
+          }`;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          item.appendChild(link);
+
+          candidatesList.appendChild(item);
+        });
+      }
+
+      function refreshProjectOptions() {
+        const selects = [positionProjectSelect, candidateProjectSelect];
+        selects.forEach((select) => {
+          if (!select) return;
+          const current = select.value;
+          select.innerHTML = "";
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = select === positionProjectSelect ? "Select a project" : "No project";
+          select.appendChild(placeholder);
+          state.projects.forEach((project) => {
+            const option = document.createElement("option");
+            option.value = project.project_id;
+            option.textContent = project.name;
+            select.appendChild(option);
+          });
+          if (current && state.projects.some((project) => project.project_id === current)) {
+            select.value = current;
+          }
+        });
+        refreshCandidatePositionOptions();
+      }
+
+      function refreshCandidatePositionOptions() {
+        const selectedProjectId = candidateProjectSelect.value;
+        const relevantPositions = selectedProjectId
+          ? state.positions.filter((position) => position.project_id === selectedProjectId)
+          : state.positions;
+
+        const current = candidatePositionSelect.value;
+        candidatePositionSelect.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = relevantPositions.length ? "No position" : "No positions available";
+        candidatePositionSelect.appendChild(placeholder);
+
+        relevantPositions.forEach((position) => {
+          const option = document.createElement("option");
+          option.value = position.position_id;
+          option.textContent = `${position.title} (${projectLookup(position.project_id)?.name || "Unassigned"})`;
+          candidatePositionSelect.appendChild(option);
+        });
+
+        if (current && relevantPositions.some((position) => position.position_id === current)) {
+          candidatePositionSelect.value = current;
+        }
+      }
+
+      function renderWorkspace() {
+        if (!state.user) {
+          workspaceUser.textContent = "Signed in as —";
+          workspaceRole.textContent = "";
+          workspaceRole.classList.add("hidden");
+        } else {
+          workspaceUser.textContent = `Signed in as ${state.user.name} (${state.user.email})`;
+          workspaceRole.textContent = state.user.role === "admin" ? "Admin" : "Recruiter";
+          workspaceRole.classList.remove("hidden");
+        }
+
+        renderStats();
+        renderProjects();
+        renderPositions();
+        renderCandidates();
+        refreshProjectOptions();
+      }
+
+      async function loadWorkspace(showNotice = false) {
+        if (!state.token) {
+          handleLogout(false);
+          return;
+        }
+
+        try {
+          const [user, projects, positions, candidates] = await Promise.all([
+            apiFetch("/api/user"),
+            apiFetch("/api/projects"),
+            apiFetch("/api/positions"),
+            apiFetch("/api/candidates"),
+          ]);
+
+          state.user = user;
+          state.projects = Array.isArray(projects) ? projects : [];
+          state.positions = Array.isArray(positions) ? positions : [];
+          state.candidates = Array.isArray(candidates) ? candidates : [];
+
+          authPanel.classList.add("hidden");
+          appPanel.classList.remove("hidden");
+          renderWorkspace();
+          if (showNotice) {
+            setMessage("Workspace loaded.", "success");
+          }
+        } catch (error) {
+          setMessage(error.message, "error");
+        }
+      }
+
+      async function createProject(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+        };
+        const client = formData.get("client").trim();
+        const location = formData.get("location_region").trim();
+        const summary = formData.get("summary").trim();
+        const tagsValue = formData.get("tags").trim();
+        const teamMembersValue = formData.get("team_members").trim();
+        const target = formData.get("target_hires").trim();
+
+        if (client) payload.client = client;
+        if (location) payload.location_region = location;
+        if (summary) payload.summary = summary;
+        if (tagsValue) payload.tags = toList(tagsValue);
+        if (teamMembersValue) payload.team_members = toList(teamMembersValue);
+        if (target) {
+          const targetNumber = Number.parseInt(target, 10);
+          if (!Number.isNaN(targetNumber)) {
+            payload.target_hires = targetNumber;
+          }
+        }
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/projects", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          await loadWorkspace(false);
+          setMessage("Project created successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function createPosition(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          project_id: formData.get("project_id"),
+          title: formData.get("title").trim(),
+        };
+        const department = formData.get("department").trim();
+        const location = formData.get("location").trim();
+        const status = formData.get("status");
+        const openings = formData.get("openings").trim();
+        const responsibilities = formData.get("responsibilities").trim();
+        const requirements = formData.get("requirements").trim();
+
+        if (!payload.project_id) {
+          setMessage("Select a project before creating a position.", "error");
+          return;
+        }
+
+        if (department) payload.department = department;
+        if (location) payload.location = location;
+        if (status) payload.status = status;
+        if (openings) {
+          const openingsNumber = Number.parseInt(openings, 10);
+          if (!Number.isNaN(openingsNumber)) {
+            payload.openings = openingsNumber;
+          }
+        }
+        if (responsibilities) payload.responsibilities = toLines(responsibilities);
+        if (requirements) payload.requirements = toLines(requirements);
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/positions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          await loadWorkspace(false);
+          setMessage("Position created successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function createCandidate(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+          source: formData.get("source").trim(),
+          status: formData.get("status"),
+        };
+        const email = formData.get("email").trim();
+        const projectId = formData.get("project_id");
+        const positionId = formData.get("position_id");
+
+        if (email) payload.email = email;
+        if (projectId) payload.project_id = projectId;
+        if (positionId) payload.position_id = positionId;
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/candidates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          refreshCandidatePositionOptions();
+          await loadWorkspace(false);
+          setMessage("Candidate added successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      document.getElementById("register-form").addEventListener("submit", registerUser);
+      document.getElementById("login-form").addEventListener("submit", loginUser);
+      document.getElementById("project-form").addEventListener("submit", createProject);
+      document.getElementById("position-form").addEventListener("submit", createPosition);
+      document.getElementById("candidate-form").addEventListener("submit", createCandidate);
+      candidateProjectSelect.addEventListener("change", refreshCandidatePositionOptions);
+      refreshButton.addEventListener("click", () => {
+        if (!state.token) {
+          setMessage("Sign in to refresh workspace data.", "error");
+          return;
+        }
+        loadWorkspace(true);
+      });
+      logoutButton.addEventListener("click", () => handleLogout(true));
+
+      if (state.token) {
+        loadWorkspace(false);
+      }
+    </script>
   </body>
 </html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecruitPro - Candidate Profile</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#4A90E2",
+              accent: "#50E3C2",
+              "background-light": "#F8F9FA",
+              "background-dark": "#101922",
+              "card-dark": "#1A2632",
+              "text-primary-dark": "#E5E7EB",
+              "text-secondary-dark": "#92adc9",
+              "border-dark": "#324d67",
+              "status-green": "#22c55e",
+              "status-yellow": "#eab308",
+              "status-red": "#ef4444",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body class="bg-background-dark font-display text-text-primary-dark">
+    <div class="flex min-h-screen w-full">
+      <!-- SideNavBar -->
+      <aside class="w-64 flex-shrink-0 bg-[#111a22] p-4 border-r border-border-dark">
+        <div class="flex h-full flex-col justify-between">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 px-2 pb-4">
+              <span class="material-symbols-outlined text-primary text-3xl">hub</span>
+              <h1 class="text-white text-xl font-bold">RecruitPro</h1>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT cursor-pointer hover:bg-card-dark">
+                <span class="material-symbols-outlined text-text-secondary-dark">dashboard</span>
+                <p class="text-text-secondary-dark text-sm font-medium leading-normal">
+                  Dashboard
+                </p>
+              </div>
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT bg-card-dark cursor-pointer">
+                <span class="material-symbols-outlined text-white">groups</span>
+                <p class="text-white text-sm font-medium leading-normal">Candidates</p>
+              </div>
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT cursor-pointer hover:bg-card-dark">
+                <span class="material-symbols-outlined text-text-secondary-dark">work</span>
+                <p class="text-text-secondary-dark text-sm font-medium leading-normal">Jobs</p>
+              </div>
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT cursor-pointer hover:bg-card-dark">
+                <span class="material-symbols-outlined text-text-secondary-dark">bar_chart</span>
+                <p class="text-text-secondary-dark text-sm font-medium leading-normal">
+                  Analytics
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <button
+              class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90">
+              <span class="truncate">Post a New Job</span>
+            </button>
+            <div class="flex flex-col gap-1">
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT cursor-pointer hover:bg-card-dark">
+                <span class="material-symbols-outlined text-text-secondary-dark">settings</span>
+                <p class="text-text-secondary-dark text-sm font-medium leading-normal">
+                  Settings
+                </p>
+              </div>
+              <div
+                class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT cursor-pointer hover:bg-card-dark">
+                <span class="material-symbols-outlined text-text-secondary-dark">help</span>
+                <p class="text-text-secondary-dark text-sm font-medium leading-normal">
+                  Help
+                </p>
+              </div>
+              <div class="flex items-center gap-3 px-3 py-2 mt-4">
+                <div
+                  class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                  data-alt="Profile picture of Eleanor Vance"
+                  style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCggY5q0JxS18oZqJAxjXdOmw_60K55gANzgoGBkO5jdsXWjTr9UBzh3mg2gu_EAqMkfNUIqdEQNo15Bl73BFBuyd7KNI3mJEdNTGjv0HdQyAmpPRL48iQG1YxS6gEc-WPSycN5dMu6onj_IlPloT6_8MkWGZtfmumeQO34YSRCwPnJxSYS8iTFubExgNgU9L-pd4m3Y5mW4FZdkW7wNiKsG-wB6QFK1wjHJaAZIha9eLQyVXdXcCUQqSKrIScRgn_NW4U_K1ldkLg');"></div>
+                <div class="flex flex-col">
+                  <h1 class="text-white text-base font-medium leading-normal">Eleanor Vance</h1>
+                  <p class="text-text-secondary-dark text-sm font-normal leading-normal">
+                    RecruitPro Inc.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <main class="flex-1 p-8 overflow-y-auto">
+        <div class="max-w-7xl mx-auto">
+          <!-- Profile Header -->
+          <div class="flex p-4 @container border-b border-border-dark pb-6">
+            <div
+              class="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
+              <div class="flex gap-6 items-center">
+                <div
+                  class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 flex-shrink-0"
+                  data-alt="Profile picture of Amelia Collins"
+                  style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCG05-lCNvTrFJKPrPkgtfBAlkhulNAHl8SDI4irYxz04dbX7V0zBcDwIjBkGoaNrMY0mEyxTNryxYo_4nmTcBCcZyUXJfEvMP-6HEWwo1StM5p1ZdcjB5w68wyfxEpY2v3k9PF-G3XdKfQkU4ks7Ww6HvpeQVBq0_g0K_wS9xfxFSz93H41vuHXTLmX5GEpdPfvpDInzHNIYBdtzDZWy2hDCXk_HdWf05qmzkPLw1cH8lxphJfntflTXnMLMT35NlyNvCjQYc1ios');"></div>
+                <div class="flex flex-col justify-center gap-1">
+                  <p class="text-white text-3xl font-bold leading-tight">Amelia Collins</p>
+                  <p class="text-text-secondary-dark text-lg font-normal leading-normal">
+                    Senior Product Manager at TechSolutions Inc.
+                  </p>
+                  <div class="flex items-center gap-2 mt-2">
+                    <p class="text-accent font-bold text-lg">AI Match Score: 92%</p>
+                    <span class="material-symbols-outlined text-accent !text-2xl">verified</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex w-full max-w-[480px] gap-3 @[480px]:w-auto">
+                <button
+                  class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-card-dark text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto hover:bg-border-dark">
+                  <span class="truncate">Reject</span>
+                </button>
+                <button
+                  class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto hover:bg-primary/90">
+                  <span class="truncate">Move to Next Stage</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Tabs -->
+          <div class="pb-3">
+            <div class="flex border-b border-border-dark gap-8">
+              <a
+                class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-white pb-[13px] pt-4"
+                href="#">
+                <p class="text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                  Overview
+                </p>
+              </a>
+              <a
+                class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-secondary-dark pb-[13px] pt-4 hover:text-white"
+                href="#">
+                <p class="text-sm font-bold leading-normal tracking-[0.015em]">
+                  Experience &amp; Skills
+                </p>
+              </a>
+              <a
+                class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-secondary-dark pb-[13px] pt-4 hover:text-white"
+                href="#">
+                <p class="text-sm font-bold leading-normal tracking-[0.015em]">AI Insights</p>
+              </a>
+              <a
+                class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-text-secondary-dark pb-[13px] pt-4 hover:text-white"
+                href="#">
+                <p class="text-sm font-bold leading-normal tracking-[0.015em]">Activity History</p>
+              </a>
+            </div>
+          </div>
+          <!-- Main Content Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+              <!-- AI Generated Summary Card -->
+              <div class="bg-card-dark rounded-lg p-6">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-accent">auto_awesome</span>
+                  <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">
+                    AI Generated Summary
+                  </h3>
+                </div>
+                <p class="text-text-primary-dark text-base font-normal leading-relaxed pt-3">
+                  Amelia is a highly accomplished Senior Product Manager with over 8 years of
+                  experience in SaaS and enterprise software. Her resume highlights a strong
+                  alignment with the required skills in agile methodologies, user-centric design,
+                  and market analysis. The AI model predicts a high probability of culture fit based
+                  on her stated interests in collaborative environments and continuous learning.
+                </p>
+              </div>
+              <!-- Contact and Documents -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Contact Information Card -->
+                <div class="bg-card-dark rounded-lg p-6">
+                  <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">
+                    Contact Information
+                  </h3>
+                  <div class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-text-secondary-dark">mail</span>
+                      <span class="text-text-primary-dark">amelia.collins@example.com</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-text-secondary-dark">call</span>
+                      <span class="text-text-primary-dark">+1 (555) 123-4567</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-text-secondary-dark">location_on</span>
+                      <span class="text-text-primary-dark">San Francisco, CA</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <svg
+                        aria-hidden="true"
+                        class="w-5 h-5 text-text-secondary-dark"
+                        fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          clip-rule="evenodd"
+                          d="M19.5 0h-15A4.5 4.5 0 000 4.5v15A4.5 4.5 0 004.5 24h15a4.5 4.5 0 004.5-4.5v-15A4.5 4.5 0 0019.5 0zM8.25 19.5h-2.7v-9h2.7v9zm-1.35-10.2a1.65 1.65 0 110-3.3 1.65 1.65 0 010 3.3zM19.5 19.5h-2.7v-4.67c0-1.12-.02-2.55-1.55-2.55-1.55 0-1.79 1.21-1.79 2.47V19.5h-2.7v-9h2.59v1.18h.04c.36-.68 1.24-1.4 2.55-1.4 2.73 0 3.23 1.8 3.23 4.14V19.5z"
+                          fill-rule="evenodd"></path>
+                      </svg>
+                      <span class="text-text-primary-dark">linkedin.com/in/amelia-collins</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Documents Card -->
+                <div class="bg-card-dark rounded-lg p-6">
+                  <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">
+                    Documents
+                  </h3>
+                  <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between p-3 bg-background-dark rounded-DEFAULT">
+                      <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">description</span>
+                        <span class="text-text-primary-dark font-medium">Amelia_Collins_Resume.pdf</span>
+                      </div>
+                      <button class="text-text-secondary-dark hover:text-white">
+                        <span class="material-symbols-outlined">download</span>
+                      </button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-background-dark rounded-DEFAULT">
+                      <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">article</span>
+                        <span class="text-text-primary-dark font-medium">Cover_Letter_PM.pdf</span>
+                      </div>
+                      <button class="text-text-secondary-dark hover:text-white">
+                        <span class="material-symbols-outlined">download</span>
+                      </button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-background-dark rounded-DEFAULT">
+                      <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">folder_zip</span>
+                        <span class="text-text-primary-dark font-medium">Portfolio_SaaS_Projects.zip</span>
+                      </div>
+                      <button class="text-text-secondary-dark hover:text-white">
+                        <span class="material-symbols-outlined">download</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Right Sidebar -->
+            <div class="lg:col-span-1 flex flex-col gap-6">
+              <!-- Quick Actions -->
+              <div class="bg-card-dark rounded-lg p-6">
+                <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">
+                  Quick Actions
+                </h3>
+                <div class="flex flex-col gap-3">
+                  <button
+                    class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary/20 text-primary text-sm font-bold leading-normal hover:bg-primary/30">
+                    <span class="material-symbols-outlined">mark_email_unread</span>
+                    <span class="truncate">Generate AI Email</span>
+                  </button>
+                  <button
+                    class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary/20 text-primary text-sm font-bold leading-normal hover:bg-primary/30">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <span class="truncate">Schedule Interview</span>
+                  </button>
+                  <button
+                    class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary/20 text-primary text-sm font-bold leading-normal hover:bg-primary/30">
+                    <span class="material-symbols-outlined">note_add</span>
+                    <span class="truncate">Add Note</span>
+                  </button>
+                </div>
+              </div>
+              <!-- At a Glance -->
+              <div class="bg-card-dark rounded-lg p-6">
+                <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">
+                  At a Glance
+                </h3>
+                <div class="flex flex-col gap-4 text-sm">
+                  <div class="flex justify-between items-center">
+                    <span class="text-text-secondary-dark">Current Stage</span>
+                    <span class="bg-status-yellow/20 text-status-yellow font-bold py-1 px-3 rounded-full">AI Screening</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-text-secondary-dark">Application Source</span>
+                    <span class="text-white font-medium">LinkedIn</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-text-secondary-dark">Date Applied</span>
+                    <span class="text-white font-medium">July 26, 2024</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Internal Notes -->
+              <div class="bg-card-dark rounded-lg p-6">
+                <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">
+                  Internal Notes
+                </h3>
+                <div class="flex flex-col gap-4">
+                  <textarea
+                    class="w-full bg-background-dark border border-border-dark rounded-DEFAULT p-3 text-sm placeholder:text-text-secondary-dark focus:border-primary focus:ring-primary"
+                    placeholder="Add a note for the team..."
+                    rows="3"></textarea>
+                  <div class="flex flex-col gap-4 max-h-60 overflow-y-auto">
+                    <div class="flex gap-3">
+                      <div
+                        class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 mt-1 flex-shrink-0"
+                        data-alt="Profile picture of a team member"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAz2Tsr4A7OtqIX_6nFa1-m9smeQYd-kS5EqskHNOuZwDfmeZYaMeI2trRtQwl3R8RRp6l8P1L9kPYH_WMMEE_KFMMxd3lRnYjK44P0SVay2KCbpbR9P633awcGMt9IkB_EPtKBoJNOL_bII-CSrdDKTipUBN6I19E2eVMsyQpeEyd6QThuKDy0msCj64Jdz_zzJLvWOpesv7f-gI-cWrD8Y1RLMMFew9qC48fwKsTYIgsITs8HxKBqKPmZzlI-iBK6VwQdwFghqWg');"></div>
+                      <div>
+                        <div class="flex items-baseline gap-2">
+                          <p class="font-bold text-sm text-white">David Chen</p>
+                          <p class="text-xs text-text-secondary-dark">2 days ago</p>
+                        </div>
+                        <p class="text-sm text-text-primary-dark leading-relaxed">
+                          Impressive background in SaaS. Let's move her to the technical screen.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex gap-3">
+                      <div
+                        class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 mt-1 flex-shrink-0"
+                        data-alt="Profile picture of Eleanor Vance"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuABtJlQgYkU2wPaywwwV_K_e0u4BDc0MCF_3X5k5ic_e_8chchHWqI3nhlq8jHqWHKgqOqAjk8HtPH2Mx7bTg6z_eY634EgLdK8pyhX82VEFz0N7tNnehpkcgYaOKeoPU-N3-QAh4MoWNOFJgbCTwowwnOqKCBhMBtXFTCZQby1mKnfOVWjITQ8BU6fthCRHKpmEE5cV3sY-1xzuICMToD0TTIS0mEJGAhCHckr_jduhjvD215mkv_0TvmUCC9cVmMVESOi-gj-OVc');"></div>
+                      <div>
+                        <div class="flex items-baseline gap-2">
+                          <p class="font-bold text-sm text-white">Eleanor Vance</p>
+                          <p class="text-xs text-text-secondary-dark">5 days ago</p>
+                        </div>
+                        <p class="text-sm text-text-primary-dark leading-relaxed">
+                          AI screening score is one of the highest I've seen. She seems like a
+                          perfect fit for the role requirements.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

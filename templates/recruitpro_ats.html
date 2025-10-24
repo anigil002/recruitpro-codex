@@ -275,6 +275,182 @@
         gap: 16px;
       }
 
+      .activity-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .activity-feed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .activity-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .activity-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--muted);
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
+        transition: background 150ms ease, box-shadow 150ms ease;
+      }
+
+      .activity-status[data-state="connected"] .activity-status-dot {
+        background: var(--success);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+      }
+
+      .activity-status[data-state="connecting"] .activity-status-dot {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      }
+
+      .activity-status[data-state="error"] .activity-status-dot {
+        background: var(--error);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+      }
+
+      .activity-feed-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .activity-item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.55);
+      }
+
+      .activity-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-top: 6px;
+        background: rgba(148, 163, 184, 0.5);
+      }
+
+      .activity-item[data-variant="project"] .activity-marker {
+        background: rgba(96, 165, 250, 0.75);
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+      }
+
+      .activity-item[data-variant="candidate"] .activity-marker {
+        background: rgba(34, 197, 94, 0.8);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+
+      .activity-item[data-variant="document"] .activity-marker {
+        background: rgba(249, 115, 22, 0.85);
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+      }
+
+      .activity-item[data-variant="auth"] .activity-marker {
+        background: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+      }
+
+      .activity-item[data-variant="ai"] .activity-marker {
+        background: rgba(165, 180, 252, 0.9);
+        box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.18);
+      }
+
+      .activity-item[data-variant="interview"] .activity-marker {
+        background: rgba(244, 114, 182, 0.85);
+        box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.18);
+      }
+
+      .activity-item[data-variant="default"] .activity-marker {
+        background: rgba(148, 163, 184, 0.7);
+        box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.15);
+      }
+
+      .activity-message {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .activity-meta {
+        margin-top: 6px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .activity-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: var(--accent-soft);
+        text-transform: capitalize;
+      }
+
+      .activity-item[data-variant="candidate"] .activity-tag {
+        background: rgba(34, 197, 94, 0.12);
+        border-color: rgba(34, 197, 94, 0.25);
+        color: rgba(134, 239, 172, 0.95);
+      }
+
+      .activity-item[data-variant="document"] .activity-tag {
+        background: rgba(249, 115, 22, 0.12);
+        border-color: rgba(249, 115, 22, 0.25);
+        color: rgba(253, 186, 116, 0.95);
+      }
+
+      .activity-item[data-variant="auth"] .activity-tag {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.25);
+        color: rgba(191, 219, 254, 0.95);
+      }
+
+      .activity-item[data-variant="ai"] .activity-tag {
+        background: rgba(165, 180, 252, 0.15);
+        border-color: rgba(165, 180, 252, 0.25);
+        color: rgba(196, 181, 253, 0.95);
+      }
+
+      .activity-item[data-variant="interview"] .activity-tag {
+        background: rgba(244, 114, 182, 0.15);
+        border-color: rgba(244, 114, 182, 0.25);
+        color: rgba(251, 207, 232, 0.95);
+      }
+
+      .activity-item[data-variant="default"] .activity-tag {
+        background: rgba(148, 163, 184, 0.12);
+        border-color: rgba(148, 163, 184, 0.25);
+        color: rgba(226, 232, 240, 0.95);
+      }
+
+      .activity-empty {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
       .result-list {
         display: flex;
         flex-direction: column;
@@ -408,6 +584,18 @@
             <strong id="stat-candidates">0</strong>
           </article>
         </div>
+
+        <section class="activity-feed" aria-live="polite" aria-atomic="false">
+          <div class="activity-feed-header">
+            <h3>Live activity</h3>
+            <span class="activity-status" id="activity-status" data-state="idle">
+              <span class="activity-status-dot" aria-hidden="true"></span>
+              <span id="activity-status-text">Live updates paused</span>
+            </span>
+          </div>
+          <p class="activity-empty" id="activity-empty">Connect to start seeing activity.</p>
+          <ul class="activity-feed-list" id="activity-feed-list"></ul>
+        </section>
 
         <div class="grid-three">
           <section>
@@ -605,6 +793,8 @@
         positions: [],
         candidates: [],
         linkedinJobs: [],
+        activities: [],
+        activityKeys: new Set(),
       };
 
       let activitySource = null;
@@ -622,6 +812,10 @@
       const projectsList = document.getElementById("projects-list");
       const positionsList = document.getElementById("positions-list");
       const candidatesList = document.getElementById("candidates-list");
+      const activityFeedList = document.getElementById("activity-feed-list");
+      const activityEmpty = document.getElementById("activity-empty");
+      const activityStatus = document.getElementById("activity-status");
+      const activityStatusText = document.getElementById("activity-status-text");
       const positionProjectSelect = document.getElementById("position-project");
       const candidateProjectSelect = document.getElementById("candidate-project");
       const candidatePositionSelect = document.getElementById("candidate-position");
@@ -645,10 +839,226 @@
         messagesEl.textContent = text;
       }
 
-      function closeActivityStream() {
+      function setActivityStatus(nextState, overrideText = null) {
+        if (!activityStatus || !activityStatusText) {
+          return;
+        }
+        const validStates = new Set(["idle", "connecting", "connected", "error"]);
+        const stateToApply = validStates.has(nextState) ? nextState : "idle";
+        activityStatus.dataset.state = stateToApply;
+
+        let text = overrideText;
+        if (!text) {
+          if (stateToApply === "connected") {
+            text = "Connected to live updates";
+          } else if (stateToApply === "connecting") {
+            text = "Connecting to live updates…";
+          } else if (stateToApply === "error") {
+            text = "Connection lost. Reconnecting…";
+          } else {
+            text = "Live updates paused";
+          }
+        }
+        activityStatusText.textContent = text;
+        renderActivityFeed();
+      }
+
+      function formatActivityTimestamp(value) {
+        if (!value) {
+          return "Just now";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "Just now";
+        }
+        const now = new Date();
+        const sameDay = date.toDateString() === now.toDateString();
+        const options = sameDay
+          ? { hour: "numeric", minute: "2-digit" }
+          : { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" };
+        if (!sameDay && date.getFullYear() !== now.getFullYear()) {
+          options.year = "numeric";
+        }
+        try {
+          return date.toLocaleString(undefined, options);
+        } catch (error) {
+          return date.toISOString();
+        }
+      }
+
+      function getActivityVariant(eventType) {
+        const value = (eventType || "").toString().toLowerCase();
+        if (!value) {
+          return "default";
+        }
+        if (value.startsWith("project") || value.startsWith("position")) {
+          return "project";
+        }
+        if (value.startsWith("candidate")) {
+          return "candidate";
+        }
+        if (value.includes("document") || value.includes("file")) {
+          return "document";
+        }
+        if (value.includes("login") || value.includes("logout") || value.includes("password") || value.includes("user_")) {
+          return "auth";
+        }
+        if (value.includes("interview")) {
+          return "interview";
+        }
+        if (
+          value.includes("ai") ||
+          value.includes("linkedin") ||
+          value.includes("market_research") ||
+          value.includes("smartrecruiters")
+        ) {
+          return "ai";
+        }
+        return "default";
+      }
+
+      function getActivityLabel(eventType) {
+        if (!eventType) {
+          return "Activity";
+        }
+        return eventType
+          .toString()
+          .split("_")
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function normalizeActivity(entry) {
+        if (!entry) {
+          return null;
+        }
+        const eventType = (entry.event_type || entry.type || "activity").toString();
+        const message = entry.message ? entry.message.toString() : "Activity update";
+        let createdAtIso = entry.created_at;
+        if (createdAtIso) {
+          const parsed = new Date(createdAtIso);
+          createdAtIso = Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+        } else {
+          createdAtIso = new Date().toISOString();
+        }
+        const key = `${createdAtIso}|${eventType.toLowerCase()}|${message}`;
+        return {
+          key,
+          activity_id: entry.activity_id || null,
+          event_type: eventType,
+          message,
+          created_at: createdAtIso,
+        };
+      }
+
+      function replaceActivities(entries) {
+        state.activities = [];
+        state.activityKeys = new Set();
+        if (!Array.isArray(entries) || entries.length === 0) {
+          renderActivityFeed();
+          return;
+        }
+        entries.slice(0, 20).forEach((entry) => {
+          const normalized = normalizeActivity(entry);
+          if (!normalized) {
+            return;
+          }
+          if (state.activityKeys.has(normalized.key)) {
+            return;
+          }
+          state.activityKeys.add(normalized.key);
+          state.activities.push(normalized);
+        });
+        renderActivityFeed();
+      }
+
+      function addActivity(entry, { prepend = true } = {}) {
+        const normalized = normalizeActivity(entry);
+        if (!normalized) {
+          return;
+        }
+        if (!state.activityKeys) {
+          state.activityKeys = new Set();
+        }
+        if (state.activityKeys.has(normalized.key)) {
+          return;
+        }
+        state.activityKeys.add(normalized.key);
+        if (prepend) {
+          state.activities.unshift(normalized);
+        } else {
+          state.activities.push(normalized);
+        }
+        if (state.activities.length > 20) {
+          const overflow = state.activities.splice(20);
+          overflow.forEach((item) => state.activityKeys.delete(item.key));
+        }
+        renderActivityFeed();
+      }
+
+      function renderActivityFeed() {
+        if (!activityFeedList || !activityEmpty) {
+          return;
+        }
+        activityFeedList.innerHTML = "";
+        if (!state.activities.length) {
+          const status = activityStatus ? activityStatus.dataset.state : "idle";
+          let emptyMessage = "Connect to start seeing activity.";
+          if (status === "connected") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connected to live updates";
+          } else if (status === "connecting") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connecting to live updates…";
+          } else if (status === "error") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connection lost. Reconnecting…";
+          }
+          activityEmpty.textContent = emptyMessage;
+          activityEmpty.classList.remove("hidden");
+          return;
+        }
+
+        activityEmpty.classList.add("hidden");
+        state.activities.forEach((item) => {
+          const variant = getActivityVariant(item.event_type);
+          const listItem = document.createElement("li");
+          listItem.className = "activity-item";
+          listItem.dataset.variant = variant;
+
+          const marker = document.createElement("span");
+          marker.className = "activity-marker";
+          marker.setAttribute("aria-hidden", "true");
+
+          const body = document.createElement("div");
+          const message = document.createElement("p");
+          message.className = "activity-message";
+          message.textContent = item.message;
+
+          const meta = document.createElement("div");
+          meta.className = "activity-meta";
+          const tag = document.createElement("span");
+          tag.className = "activity-tag";
+          tag.textContent = getActivityLabel(item.event_type);
+
+          const timeEl = document.createElement("time");
+          timeEl.dateTime = item.created_at;
+          timeEl.textContent = formatActivityTimestamp(item.created_at);
+
+          meta.appendChild(tag);
+          meta.appendChild(timeEl);
+          body.appendChild(message);
+          body.appendChild(meta);
+          listItem.appendChild(marker);
+          listItem.appendChild(body);
+          activityFeedList.appendChild(listItem);
+        });
+      }
+
+      function closeActivityStream(nextState = null) {
         if (activitySource) {
           activitySource.close();
           activitySource = null;
+        }
+        if (nextState) {
+          setActivityStatus(nextState);
         }
       }
 
@@ -663,6 +1073,9 @@
         }
         if (payload && payload.message) {
           setMessage(payload.message, "info");
+        }
+        if (payload) {
+          addActivity(payload);
         }
         if (state.token) {
           loadWorkspace(false);
@@ -705,24 +1118,31 @@
 
       function openActivityStream() {
         if (!state.token) {
-          closeActivityStream();
+          closeActivityStream("idle");
           return;
         }
         const streamUrl = new URL("/api/activity/stream", window.location.origin);
         streamUrl.searchParams.set("token", state.token);
         closeActivityStream();
+        setActivityStatus("connecting");
         const source = new EventSource(streamUrl.toString());
         source.addEventListener("activity", handleActivityEvent);
         source.addEventListener("job", handleJobEvent);
+        source.onopen = () => {
+          setActivityStatus("connected");
+        };
         source.onerror = () => {
           // Allow the browser to retry automatically.
+          if (state.token) {
+            setActivityStatus("error");
+          }
         };
         activitySource = source;
       }
 
       function ensureActivityStream() {
         if (!state.token) {
-          closeActivityStream();
+          closeActivityStream("idle");
           return;
         }
         if (!activitySource) {
@@ -1141,7 +1561,7 @@
       }
 
       function handleLogout(showNotice = true) {
-        closeActivityStream();
+        closeActivityStream("idle");
         clearLinkedInPolls();
         state.token = null;
         state.user = null;
@@ -1149,6 +1569,8 @@
         state.positions = [];
         state.candidates = [];
         state.linkedinJobs = [];
+        state.activities = [];
+        state.activityKeys = new Set();
         window.localStorage.removeItem("recruitproToken");
         authPanel.classList.remove("hidden");
         appPanel.classList.add("hidden");
@@ -1158,8 +1580,16 @@
         if (linkedinJobsList) {
           linkedinJobsList.innerHTML = "";
         }
+        if (activityFeedList) {
+          activityFeedList.innerHTML = "";
+        }
+        if (activityEmpty) {
+          activityEmpty.classList.remove("hidden");
+          activityEmpty.textContent = "Connect to start seeing activity.";
+        }
         renderStats();
         refreshProjectOptions();
+        renderActivityFeed();
         if (showNotice) {
           setMessage("You have been signed out.", "info");
         } else {
@@ -1426,6 +1856,7 @@
         renderPositions();
         renderCandidates();
         renderLinkedInJobs();
+        renderActivityFeed();
         refreshProjectOptions();
       }
 
@@ -1436,17 +1867,19 @@
         }
 
         try {
-          const [user, projects, positions, candidates] = await Promise.all([
+          const [user, projects, positions, candidates, activities] = await Promise.all([
             apiFetch("/api/user"),
             apiFetch("/api/projects"),
             apiFetch("/api/positions"),
             apiFetch("/api/candidates"),
+            apiFetch("/api/activity"),
           ]);
 
           state.user = user;
           state.projects = Array.isArray(projects) ? projects : [];
           state.positions = Array.isArray(positions) ? positions : [];
           state.candidates = Array.isArray(candidates) ? candidates : [];
+          replaceActivities(Array.isArray(activities) ? activities : []);
 
           authPanel.classList.add("hidden");
           appPanel.classList.remove("hidden");
@@ -1457,6 +1890,9 @@
           }
         } catch (error) {
           setMessage(error.message, "error");
+          if (state.token) {
+            setActivityStatus("error", "Unable to load activity feed");
+          }
         }
       }
 
@@ -1781,6 +2217,8 @@
         closeActivityStream();
         clearLinkedInPolls();
       });
+
+      renderActivityFeed();
 
       if (state.token) {
         loadWorkspace(false);

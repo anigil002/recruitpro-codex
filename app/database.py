@@ -48,6 +48,10 @@ def get_session() -> Iterator[Session]:
 def init_db() -> None:
     """Create database tables based on the current SQLAlchemy metadata."""
 
+    # Import models lazily so that Base is defined before the mappings are
+    # registered, preventing circular-import issues during application start.
+    from . import models  # noqa: F401  (imported for side effects)
+
     Base.metadata.create_all(bind=engine)
 
 

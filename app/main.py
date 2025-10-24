@@ -1,12 +1,17 @@
 """RecruitPro FastAPI application."""
 
-from fastapi import FastAPI, Request
+import json
+from typing import Any, Optional
+
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from sqlalchemy.orm import Session
 
 from .config import get_settings
+from .deps import get_db
 from .routers import (
     activity,
     admin,
@@ -19,6 +24,8 @@ from .routers import (
     sourcing,
     system,
 )
+from .models import Candidate, Position, Project
+from .utils.security import decode_token
 
 settings = get_settings()
 
@@ -62,8 +69,83 @@ def index():
     return {"status": "ok", "message": "RecruitPro backend is running."}
 
 
-@app.get("/candidate-profile", response_class=HTMLResponse)
-async def candidate_profile_page(request: Request):
-    """Render the static candidate profile concept page."""
+@app.get("/app", response_class=HTMLResponse)
+async def application_shell(request: Request) -> HTMLResponse:
+    """Serve the interactive RecruitPro console."""
 
-    return templates.TemplateResponse("candidate_profile.html", {"request": request})
+    return templates.TemplateResponse("recruitpro_ats.html", {"request": request})
+
+
+@app.get("/candidate-profile", response_class=HTMLResponse)
+async def candidate_profile_page(
+    request: Request,
+    candidate_id: Optional[str] = None,
+    token: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> HTMLResponse:
+    """Render a candidate profile populated with live database data."""
+
+    context: dict[str, object] = {
+        "request": request,
+        "candidate": None,
+        "project": None,
+        "position": None,
+    }
+
+    if not candidate_id:
+        return templates.TemplateResponse("candidate_profile.html", context)
+
+    candidate = db.get(Candidate, candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+
+    project: Optional[Project] = db.get(Project, candidate.project_id) if candidate.project_id else None
+    position: Optional[Position] = db.get(Position, candidate.position_id) if candidate.position_id else None
+
+    user_id = decode_token(token) if token else None
+    if token and not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    if user_id and project and project.created_by != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view candidate")
+
+    candidate_data = {
+        "candidate_id": candidate.candidate_id,
+        "name": candidate.name,
+        "email": candidate.email,
+        "phone": candidate.phone,
+        "source": candidate.source,
+        "status": candidate.status,
+        "rating": candidate.rating,
+        "resume_url": candidate.resume_url,
+        "tags": candidate.tags or [],
+        "ai_score": candidate.ai_score,
+        "ai_score_json": json.dumps(candidate.ai_score, indent=2) if candidate.ai_score else None,
+        "created_at": candidate.created_at,
+    }
+
+    project_data: Optional[dict[str, Any]] = None
+    if project:
+        project_data = {
+            "project_id": project.project_id,
+            "name": project.name,
+            "client": project.client,
+            "status": project.status,
+        }
+
+    position_data: Optional[dict[str, Any]] = None
+    if position:
+        position_data = {
+            "position_id": position.position_id,
+            "title": position.title,
+            "status": position.status,
+        }
+
+    context.update(
+        {
+            "candidate": candidate_data,
+            "project": project_data,
+            "position": position_data,
+        }
+    )
+    return templates.TemplateResponse("candidate_profile.html", context)

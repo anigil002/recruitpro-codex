@@ -48,7 +48,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Visit `http://localhost:8000/docs` for the interactive Swagger UI and `http://localhost:8000/` for a simple status response.
 
-### 5. Run Tests
+### 5. Use the Local Console
+
+Navigate to `http://localhost:8000/app` after signing into the API. The lightweight console lets you:
+
+- Register or log in to a RecruitPro account stored in SQLite.
+- Create projects, attach positions, and add candidates using the live REST endpoints.
+- Refresh statistics and open a candidate profile page (which can also be accessed directly via `/candidate-profile?candidate_id=...&token=...`).
+
+All data is persisted locally, so the UI can be used offline once the backend is running.
+
+### 6. Run Tests
 
 ```bash
 pytest

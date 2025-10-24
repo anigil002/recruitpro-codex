@@ -33,12 +33,12 @@ def create_access_token(subject: str, expires_minutes: Optional[int] = None) -> 
     expire_minutes = expires_minutes or settings.access_token_expire_minutes
     expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
     payload = {"sub": subject, "exp": expire}
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+    return jwt.encode(payload, settings.secret_key_value, algorithm=settings.algorithm)
 
 
 def decode_token(token: str) -> Optional[str]:
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(token, settings.secret_key_value, algorithms=[settings.algorithm])
     except JWTError:
         return None
     return payload.get("sub")

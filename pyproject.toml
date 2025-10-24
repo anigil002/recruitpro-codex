@@ -17,10 +17,7 @@ dependencies = [
   "openpyxl>=3.1.2,<4.0.0",
 ]
 
-[tool.pdm]
-packages = [{ include = "app" }]
-
-[tool.pdm.dev-dependencies]
+[project.optional-dependencies]
 dev = [
   "pytest>=8.2.1,<9.0.0",
   "httpx>=0.27.0,<0.28.0",
@@ -28,5 +25,5 @@ dev = [
 ]
 
 [build-system]
-requires = ["pdm-backend>=2.0.0"]
-build-backend = "pdm.backend"
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"

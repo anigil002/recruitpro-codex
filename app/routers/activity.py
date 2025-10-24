@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-from datetime import datetime, timezone
 from typing import AsyncGenerator, List, Optional
 
 from fastapi import APIRouter, Depends
@@ -10,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
-from ..deps import get_db, get_optional_current_user
+from ..deps import get_current_user, get_db
 from ..models import ActivityFeed, Candidate, Project
 from ..schemas import ActivityRead
 from ..services.realtime import events
@@ -18,73 +17,11 @@ from ..services.realtime import events
 router = APIRouter(prefix="/api", tags=["activity"])
 
 
-DEMO_DASHBOARD_STATS = {
-    "projects": 3,
-    "candidates": 28,
-    "pipeline": {
-        "total": 28,
-        "sourcing": 6,
-        "screening": 9,
-        "interviews": 7,
-        "offers": 6,
-    },
-    "featured_candidate": {
-        "name": "Jordan Patel",
-        "summary": "Senior Product Designer · 92% match · ready for final interviews",
-        "tags": ["Portfolio reviewed", "Culture add", "AI ready"],
-    },
-    "suggestions": [
-        "Upload your latest project brief to auto-generate positions and outreach sequences.",
-        "Run an AI screening batch to keep the pipeline moving overnight.",
-        "Schedule market intelligence to compare your offer against competitors.",
-    ],
-}
-
-
-DEMO_ACTIVITY_FEED = [
-    ActivityRead(
-        activity_id="demo-1",
-        actor_type="system",
-        actor_id="demo",
-        project_id="proj-demo",
-        position_id=None,
-        candidate_id=None,
-        event_type="project_created",
-        message="Created sample project Mercury Launch",
-        created_at=datetime.now(timezone.utc),
-    ),
-    ActivityRead(
-        activity_id="demo-2",
-        actor_type="system",
-        actor_id="demo",
-        project_id="proj-demo",
-        position_id=None,
-        candidate_id="cand-demo",
-        event_type="candidate_screened",
-        message="AI scored Jordan Patel as a 92% fit",
-        created_at=datetime.now(timezone.utc),
-    ),
-]
-
-
-DEMO_ACTIVITY_STREAM = [
-    {"type": "project", "payload": {"message": "Project Mercury uploaded", "detail": "Kickoff brief synced"}},
-    {"type": "candidate", "payload": {"message": "Jordan Patel rated 92%", "detail": "Screening batch completed"}},
-    {
-        "type": "workflow",
-        "payload": {"message": "Outreach campaign scheduled", "detail": "Sequence starts at 09:00"},
-    },
-]
-
-
 @router.get("/activity", response_model=List[ActivityRead])
 def list_activity(
     db: Session = Depends(get_db),
-    current_user=Depends(get_optional_current_user),
+    current_user=Depends(get_current_user),
 ) -> List[ActivityRead]:
-    if not current_user:
-        return DEMO_ACTIVITY_FEED
-
     items = (
         db.query(ActivityFeed)
         .filter(ActivityFeed.actor_id == current_user.user_id)
@@ -109,10 +46,7 @@ def list_activity(
 
 
 @router.get("/dashboard/stats")
-def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_optional_current_user)) -> dict:
-    if not current_user:
-        return DEMO_DASHBOARD_STATS
-
+def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> dict:
     projects_count = db.query(Project).filter(Project.created_by == current_user.user_id).count()
     candidate_query = (
         db.query(Candidate)
@@ -175,23 +109,12 @@ def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_opti
 
 @router.get("/activity/stream")
 async def activity_stream(
-    current_user=Depends(get_optional_current_user),
+    current_user=Depends(get_current_user),
 ) -> StreamingResponse:
     async def event_generator() -> AsyncGenerator[str, None]:
-        if not current_user:
-            for event in DEMO_ACTIVITY_STREAM:
-                payload = json.dumps(event.get("payload", {}))
-                event_type = event.get("type", "activity")
-                yield f"event: {event_type}\ndata: {payload}\n\n"
-                await asyncio.sleep(1)
-
-            while True:
-                await asyncio.sleep(30)
-                yield "event: heartbeat\ndata: {}\n\n"
-        else:
-            async for event in events.subscribe(user_id=current_user.user_id):
-                payload = json.dumps(event.get("payload", {}))
-                event_type = event.get("type", "activity")
-                yield f"event: {event_type}\ndata: {payload}\n\n"
+        async for event in events.subscribe(user_id=current_user.user_id):
+            payload = json.dumps(event.get("payload", {}))
+            event_type = event.get("type", "activity")
+            yield f"event: {event_type}\ndata: {payload}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

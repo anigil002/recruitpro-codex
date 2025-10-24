@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from .config import get_settings
@@ -65,8 +65,10 @@ app.include_router(system.router)
 
 
 @app.get("/")
-def index():
-    return {"status": "ok", "message": "RecruitPro backend is running."}
+def index() -> RedirectResponse:
+    """Provide a friendly landing page by redirecting to the UI shell."""
+
+    return RedirectResponse(url="/app", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 @app.get("/app", response_class=HTMLResponse)

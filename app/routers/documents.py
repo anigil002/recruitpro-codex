@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
-from ..models import Document, ProjectDocument
+from ..models import Document, Project, ProjectDocument
 from ..schemas import DocumentRead
 from ..services.activity import log_activity
 from ..services.ai import create_ai_job
@@ -48,6 +48,14 @@ def upload_document(
     current_user=Depends(get_current_user),
 ) -> DocumentRead:
     storage_dir = ensure_storage_dir()
+    project = None
+    if scope == "project":
+        if not scope_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="scope_id required for project uploads")
+        project = db.get(Project, scope_id)
+        if not project or project.created_by != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     safe_name = Path(file.filename).name
     file_id = generate_id()
     file_path = storage_dir / f"{file_id}_{safe_name}"
@@ -112,6 +120,36 @@ def upload_document(
         owner_user=document.owner_user,
         uploaded_at=document.uploaded_at,
     )
+
+
+@router.get("/projects/{project_id}/documents", response_model=List[DocumentRead])
+def list_project_documents(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> List[DocumentRead]:
+    project = db.get(Project, project_id)
+    if not project or project.created_by != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    documents = (
+        db.query(ProjectDocument)
+        .filter(ProjectDocument.project_id == project_id)
+        .order_by(ProjectDocument.uploaded_at.desc())
+        .all()
+    )
+    return [
+        DocumentRead(
+            id=doc.doc_id,
+            filename=doc.filename,
+            mime_type=doc.mime_type,
+            file_url=doc.file_url,
+            scope="project",
+            scope_id=doc.project_id,
+            owner_user=doc.uploaded_by,
+            uploaded_at=doc.uploaded_at,
+        )
+        for doc in documents
+    ]
 
 
 @router.get("/documents/{doc_id}/download")

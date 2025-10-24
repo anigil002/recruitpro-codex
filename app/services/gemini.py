@@ -62,7 +62,7 @@ class GeminiService:
         except Exception:
             # Fall back to latin-1 when utf-8 fails or any other error occurs.
             text = path.read_bytes().decode("latin-1", errors="ignore")
-        return re.sub(r"\s+", " ", text).strip()
+        return text.replace("\r\n", "\n").replace("\r", "\n").strip()
 
     @staticmethod
     def _split_sentences(text: str) -> List[str]:
@@ -84,6 +84,7 @@ class GeminiService:
         """Extract project insights and potential roles from a project brief."""
 
         text = self._extract_text(path)
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
         sentences = self._split_sentences(text)[:60]
         diagnostics: Dict[str, Any] = {
             "type": mime_type or path.suffix.replace(".", "") or "txt",
@@ -91,14 +92,48 @@ class GeminiService:
         }
 
         project_info = self._extract_project_info(sentences, project_context or {})
-        positions = self._extract_positions(sentences, original_name)
+        document_type = self._classify_document(path, mime_type, lines, sentences)
+        positions: List[Dict[str, Any]] = []
+        job_descriptions_generated = False
+
+        if document_type == "positions_sheet":
+            positions = self._parse_positions_sheet(text, project_context or {})
+            if not positions:
+                positions = self._extract_positions(sentences, original_name)
+        elif document_type == "job_titles":
+            titles = self._extract_job_titles(lines)
+            summary = project_context.get("summary") if project_context else None
+            positions = [
+                {
+                    "title": title,
+                    "department": None,
+                    "experience": None,
+                    "responsibilities": jd["responsibilities"],
+                    "requirements": jd["requirements"],
+                    "location": None,
+                    "description": jd["description"],
+                    "status": "draft",
+                    "auto_generated": True,
+                }
+                for title in titles
+                for jd in [self.generate_job_description({"title": title, "project_summary": summary})]
+            ]
+            job_descriptions_generated = bool(positions)
+        else:
+            positions = self._extract_positions(sentences, original_name)
+
         diagnostics["positions_detected"] = len(positions)
         diagnostics["project_info_detected"] = any(project_info.values())
+        diagnostics["document_type"] = document_type
+        diagnostics["job_descriptions_generated"] = job_descriptions_generated
 
         return {
             "project_info": project_info,
             "positions": positions,
             "file_diagnostics": diagnostics,
+            "document_type": document_type,
+            "job_descriptions_generated": job_descriptions_generated,
+            "market_research_recommended": document_type == "project_scope",
         }
 
     def _extract_project_info(
@@ -178,6 +213,121 @@ class GeminiService:
                 }
             ]
         return roles
+
+    def _classify_document(
+        self,
+        path: Path,
+        mime_type: Optional[str],
+        lines: List[str],
+        sentences: Iterable[str],
+    ) -> str:
+        suffix = path.suffix.lower()
+        mime = (mime_type or "").lower()
+        if suffix in {".csv", ".tsv"} or suffix in {".xlsx", ".xls"} or "spreadsheet" in mime:
+            return "positions_sheet"
+
+        joined_sentences = " ".join(sentences).lower()
+        if any(keyword in joined_sentences for keyword in ("scope of work", "project scope", "project summary")):
+            return "project_scope"
+        if any(keyword in joined_sentences for keyword in ("responsibilit", "job description", "key duties")):
+            return "job_description"
+
+        titles = self._extract_job_titles(lines)
+        if titles and len(titles) / max(len(lines), 1) >= 0.6:
+            return "job_titles"
+        return "general"
+
+    def _extract_job_titles(self, lines: Iterable[str]) -> List[str]:
+        titles: List[str] = []
+        for line in lines:
+            cleaned = re.sub(r"^[\d\-\*•().]+", "", line).strip()
+            if not cleaned:
+                continue
+            lower = cleaned.lower()
+            if any(keyword in lower for keyword in ("responsibil", "requirement", "summary", "deliverable")):
+                continue
+            if any(punct in cleaned for punct in (":", ";", ".")):
+                continue
+            words = cleaned.split()
+            if not words or len(words) > 7:
+                continue
+            if cleaned.isdigit():
+                continue
+            if cleaned.lower().startswith(("role", "position")):
+                cleaned = re.sub(r"^(role|position)[:\-\s]+", "", cleaned, flags=re.I)
+            if cleaned:
+                titles.append(cleaned.strip())
+        unique: List[str] = []
+        seen = set()
+        for title in titles:
+            key = title.lower()
+            if key not in seen:
+                unique.append(title)
+                seen.add(key)
+        return unique
+
+    def _parse_positions_sheet(self, text: str, context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        buffer = io.StringIO(text)
+        sample = buffer.getvalue()[:2048]
+        try:
+            dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+        except csv.Error:
+            dialect = csv.excel
+        buffer.seek(0)
+        reader = csv.DictReader(buffer, dialect=dialect)
+        positions: List[Dict[str, Any]] = []
+        if not reader.fieldnames:
+            return positions
+
+        def pick(row: Dict[str, str], *options: str) -> Optional[str]:
+            for option in options:
+                value = row.get(option)
+                if value:
+                    return value.strip()
+            return None
+
+        for row in reader:
+            title = pick(row, "title", "role", "position", "job title", "name")
+            if not title:
+                continue
+            responsibilities = self._normalise_list_field(
+                pick(row, "responsibilities", "responsibility", "key responsibilities")
+            )
+            requirements = self._normalise_list_field(pick(row, "requirements", "requirement"))
+            description = pick(row, "description", "summary", "notes")
+            if not description and responsibilities:
+                description = f"Primary focus: {responsibilities[0]}"
+            elif not description:
+                jd = self.generate_job_description(
+                    {
+                        "title": title,
+                        "project_summary": context.get("summary") if context else None,
+                    }
+                )
+                description = jd["description"]
+                responsibilities = responsibilities or jd["responsibilities"]
+                requirements = requirements or jd["requirements"]
+            position = {
+                "title": title,
+                "department": pick(row, "department", "team"),
+                "experience": pick(row, "experience", "seniority"),
+                "responsibilities": responsibilities,
+                "requirements": requirements,
+                "location": pick(row, "location", "region", "city"),
+                "description": description,
+                "status": "draft",
+                "auto_generated": False,
+            }
+            positions.append(position)
+        return positions
+
+    @staticmethod
+    def _normalise_list_field(value: Optional[str]) -> List[str]:
+        if not value:
+            return []
+        parts = re.split(r"[;,\n]", value)
+        cleaned = [part.strip() for part in parts if part and part.strip()]
+        return cleaned
 
     # ------------------------------------------------------------------
     # Content generation helpers

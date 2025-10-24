@@ -289,6 +289,9 @@ class FileAnalysisResponse(BaseModel):
     project_info: dict
     positions: List[dict]
     file_diagnostics: dict
+    document_type: str
+    job_descriptions_generated: bool
+    market_research_recommended: bool
 
 
 class MarketResearchResponse(BaseModel):

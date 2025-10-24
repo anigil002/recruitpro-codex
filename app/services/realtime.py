@@ -49,7 +49,10 @@ class EventBroker:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            anyio.from_thread.run(self.publish, event)
+            try:
+                anyio.from_thread.run(self.publish, event)
+            except Exception:
+                asyncio.run(self.publish(event))
         else:
             loop.create_task(self.publish(event))
 

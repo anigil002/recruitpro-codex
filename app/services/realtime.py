@@ -20,7 +20,18 @@ class EventBroker:
             self._subscribers.append((queue, user_id))
         try:
             while True:
-                event = await queue.get()
+                try:
+                    event = await queue.get()
+                except asyncio.CancelledError:
+                    # When the server is shutting down (for example because the
+                    # developer pressed CTRL+C) ``queue.get`` is cancelled.  If
+                    # we allow the ``CancelledError`` to propagate it bubbles up
+                    # through FastAPI's streaming response machinery and
+                    # eventually surfaces as an error during shutdown on Python
+                    # 3.13/Windows.  By breaking out of the generator loop we
+                    # terminate the stream cleanly while still allowing the
+                    # cancellation to unwind the caller's task.
+                    break
                 yield event
         finally:
             with self._lock:

@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
-from ..deps import get_current_user, get_db
+from ..deps import get_current_user, get_db, get_stream_user
 from ..models import ActivityFeed, Candidate, Project
 from ..schemas import ActivityRead
 from ..services.realtime import events
@@ -109,7 +109,7 @@ def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_curr
 
 @router.get("/activity/stream")
 async def activity_stream(
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_stream_user),
 ) -> StreamingResponse:
     async def event_generator() -> AsyncGenerator[str, None]:
         async for event in events.subscribe(user_id=current_user.user_id):

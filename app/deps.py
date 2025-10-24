@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Query, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -47,3 +47,32 @@ def get_optional_current_user(
         return None
 
     return db.get(User, user_id)
+
+
+def get_stream_user(
+    authorization: Optional[str] = Header(default=None),
+    token: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db),
+) -> User:
+    credential: Optional[str] = None
+
+    if authorization:
+        scheme, _, header_token = authorization.partition(" ")
+        if scheme.lower() == "bearer" and header_token:
+            credential = header_token
+
+    if not credential and token:
+        credential = token
+
+    if not credential:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing authentication token")
+
+    user_id = decode_token(credential)
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+    return user

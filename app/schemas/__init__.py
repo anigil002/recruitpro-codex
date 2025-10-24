@@ -327,3 +327,37 @@ class SourcingJobStatusResponse(BaseModel):
     progress: Optional[int]
     found_count: Optional[int]
     results: Optional[List[dict]]
+
+
+class FeatureToggleRead(BaseModel):
+    key: str
+    value: Any
+    overridden: bool = False
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[str] = None
+
+
+class FeatureToggleUpdate(BaseModel):
+    value: Any
+
+
+class PromptPackRead(BaseModel):
+    slug: str
+    name: str
+    category: str
+    description: str
+    tags: List[str]
+    prompt: str
+
+
+class EmbeddingIndexCreate(BaseModel):
+    name: str
+    description: Optional[str]
+    vector_dim: int = Field(gt=0)
+    location_uri: str
+
+
+class EmbeddingIndexRead(EmbeddingIndexCreate):
+    index_id: str
+    created_by: Optional[str]
+    created_at: datetime

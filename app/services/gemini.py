@@ -1,4 +1,4 @@
-"""Lightweight Gemini 2.5 Flash Lite facade used throughout the app.
+"""Lightweight Gemini Flash Lite facade used throughout the app.
 
 The goal of this module is not to provide real network access to Gemini but to
 model the prompt flows described in the system design documentation.  Each
@@ -40,7 +40,9 @@ class CandidatePersona:
 class GeminiService:
     """Deterministic prompt implementations inspired by the spec."""
 
-    def __init__(self, model: str = "gemini-2.5-flash-lite", temperature: float = 0.15):
+    DEFAULT_MODEL = "gemini-flash-lite-latest"
+
+    def __init__(self, model: str = DEFAULT_MODEL, temperature: float = 0.15):
         self.model = model
         self.temperature = temperature
 

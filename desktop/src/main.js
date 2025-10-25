@@ -12,6 +12,7 @@ const {
 const fs = require('fs');
 const fsp = require('fs/promises');
 const path = require('path');
+const util = require('util');
 const { pipeline } = require('stream/promises');
 const { autoUpdater } = require('electron-updater');
 
@@ -27,15 +28,47 @@ const BACKEND_HEALTH_PATH = process.env.BACKEND_HEALTH_PATH || '/api/health';
 const TRAY_ICON_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAALElEQVQ4T2NkIAIwEqmOYUACRmZgqEkSYDQqBgYGBob/QAaGBgYGhoYGhgYGNANAEWtDvxF9TxrAAAAAElFTkSuQmCC';
 
+const DEFAULT_CONFIGURATION = Object.freeze({
+  preferences: {},
+  apiKeys: {}
+});
+
 let mainWindow;
 let tray;
 let backendStartupError = null;
+let configuration = null;
 
-const log = {
-  info: (...args) => console.log('[desktop]', ...args),
-  error: (...args) => console.error('[desktop]', ...args),
-  debug: (...args) => console.debug('[desktop]', ...args)
-};
+const APP_PATHS = computeApplicationPaths();
+initializeApplicationDirectories(APP_PATHS);
+
+const log = createLogger('desktop-main', { directory: APP_PATHS.logsDir });
+
+configuration = loadConfiguration(APP_PATHS.configFile, log);
+applyConfigurationToEnvironment(configuration, APP_PATHS, log);
+
+log.info('Main process bootstrapped', {
+  configPath: APP_PATHS.configFile,
+  logsDir: APP_PATHS.logsDir,
+  storageDir: APP_PATHS.storageDir,
+  databaseFile: APP_PATHS.databaseFile
+});
+
+log.info('Configuration loaded', {
+  preferenceCount: Object.keys(configuration?.preferences ?? {}).length,
+  apiKeyCount: Object.keys(configuration?.apiKeys ?? {}).length
+});
+
+process.on('uncaughtException', (error) => {
+  log.error('Uncaught exception in main process', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  if (reason instanceof Error) {
+    log.error('Unhandled promise rejection in main process', reason);
+  } else {
+    log.error('Unhandled promise rejection in main process', { reason });
+  }
+});
 
 const backendSpawner = new BackendSpawner({
   app,
@@ -98,6 +131,296 @@ const TRAY_COMMANDS = {
     app.quit();
   }
 };
+
+function computeApplicationPaths() {
+  const userData = app.getPath('userData');
+  const runtimeDir = path.join(userData, 'runtime');
+
+  return {
+    userData,
+    runtimeDir,
+    logsDir: path.join(userData, 'logs'),
+    storageDir: path.join(userData, 'storage'),
+    databaseDir: path.join(userData, 'database'),
+    databaseFile: path.join(userData, 'database', 'recruitpro.db'),
+    backupsDir: path.join(userData, 'backups'),
+    tempDir: path.join(userData, 'temp'),
+    configFile: path.join(userData, 'config.json')
+  };
+}
+
+function initializeApplicationDirectories(paths = {}) {
+  const directories = [
+    paths.userData,
+    paths.runtimeDir,
+    paths.logsDir,
+    paths.storageDir,
+    paths.databaseDir,
+    paths.backupsDir,
+    paths.tempDir
+  ].filter(Boolean);
+
+  directories.forEach((dir) => ensureDirectorySync(dir));
+}
+
+function ensureDirectorySync(directoryPath) {
+  if (!directoryPath) {
+    return;
+  }
+
+  try {
+    fs.mkdirSync(directoryPath, { recursive: true });
+  } catch (error) {
+    console.error('Failed to create directory', directoryPath, error);
+    throw error;
+  }
+}
+
+function createLogger(namespace, options = {}) {
+  const { directory } = options;
+  const safeNamespace = String(namespace || 'app')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/gi, '-');
+  const dateSegment = new Date().toISOString().slice(0, 10);
+
+  let logFilePath = null;
+  let stream = null;
+
+  if (directory) {
+    try {
+      ensureDirectorySync(directory);
+      logFilePath = path.join(directory, `${safeNamespace}-${dateSegment}.log`);
+      stream = fs.createWriteStream(logFilePath, { flags: 'a' });
+    } catch (error) {
+      console.error('Failed to initialize log file stream', error);
+      logFilePath = null;
+      stream = null;
+    }
+  }
+
+  const write = (level, args) => {
+    const timestamp = new Date().toISOString();
+    const formatted = util.formatWithOptions({ depth: 5, colors: false }, ...args);
+
+    if (stream) {
+      stream.write(`[${timestamp}] [${level.toUpperCase()}] [${namespace}] ${formatted}\n`);
+    }
+
+    const consoleMethod =
+      level === 'error'
+        ? console.error
+        : level === 'warn'
+        ? console.warn
+        : level === 'debug'
+        ? console.debug
+        : console.log;
+
+    consoleMethod(`[${namespace}]`, ...args);
+  };
+
+  const logger = {
+    info: (...args) => write('info', args),
+    warn: (...args) => write('warn', args),
+    error: (...args) => write('error', args),
+    debug: (...args) => write('debug', args),
+    filePath: logFilePath,
+    dispose: () =>
+      new Promise((resolve) => {
+        if (!stream) {
+          resolve();
+          return;
+        }
+
+        stream.end(() => resolve());
+      })
+  };
+
+  return logger;
+}
+
+function normalizeConfiguration(rawConfig) {
+  const normalized = {
+    preferences: {},
+    apiKeys: {}
+  };
+
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    return normalized;
+  }
+
+  const { preferences, apiKeys, ...rest } = rawConfig;
+
+  if (preferences && typeof preferences === 'object' && !Array.isArray(preferences)) {
+    normalized.preferences = { ...preferences };
+  }
+
+  if (apiKeys && typeof apiKeys === 'object' && !Array.isArray(apiKeys)) {
+    normalized.apiKeys = { ...apiKeys };
+  }
+
+  return { ...rest, ...normalized };
+}
+
+function loadConfiguration(configPath, logger) {
+  try {
+    if (!configPath || !fs.existsSync(configPath)) {
+      return normalizeConfiguration(DEFAULT_CONFIGURATION);
+    }
+
+    const raw = fs.readFileSync(configPath, 'utf8');
+    if (!raw.trim()) {
+      return normalizeConfiguration(DEFAULT_CONFIGURATION);
+    }
+
+    const parsed = JSON.parse(raw);
+    return normalizeConfiguration(parsed);
+  } catch (error) {
+    logger?.warn?.('Failed to read configuration file, falling back to defaults', {
+      message: error.message,
+      configPath
+    });
+    return normalizeConfiguration(DEFAULT_CONFIGURATION);
+  }
+}
+
+function mergeConfiguration(currentConfig, updates) {
+  const base = normalizeConfiguration(currentConfig ?? DEFAULT_CONFIGURATION);
+
+  if (!updates || typeof updates !== 'object') {
+    return base;
+  }
+
+  const next = {
+    ...base,
+    preferences: { ...base.preferences },
+    apiKeys: { ...base.apiKeys }
+  };
+
+  if (updates.preferences && typeof updates.preferences === 'object' && !Array.isArray(updates.preferences)) {
+    for (const [key, value] of Object.entries(updates.preferences)) {
+      if (value === null) {
+        delete next.preferences[key];
+      } else {
+        next.preferences[key] = value;
+      }
+    }
+  }
+
+  if (updates.apiKeys && typeof updates.apiKeys === 'object' && !Array.isArray(updates.apiKeys)) {
+    for (const [key, value] of Object.entries(updates.apiKeys)) {
+      if (value === null || value === undefined || value === '') {
+        delete next.apiKeys[key];
+      } else {
+        next.apiKeys[key] = value;
+      }
+    }
+  }
+
+  for (const [key, value] of Object.entries(updates)) {
+    if (key === 'preferences' || key === 'apiKeys') {
+      continue;
+    }
+    next[key] = value;
+  }
+
+  return next;
+}
+
+async function saveConfiguration(configPath, config, logger) {
+  const normalized = normalizeConfiguration(config);
+  const serialized = `${JSON.stringify(normalized, null, 2)}\n`;
+
+  try {
+    await fsp.mkdir(path.dirname(configPath), { recursive: true });
+    await fsp.writeFile(configPath, serialized, 'utf8');
+    logger?.info?.('Configuration saved', { configPath });
+  } catch (error) {
+    logger?.error?.('Failed to persist configuration', error);
+    throw error;
+  }
+
+  return normalized;
+}
+
+const appliedApiKeyEnvVars = new Set();
+
+function applyConfigurationToEnvironment(config, paths, logger) {
+  const normalized = normalizeConfiguration(config ?? DEFAULT_CONFIGURATION);
+
+  if (paths?.storageDir) {
+    process.env.RECRUITPRO_STORAGE_PATH = paths.storageDir;
+  }
+
+  if (paths?.databaseFile) {
+    process.env.RECRUITPRO_DATABASE_URL = buildSqliteUrl(paths.databaseFile);
+  }
+
+  if (paths?.backupsDir) {
+    process.env.RECRUITPRO_BACKUP_DIR = paths.backupsDir;
+  }
+
+  if (paths?.logsDir) {
+    process.env.RECRUITPRO_LOG_DIR = paths.logsDir;
+  }
+
+  if (paths?.configFile) {
+    process.env.RECRUITPRO_CONFIG_PATH = paths.configFile;
+  }
+
+  if (paths?.userData) {
+    process.env.RECRUITPRO_USER_DATA = paths.userData;
+  }
+
+  if (paths?.runtimeDir) {
+    process.env.RECRUITPRO_RUNTIME_PATH = paths.runtimeDir;
+  }
+
+  const apiKeys = normalized.apiKeys ?? {};
+  const nextApplied = new Set();
+
+  for (const [key, value] of Object.entries(apiKeys)) {
+    let envKey = key;
+    if (!envKey.startsWith('RECRUITPRO_')) {
+      envKey = `RECRUITPRO_${envKey.toUpperCase()}`;
+    }
+
+    if (value === null || value === undefined || value === '') {
+      continue;
+    }
+
+    process.env[envKey] = value;
+    nextApplied.add(envKey);
+  }
+
+  for (const key of appliedApiKeyEnvVars) {
+    if (!nextApplied.has(key)) {
+      delete process.env[key];
+    }
+  }
+
+  appliedApiKeyEnvVars.clear();
+  nextApplied.forEach((key) => appliedApiKeyEnvVars.add(key));
+
+  logger?.debug?.('Environment configured', {
+    storageDir: paths?.storageDir ?? null,
+    databaseFile: paths?.databaseFile ?? null,
+    configPath: paths?.configFile ?? null,
+    appliedApiKeyCount: nextApplied.size
+  });
+
+  return normalized;
+}
+
+function buildSqliteUrl(databaseFile) {
+  const absolute = path.resolve(databaseFile);
+  const normalized = absolute.replace(/\\/g, '/');
+
+  if (process.platform === 'win32') {
+    return `sqlite:///${normalized}`;
+  }
+
+  return `sqlite:////${normalized}`;
+}
 
 function sanitizeMenuItems(items = []) {
   if (!Array.isArray(items)) {
@@ -204,8 +527,7 @@ function getDefaultTrayTemplate() {
 }
 
 function resolveDatabasePath() {
-  const backendRoot = backendSpawner.resolveBackendRoot();
-  return path.join(backendRoot, 'data', 'recruitpro.db');
+  return APP_PATHS.databaseFile;
 }
 
 async function fileExists(filePath) {
@@ -233,24 +555,35 @@ async function copyFileAtomic(source, destination) {
 }
 
 async function backupDatabase(destinationPath) {
-  if (typeof destinationPath !== 'string' || !destinationPath.trim()) {
-    throw new Error('A destination path is required for database backups.');
-  }
-
   const databasePath = resolveDatabasePath();
   if (!(await fileExists(databasePath))) {
     throw new Error('Database file not found.');
   }
 
-  const resolvedDestination = path.resolve(destinationPath);
+  let resolvedDestination = destinationPath;
+  if (typeof resolvedDestination !== 'string' || !resolvedDestination.trim()) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    resolvedDestination = path.join(APP_PATHS.backupsDir, `recruitpro-${timestamp}.db`);
+  }
+
+  if (!path.isAbsolute(resolvedDestination)) {
+    resolvedDestination = path.join(APP_PATHS.backupsDir, resolvedDestination);
+  }
+
+  resolvedDestination = path.resolve(resolvedDestination);
+
   if (resolvedDestination === path.resolve(databasePath)) {
     throw new Error('Destination must be different from the live database file.');
   }
+
   await copyFileAtomic(databasePath, resolvedDestination);
+
+  log.info('Database backup created', { destination: resolvedDestination });
 
   return {
     success: true,
-    destination: resolvedDestination
+    destination: resolvedDestination,
+    source: databasePath
   };
 }
 
@@ -259,7 +592,12 @@ async function restoreDatabase(sourcePath) {
     throw new Error('A source path is required to restore the database.');
   }
 
-  const resolvedSource = path.resolve(sourcePath);
+  let resolvedSource = sourcePath;
+  if (!path.isAbsolute(resolvedSource)) {
+    resolvedSource = path.join(APP_PATHS.backupsDir, resolvedSource);
+  }
+
+  resolvedSource = path.resolve(resolvedSource);
   if (!(await fileExists(resolvedSource))) {
     throw new Error('Database backup file not found.');
   }
@@ -302,11 +640,57 @@ async function restoreDatabase(sourcePath) {
     }
   }
 
+  log.info('Database restored from backup', {
+    source: resolvedSource,
+    restoredTo: databasePath
+  });
+
   return {
     success: true,
     restoredTo: databasePath,
     backupPath: backupPath ?? null
   };
+}
+
+async function prepareRuntimeResources() {
+  const directories = [
+    APP_PATHS.storageDir,
+    APP_PATHS.databaseDir,
+    APP_PATHS.backupsDir,
+    APP_PATHS.runtimeDir,
+    APP_PATHS.tempDir
+  ].filter(Boolean);
+
+  for (const directory of directories) {
+    try {
+      await fsp.mkdir(directory, { recursive: true });
+    } catch (error) {
+      log.error('Failed to ensure application directory', { directory, error });
+      throw error;
+    }
+  }
+
+  const databasePath = resolveDatabasePath();
+  const databaseExists = await fileExists(databasePath);
+
+  if (!databaseExists) {
+    const backendRoot = backendSpawner.resolveBackendRoot();
+    const bundledDatabase = path.join(backendRoot, 'data', 'recruitpro.db');
+
+    if (await fileExists(bundledDatabase)) {
+      try {
+        await copyFileAtomic(bundledDatabase, databasePath);
+        log.info('Seeded database from bundled copy', { source: bundledDatabase, target: databasePath });
+      } catch (error) {
+        log.error('Failed to seed database from bundled copy', error);
+        throw error;
+      }
+    } else {
+      log.debug('No bundled database found, backend will initialize a new database', {
+        databasePath
+      });
+    }
+  }
 }
 
 function getBackendUrl() {
@@ -317,6 +701,29 @@ function sendToAllWindows(channel, payload) {
   BrowserWindow.getAllWindows().forEach((window) => {
     window.webContents.send(channel, payload);
   });
+}
+
+function getSerializablePathsSnapshot() {
+  return {
+    userData: APP_PATHS.userData,
+    runtimeDir: APP_PATHS.runtimeDir,
+    logsDir: APP_PATHS.logsDir,
+    storageDir: APP_PATHS.storageDir,
+    databaseDir: APP_PATHS.databaseDir,
+    databaseFile: APP_PATHS.databaseFile,
+    backupsDir: APP_PATHS.backupsDir,
+    tempDir: APP_PATHS.tempDir,
+    configFile: APP_PATHS.configFile,
+    logFile: log.filePath ?? null
+  };
+}
+
+function broadcastConfiguration() {
+  if (!configuration) {
+    return;
+  }
+
+  sendToAllWindows('config:updated', configuration);
 }
 
 function showNotification(title, body) {
@@ -359,6 +766,10 @@ async function createWindow() {
   });
 
   mainWindow.webContents.once('did-finish-load', () => {
+    if (configuration) {
+      mainWindow.webContents.send('config:updated', configuration);
+    }
+
     const status = backendSpawner.getStatus();
     if (status.ready) {
       mainWindow.webContents.send('backend:ready', { url: getBackendUrl() });
@@ -394,10 +805,12 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
 
   autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for updates');
     sendToAllWindows('auto-updater:checking');
   });
 
   autoUpdater.on('update-available', (info) => {
+    log.info('Update available', { version: info?.version ?? null });
     sendToAllWindows('auto-updater:update-available', info);
     showNotification('Update available', 'A new version is available. Downloading will begin shortly.');
     autoUpdater.downloadUpdate().catch((error) => {
@@ -406,21 +819,28 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-not-available', (info) => {
+    log.info('No update available', { version: info?.version ?? null });
     sendToAllWindows('auto-updater:update-not-available', info);
   });
 
   autoUpdater.on('download-progress', (progress) => {
+    log.debug('Update download progress', {
+      percent: Math.round(progress?.percent ?? 0),
+      transferred: progress?.transferred ?? null,
+      total: progress?.total ?? null
+    });
     sendToAllWindows('auto-updater:download-progress', progress);
   });
 
   autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded', { version: info?.version ?? null });
     sendToAllWindows('auto-updater:update-downloaded', info);
     showNotification('Update ready to install', 'Restart the application to apply the update.');
   });
 
   autoUpdater.on('error', (error) => {
-    sendToAllWindows('auto-updater:error', { message: error.message });
     log.error('Auto updater encountered an error', error);
+    sendToAllWindows('auto-updater:error', { message: error.message });
   });
 
   autoUpdater
@@ -431,6 +851,18 @@ function setupAutoUpdater() {
 }
 
 function registerIpcHandlers() {
+  ipcMain.handle('config:get', () => configuration);
+
+  ipcMain.handle('config:update', async (_event, payload = {}) => {
+    configuration = mergeConfiguration(configuration, payload);
+    configuration = await saveConfiguration(APP_PATHS.configFile, configuration, log);
+    applyConfigurationToEnvironment(configuration, APP_PATHS, log);
+    broadcastConfiguration();
+    return configuration;
+  });
+
+  ipcMain.handle('system:paths:get', () => getSerializablePathsSnapshot());
+
   ipcMain.handle('backend:get-url', () => getBackendUrl());
 
   ipcMain.handle('backend:get-status', () => backendSpawner.getStatus());
@@ -735,6 +1167,8 @@ function wireBackendEvents() {
 }
 
 async function handleAppReady() {
+  log.info('Electron app ready event received');
+
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.recruitpro.desktop');
   }
@@ -744,13 +1178,20 @@ async function handleAppReady() {
   createTray();
   setupAutoUpdater();
 
+  log.info('Preparing application runtime');
+  await prepareRuntimeResources();
+
   try {
+    log.info('Starting backend process');
     await backendSpawner.start();
   } catch (error) {
+    log.error('Backend failed to start on initial attempt', error);
     backendStartupError = error;
   }
 
   await createWindow();
+
+  broadcastConfiguration();
 }
 
 app.whenReady().then(() => {
@@ -772,6 +1213,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  log.info('Application shutting down');
   healthChecker.stop();
   restartManager.stop();
   processMonitor.stop();

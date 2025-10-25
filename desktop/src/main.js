@@ -1,111 +1,73 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  shell,
+  Notification,
+  dialog,
+  Tray,
+  Menu,
+  nativeImage
+} = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
-const net = require('net');
+const { autoUpdater } = require('electron-updater');
+
+const BackendSpawner = require('./backendSpawner');
+const HealthChecker = require('./healthChecker');
 
 const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
 const BACKEND_PORT = Number.parseInt(process.env.BACKEND_PORT || '8000', 10);
+const BACKEND_HEALTH_PATH = process.env.BACKEND_HEALTH_PATH || '/health';
+
+const TRAY_ICON_DATA_URL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAALElEQVQ4T2NkIAIwEqmOYUACRmZgqEkSYDQqBgYGBob/QAaGBgYGhoYGhgYGNANAEWtDvxF9TxrAAAAAElFTkSuQmCC';
 
 let mainWindow;
-let backendProcess;
-let backendReady = false;
+let tray;
 let backendStartupError = null;
-let isQuitting = false;
 
-const log = (...args) => {
-  console.log('[desktop]', ...args);
+const log = {
+  info: (...args) => console.log('[desktop]', ...args),
+  error: (...args) => console.error('[desktop]', ...args),
+  debug: (...args) => console.debug('[desktop]', ...args)
 };
 
-function resolveBackendRoot() {
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'backend');
-  }
-  return path.resolve(__dirname, '..', '..');
+const backendSpawner = new BackendSpawner({
+  app,
+  host: BACKEND_HOST,
+  port: BACKEND_PORT,
+  logger: log
+});
+
+const healthChecker = new HealthChecker({
+  host: BACKEND_HOST,
+  port: BACKEND_PORT,
+  path: BACKEND_HEALTH_PATH,
+  intervalMs: 7000,
+  logger: log
+});
+
+function getBackendUrl() {
+  return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 }
 
-function getPythonExecutable() {
-  if (process.env.ELECTRON_PYTHON) {
-    return process.env.ELECTRON_PYTHON;
-  }
-  return process.platform === 'win32' ? 'python' : 'python3';
-}
-
-function spawnBackend() {
-  const pythonExec = getPythonExecutable();
-  const backendRoot = resolveBackendRoot();
-  const args = [
-    '-m',
-    'uvicorn',
-    'app.main:app',
-    '--host',
-    BACKEND_HOST,
-    '--port',
-    String(BACKEND_PORT)
-  ];
-
-  if (!app.isPackaged && process.env.UVICORN_RELOAD !== '0') {
-    args.push('--reload');
-  }
-
-  log(`Starting backend using ${pythonExec} ${args.join(' ')}`);
-  backendProcess = spawn(pythonExec, args, {
-    cwd: backendRoot,
-    env: {
-      ...process.env,
-      PYTHONPATH: backendRoot,
-      BACKEND_HOST,
-      BACKEND_PORT: String(BACKEND_PORT)
-    },
-    stdio: ['ignore', 'pipe', 'pipe']
-  });
-
-  backendProcess.on('error', (error) => {
-    console.error('Unable to spawn backend process', error);
-  });
-
-  backendProcess.stdout.on('data', (chunk) => {
-    log(`[backend] ${chunk.toString().trim()}`);
-  });
-
-  backendProcess.stderr.on('data', (chunk) => {
-    console.error('[backend]', chunk.toString().trim());
-  });
-
-  backendProcess.on('exit', (code, signal) => {
-    console.error(`[backend] exited with code ${code} signal ${signal}`);
-    backendProcess = undefined;
-    backendReady = false;
-    if (!isQuitting) {
-      const options = { type: 'warning', message: 'Backend exited unexpectedly. Please restart the application.' };
-      if (BrowserWindow.getAllWindows().length > 0) {
-        BrowserWindow.getAllWindows()[0].webContents.send('backend:exit', options);
-      }
-    }
+function sendToAllWindows(channel, payload) {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    window.webContents.send(channel, payload);
   });
 }
 
-function waitForBackendReady(host, port, timeoutMs = 30000, intervalMs = 500) {
-  const start = Date.now();
+function showNotification(title, body) {
+  if (!Notification.isSupported()) {
+    return;
+  }
 
-  return new Promise((resolve, reject) => {
-    const check = () => {
-      const socket = net.createConnection({ host, port });
-      socket.once('connect', () => {
-        socket.end();
-        resolve();
-      });
-      socket.once('error', (error) => {
-        socket.destroy();
-        if (Date.now() - start > timeoutMs) {
-          reject(new Error(`Backend did not become ready on ${host}:${port} within ${timeoutMs}ms (${error.message})`));
-          return;
-        }
-        setTimeout(check, intervalMs);
-      });
-    };
-
-    check();
+  const notification = new Notification({
+    title: title || 'RecruitPro Desktop',
+    body: body || ''
   });
+
+  notification.show();
 }
 
 async function createWindow() {
@@ -135,12 +97,12 @@ async function createWindow() {
   });
 
   mainWindow.webContents.once('did-finish-load', () => {
-    if (backendReady) {
-      mainWindow.webContents.send('backend:ready', {
-        url: `http://${BACKEND_HOST}:${BACKEND_PORT}`
-      });
+    const status = backendSpawner.getStatus();
+    if (status.ready) {
+      mainWindow.webContents.send('backend:ready', { url: getBackendUrl() });
     }
-    if (backendStartupError) {
+
+    if (!status.running && backendStartupError) {
       mainWindow.webContents.send('backend:exit', {
         type: 'error',
         message: backendStartupError.message || 'Backend failed to start.'
@@ -152,41 +114,208 @@ async function createWindow() {
   await mainWindow.loadFile(rendererPath);
 }
 
-function broadcastBackendReady() {
-  backendReady = true;
-  backendStartupError = null;
-  BrowserWindow.getAllWindows().forEach((window) => {
-    window.webContents.send('backend:ready', {
-      url: `http://${BACKEND_HOST}:${BACKEND_PORT}`
+function createTray() {
+  if (tray) {
+    return;
+  }
+
+  const icon = nativeImage.createFromDataURL(TRAY_ICON_DATA_URL);
+  icon.setTemplateImage(true);
+
+  tray = new Tray(icon);
+  tray.setToolTip('RecruitPro Desktop');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show RecruitPro',
+      click: () => {
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+          }
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    },
+    {
+      label: 'Restart Backend',
+      click: async () => {
+        try {
+          await backendSpawner.restart();
+          showNotification('Backend restarted', 'RecruitPro backend is starting up again.');
+        } catch (error) {
+          showNotification('Backend restart failed', error.message);
+        }
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Check for Updates',
+      click: () => {
+        autoUpdater.checkForUpdates().catch((error) => {
+          log.error('Failed to check for updates', error);
+        });
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setContextMenu(contextMenu);
+}
+
+function setupAutoUpdater() {
+  autoUpdater.logger = log;
+  autoUpdater.autoDownload = false;
+
+  autoUpdater.on('checking-for-update', () => {
+    sendToAllWindows('auto-updater:checking');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    sendToAllWindows('auto-updater:update-available', info);
+    showNotification('Update available', 'A new version is available. Downloading will begin shortly.');
+    autoUpdater.downloadUpdate().catch((error) => {
+      log.error('Auto update download failed', error);
     });
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    sendToAllWindows('auto-updater:update-not-available', info);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    sendToAllWindows('auto-updater:download-progress', progress);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    sendToAllWindows('auto-updater:update-downloaded', info);
+    showNotification('Update ready to install', 'Restart the application to apply the update.');
+  });
+
+  autoUpdater.on('error', (error) => {
+    sendToAllWindows('auto-updater:error', { message: error.message });
+    log.error('Auto updater encountered an error', error);
+  });
+
+  autoUpdater
+    .checkForUpdates()
+    .catch((error) => {
+      log.error('Initial update check failed', error);
+    });
+}
+
+function registerIpcHandlers() {
+  ipcMain.handle('backend:get-url', () => getBackendUrl());
+
+  ipcMain.handle('backend:get-status', () => backendSpawner.getStatus());
+
+  ipcMain.handle('backend:restart', async () => {
+    await backendSpawner.restart();
+    return backendSpawner.getStatus();
+  });
+
+  ipcMain.handle('dialog:open-directory', async (_event, options = {}) => {
+    const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+      properties: ['openDirectory'],
+      ...options
+    });
+    return result;
+  });
+
+  ipcMain.handle('dialog:open-file', async (_event, options = {}) => {
+    const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+      properties: ['openFile'],
+      ...options
+    });
+    return result;
+  });
+
+  ipcMain.handle('notification:show', (_event, payload = {}) => {
+    const { title, body } = payload;
+    showNotification(title, body);
+    return true;
+  });
+
+  ipcMain.handle('auto-updater:check-now', async () => {
+    await autoUpdater.checkForUpdates();
+    return true;
+  });
+
+  ipcMain.handle('auto-updater:quit-and-install', () => {
+    autoUpdater.quitAndInstall();
   });
 }
 
-function handleAppReady() {
-  spawnBackend();
-  waitForBackendReady(BACKEND_HOST, BACKEND_PORT)
-    .then(() => {
-      log(`Backend ready on http://${BACKEND_HOST}:${BACKEND_PORT}`);
-      broadcastBackendReady();
-    })
-    .catch((error) => {
-      console.error('Backend failed to start', error);
-      backendStartupError = error;
-    })
-    .finally(() => {
-      createWindow().catch((err) => console.error('Failed to create window', err));
+function wireBackendEvents() {
+  backendSpawner.on('ready', () => {
+    backendStartupError = null;
+    healthChecker.start();
+    const payload = { url: getBackendUrl() };
+    sendToAllWindows('backend:ready', payload);
+    showNotification('Backend ready', 'RecruitPro backend is now available.');
+  });
+
+  backendSpawner.on('stderr', (line) => {
+    sendToAllWindows('backend:stderr', line);
+  });
+
+  backendSpawner.on('exit', (details) => {
+    healthChecker.stop();
+    sendToAllWindows('backend:exit', {
+      type: 'warning',
+      message: 'Backend exited unexpectedly. Please restart the application.',
+      details
     });
+    showNotification('Backend exited', 'RecruitPro backend process stopped unexpectedly.');
+  });
+
+  backendSpawner.on('error', (error) => {
+    backendStartupError = error;
+    sendToAllWindows('backend:error', { message: error.message });
+  });
+
+  healthChecker.on('status-changed', (healthy) => {
+    sendToAllWindows('backend:health', { healthy });
+    if (!healthy) {
+      showNotification('Backend degraded', 'RecruitPro backend is not responding.');
+    }
+  });
 }
 
-app.whenReady().then(() => {
+async function handleAppReady() {
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.recruitpro.desktop');
   }
-  handleAppReady();
+
+  registerIpcHandlers();
+  wireBackendEvents();
+  createTray();
+  setupAutoUpdater();
+
+  try {
+    await backendSpawner.start();
+  } catch (error) {
+    backendStartupError = error;
+  }
+
+  await createWindow();
+}
+
+app.whenReady().then(() => {
+  handleAppReady().catch((error) => {
+    log.error('Failed to initialize application', error);
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow().catch((err) => console.error('Failed to recreate window', err));
+      createWindow().catch((err) => log.error('Failed to recreate window', err));
     }
   });
 });
@@ -198,12 +327,8 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-  isQuitting = true;
-  if (backendProcess && !backendProcess.killed) {
-    backendProcess.kill();
-  }
-});
-
-ipcMain.handle('backend:get-url', () => {
-  return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+  healthChecker.stop();
+  backendSpawner.stop().catch((error) => {
+    log.error('Failed to stop backend cleanly', error);
+  });
 });

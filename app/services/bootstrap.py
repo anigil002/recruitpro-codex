@@ -37,6 +37,11 @@ def ensure_super_admin(db: Session) -> None:
                 created_at=datetime.utcnow(),
             )
         )
+        # Flush so that the just-created user is queryable by the current
+        # request.  Without this the first login attempt after bootstrapping
+        # would fail because the session would execute a SELECT against the
+        # database before the pending INSERT has been written.
+        db.flush()
         return
 
     updated = False

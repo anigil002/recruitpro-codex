@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
@@ -14,7 +14,9 @@ from ..schemas import (
     FeatureToggleRead,
     FeatureToggleUpdate,
     PromptPackRead,
+    UserRoleUpdate,
 )
+from ..services.activity import log_activity
 from ..services.advanced_ai_features import (
     list_embedding_indices,
     list_feature_flags,
@@ -22,6 +24,7 @@ from ..services.advanced_ai_features import (
     register_embedding_index,
     set_feature_flag,
 )
+from ..services.integrations import list_integration_status
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["admin"])
@@ -115,6 +118,41 @@ def list_users(db: Session = Depends(get_db), current_user=Depends(get_current_u
             for user in users
         ]
     }
+
+
+@router.put("/admin/users/{user_id}/role")
+def update_user_role(
+    user_id: str,
+    payload: UserRoleUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> Dict[str, str]:
+    require_admin(current_user)
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user.role == payload.role:
+        return {"status": "unchanged", "user_id": user.user_id, "role": user.role}
+
+    user.role = payload.role
+    db.add(user)
+    log_activity(
+        db,
+        actor_type="admin",
+        actor_id=current_user.user_id,
+        message=f"Updated role for {user.email} to {payload.role}",
+        event_type="user_role_updated",
+    )
+    return {"status": "updated", "user_id": user.user_id, "role": user.role}
+
+
+@router.get("/admin/integrations")
+def admin_integration_status(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> Dict[str, Dict[str, object]]:
+    require_admin(current_user)
+    return list_integration_status(db)
 
 
 @router.get("/admin/embeddings", response_model=List[EmbeddingIndexRead])

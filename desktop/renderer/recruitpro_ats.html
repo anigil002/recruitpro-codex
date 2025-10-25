@@ -649,6 +649,16 @@
             <button class="nav-button" data-view-target="positions">Positions</button>
             <button class="nav-button" data-view-target="ai-sourcing">AI Sourcing</button>
             <button class="nav-button" data-view-target="settings">Settings</button>
+            <button class="nav-button" data-view-target="documents">Documents</button>
+            <button class="nav-button" data-view-target="screening">AI Screening</button>
+            <button class="nav-button" data-view-target="outreach">Outreach</button>
+            <button class="nav-button" data-view-target="research">Research</button>
+            <button class="nav-button" data-view-target="interviews">Interviews</button>
+            <button class="nav-button" data-view-target="analytics">Analytics</button>
+            <button class="nav-button" data-view-target="activity">Activity</button>
+            <button class="nav-button nav-admin" data-view-target="admin" style="display: none">Admin</button>
+            <button class="nav-button" data-view-target="queue">Queue</button>
+            <button class="nav-button" data-view-target="config">System</button>
           </nav>
           <div class="sidebar-footer">
             <div>
@@ -791,6 +801,7 @@
                 <table class="table" aria-label="Candidate progress">
                   <thead>
                     <tr>
+                      <th style="width: 32px"><input type="checkbox" id="candidateSelectAll" aria-label="Select all candidates" /></th>
                       <th>Candidate</th>
                       <th>Role</th>
                       <th>Status</th>
@@ -799,10 +810,35 @@
                   </thead>
                   <tbody id="candidatesTableBody">
                     <tr>
-                      <td colspan="4" class="table-empty">Candidates will appear once they are added to your workspace.</td>
+                      <td colspan="5" class="table-empty">Candidates will appear once they are added to your workspace.</td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              <form id="candidateBulkForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Bulk actions</strong>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Action</span>
+                    <select class="input" id="candidateBulkAction">
+                      <option value="add_tag">Add tag</option>
+                      <option value="delete">Delete</option>
+                      <option value="export">Export</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Tag (for apply tag)</span>
+                    <input class="input" id="candidateBulkTag" placeholder="Shortlist" />
+                  </label>
+                </div>
+                <button class="primary-btn" type="submit">Run bulk action</button>
+                <p id="candidateBulkFeedback" style="color: var(--text-muted); margin: 0">Select candidates above to enable bulk workflows.</p>
+              </form>
+              <div id="candidateDuplicatesPanel" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Potential duplicates</strong>
+                <ul id="candidateDuplicatesList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+                  <li class="empty-state">No duplicates detected.</li>
+                </ul>
               </div>
               <div class="quick-actions">
                 <a href="./candidate_profile.html">Open candidate profile</a>
@@ -891,6 +927,52 @@
                   </tbody>
                 </table>
               </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Launch automation</strong>
+                <form id="linkedinXrayForm" class="grid two" style="gap: 12px">
+                  <label class="field">
+                    <span>Project</span>
+                    <select class="input" id="linkedinProjectSelect" required>
+                      <option value="">Select project…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Target title</span>
+                    <input class="input" id="linkedinTitleInput" placeholder="Marketing Manager" required />
+                  </label>
+                  <label class="field">
+                    <span>Location</span>
+                    <input class="input" id="linkedinLocationInput" placeholder="Remote" />
+                  </label>
+                  <label class="field">
+                    <span>Skills</span>
+                    <input class="input" id="linkedinSkillsInput" placeholder="demand generation, b2b" />
+                  </label>
+                  <div class="field" style="grid-column: 1 / -1">
+                    <button class="primary-btn" type="submit">Start LinkedIn X-Ray search</button>
+                  </div>
+                </form>
+                <form id="smartRecruitersForm" class="grid two" style="gap: 12px">
+                  <label class="field">
+                    <span>Project</span>
+                    <select class="input" id="smartRecruitersProjectSelect" required>
+                      <option value="">Select project…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Job URL</span>
+                    <input class="input" id="smartRecruitersJobUrl" placeholder="https://www.smartrecruiters.com/..." required />
+                  </label>
+                  <label class="field" style="grid-column: 1 / -1">
+                    <span>Notes</span>
+                    <textarea class="input" id="smartRecruitersNotes" rows="2" placeholder="Optional campaign notes"></textarea>
+                  </label>
+                  <div class="field" style="grid-column: 1 / -1">
+                    <button class="primary-btn" type="submit">Queue SmartRecruiters import</button>
+                  </div>
+                </form>
+                <div id="aiSourcingFeedback" style="color: var(--text-muted)">Automations ready.</div>
+              </div>
               <div class="quick-actions">
                 <a href="./ai_sourcing_overview.html">Launch sourcing overview</a>
               </div>
@@ -926,6 +1008,525 @@
                 <div>
                   <strong>Theme</strong>
                   <p style="color: var(--text-muted); margin-top: 6px">The console adapts to your OS appearance. Dark mode is currently active.</p>
+                </div>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="documents">
+            <article class="panel">
+              <header>
+                <h3>Document control center</h3>
+                <span>Ingest scopes, briefs and run AI diagnostics</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <table class="table" aria-label="Uploaded documents">
+                  <thead>
+                    <tr>
+                      <th>Filename</th>
+                      <th>Scope</th>
+                      <th>Uploaded</th>
+                      <th>Owner</th>
+                    </tr>
+                  </thead>
+                  <tbody id="documentsTableBody">
+                    <tr>
+                      <td colspan="4" class="table-empty">Upload a document to populate this list.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <form id="documentUploadForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 16px">
+                <div class="grid two">
+                  <label class="field">
+                    <span>Filename</span>
+                    <input class="input" id="documentFilenameInput" name="filename" placeholder="Project brief.pdf" required />
+                  </label>
+                  <label class="field">
+                    <span>MIME type</span>
+                    <input class="input" id="documentMimeInput" name="mime_type" placeholder="application/pdf" required />
+                  </label>
+                </div>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Scope</span>
+                    <select class="input" id="documentScopeSelect" name="scope" required>
+                      <option value="workspace">Workspace</option>
+                      <option value="project">Project</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Project (optional)</span>
+                    <select class="input" id="documentProjectSelect" name="scope_id">
+                      <option value="">Select project…</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>File</span>
+                  <input class="input" id="documentFileInput" name="file" type="file" required />
+                </label>
+                <button class="primary-btn" type="submit">Upload document</button>
+              </form>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 16px">
+                <div>
+                  <strong>AI analysis</strong>
+                  <p style="color: var(--text-muted); margin-top: 6px">Trigger semantic parsing, job description extraction and market research hand-offs.</p>
+                </div>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Document</span>
+                    <select class="input" id="documentAnalysisSelect">
+                      <option value="">Select document…</option>
+                    </select>
+                  </label>
+                  <div class="field">
+                    <span>&nbsp;</span>
+                    <button class="primary-btn" type="button" id="documentAnalyzeButton">Analyze with AI</button>
+                  </div>
+                </div>
+                <div id="documentAnalysisResult" class="panel" style="background: rgba(15, 23, 42, 0.35); gap: 8px">
+                  <strong>No analysis yet</strong>
+                  <p style="color: var(--text-muted); margin: 0">Select a document to generate insights, summaries and recommended follow-up actions.</p>
+                </div>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="screening">
+            <article class="panel">
+              <header>
+                <h3>AI screening cockpit</h3>
+                <span>Score candidates against hiring profiles instantly</span>
+              </header>
+              <form id="screeningForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 16px">
+                <div class="grid two">
+                  <label class="field">
+                    <span>Candidate</span>
+                    <select class="input" id="screeningCandidateSelect" required>
+                      <option value="">Select candidate…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Position</span>
+                    <select class="input" id="screeningPositionSelect" required>
+                      <option value="">Select position…</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Years experience</span>
+                    <input class="input" id="screeningYearsInput" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label class="field">
+                    <span>Leadership</span>
+                    <select class="input" id="screeningLeadershipSelect">
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Skill keywords</span>
+                  <input class="input" id="screeningSkillsInput" placeholder="python, aws, project leadership" />
+                </label>
+                <button class="primary-btn" type="submit">Run AI screening</button>
+              </form>
+              <div id="screeningResult" class="panel" style="background: rgba(15, 23, 42, 0.35); gap: 12px">
+                <strong>Awaiting screening request</strong>
+                <p style="color: var(--text-muted); margin: 0">Choose a candidate and position to receive a structured fit assessment.</p>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="outreach">
+            <article class="panel">
+              <header>
+                <h3>AI-powered outreach studio</h3>
+                <span>Generate tailored outreach emails and call scripts</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 16px">
+                <strong>Email composer</strong>
+                <form id="outreachEmailForm" class="grid two" style="gap: 12px">
+                  <label class="field">
+                    <span>Candidate name</span>
+                    <input class="input" id="outreachCandidateName" required />
+                  </label>
+                  <label class="field">
+                    <span>Role title</span>
+                    <input class="input" id="outreachRoleTitle" placeholder="Senior Product Manager" required />
+                  </label>
+                  <label class="field">
+                    <span>Location</span>
+                    <input class="input" id="outreachLocation" placeholder="Remote" />
+                  </label>
+                  <label class="field">
+                    <span>Skills (comma separated)</span>
+                    <input class="input" id="outreachSkills" placeholder="product strategy, ai" />
+                  </label>
+                  <label class="field">
+                    <span>Highlights</span>
+                    <input class="input" id="outreachHighlights" placeholder="Series B, remote-first" />
+                  </label>
+                  <label class="field">
+                    <span>Company</span>
+                    <input class="input" id="outreachCompany" placeholder="RecruitPro" />
+                  </label>
+                  <label class="field" style="grid-column: 1 / -1">
+                    <span>Project summary</span>
+                    <textarea class="input" id="outreachProjectSummary" rows="3" placeholder="45 word summary"></textarea>
+                  </label>
+                  <div class="field" style="grid-column: 1 / -1">
+                    <button class="primary-btn" type="submit">Generate outreach email</button>
+                  </div>
+                </form>
+                <div id="outreachEmailResult" class="panel" style="background: rgba(15, 23, 42, 0.35); gap: 8px">
+                  <strong>No email generated</strong>
+                  <p style="color: var(--text-muted); margin: 0">Fill out the form above to craft a personalised candidate email.</p>
+                </div>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 16px">
+                <strong>Call script</strong>
+                <form id="outreachCallForm" class="grid two" style="gap: 12px">
+                  <label class="field">
+                    <span>Candidate name</span>
+                    <input class="input" id="callCandidateName" required />
+                  </label>
+                  <label class="field">
+                    <span>Role title</span>
+                    <input class="input" id="callRoleTitle" required />
+                  </label>
+                  <label class="field">
+                    <span>Location</span>
+                    <input class="input" id="callLocation" placeholder="Hybrid" />
+                  </label>
+                  <label class="field">
+                    <span>Value props</span>
+                    <input class="input" id="callValueProps" placeholder="growth, impact, compensation" />
+                  </label>
+                  <div class="field" style="grid-column: 1 / -1">
+                    <button class="primary-btn" type="submit">Generate call script</button>
+                  </div>
+                </form>
+                <div id="outreachCallResult" class="panel" style="background: rgba(15, 23, 42, 0.35); gap: 8px">
+                  <strong>No call script yet</strong>
+                  <p style="color: var(--text-muted); margin: 0">Submit candidate context to receive a structured script.</p>
+                </div>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="research">
+            <article class="panel">
+              <header>
+                <h3>Market research & salary intelligence</h3>
+                <span>Benchmark compensation and trigger automated research packs</span>
+              </header>
+              <div id="researchSummary" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Recent studies</strong>
+                <p style="color: var(--text-muted); margin: 0">Upload documents or run market analysis to populate research snapshots.</p>
+              </div>
+              <form id="marketResearchForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <div class="grid two">
+                  <label class="field">
+                    <span>Project</span>
+                    <select class="input" id="marketResearchProjectSelect" required>
+                      <option value="">Select project…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Region</span>
+                    <input class="input" id="marketResearchRegion" placeholder="North America" required />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Sector</span>
+                  <input class="input" id="marketResearchSector" placeholder="Fintech" />
+                </label>
+                <button class="primary-btn" type="submit">Request market analysis</button>
+                <div id="marketResearchStatus" style="color: var(--text-muted)">No research job submitted yet.</div>
+              </form>
+              <form id="salaryBenchmarkForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Salary benchmark</strong>
+                <div class="grid three">
+                  <label class="field">
+                    <span>Title</span>
+                    <input class="input" id="salaryTitle" placeholder="Engineering Manager" required />
+                  </label>
+                  <label class="field">
+                    <span>Region</span>
+                    <input class="input" id="salaryRegion" placeholder="EMEA" required />
+                  </label>
+                  <label class="field">
+                    <span>Sector (optional)</span>
+                    <input class="input" id="salarySector" placeholder="Technology" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Seniority</span>
+                  <input class="input" id="salarySeniority" placeholder="Senior" />
+                </label>
+                <button class="primary-btn" type="submit">Benchmark compensation</button>
+                <div id="salaryBenchmarkResult" class="panel" style="background: rgba(15, 23, 42, 0.35); gap: 8px">
+                  <strong>No benchmark yet</strong>
+                  <p style="color: var(--text-muted); margin: 0">Submit a title and region to generate salary ranges.</p>
+                </div>
+              </form>
+            </article>
+          </section>
+          <section class="view" data-view="interviews">
+            <article class="panel">
+              <header>
+                <h3>Interview management</h3>
+                <span>Schedule, update and review feedback loops</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <table class="table" aria-label="Upcoming interviews">
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      <th>Position</th>
+                      <th>Scheduled</th>
+                      <th>Mode</th>
+                    </tr>
+                  </thead>
+                  <tbody id="interviewsTableBody">
+                    <tr>
+                      <td colspan="4" class="table-empty">No interviews scheduled yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <form id="interviewForm" class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Schedule interview</strong>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Candidate</span>
+                    <select class="input" id="interviewCandidateSelect" required>
+                      <option value="">Select candidate…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Position</span>
+                    <select class="input" id="interviewPositionSelect" required>
+                      <option value="">Select position…</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="grid two">
+                  <label class="field">
+                    <span>Scheduled at</span>
+                    <input class="input" id="interviewDateInput" type="datetime-local" required />
+                  </label>
+                  <label class="field">
+                    <span>Mode</span>
+                    <input class="input" id="interviewModeInput" placeholder="Video" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Location / notes</span>
+                  <input class="input" id="interviewLocationInput" placeholder="Zoom" />
+                </label>
+                <label class="field">
+                  <span>Notes</span>
+                  <textarea class="input" id="interviewNotesInput" rows="2" placeholder="Panel details"></textarea>
+                </label>
+                <button class="primary-btn" type="submit">Schedule interview</button>
+              </form>
+            </article>
+          </section>
+          <section class="view" data-view="analytics">
+            <article class="panel">
+              <header>
+                <h3>Reporting & analytics</h3>
+                <span>Monitor pipeline health and automation impact</span>
+              </header>
+              <div class="grid three">
+                <article class="stat-card">
+                  <span class="label">Projects</span>
+                  <strong id="analyticsProjectsTotal">0</strong>
+                  <footer id="analyticsProjectsMeta">Awaiting data</footer>
+                </article>
+                <article class="stat-card">
+                  <span class="label">Candidates</span>
+                  <strong id="analyticsCandidatesTotal">0</strong>
+                  <footer id="analyticsCandidatesMeta">Awaiting data</footer>
+                </article>
+                <article class="stat-card">
+                  <span class="label">Interviews</span>
+                  <strong id="analyticsInterviewsTotal">0</strong>
+                  <footer id="analyticsInterviewsMeta">Awaiting data</footer>
+                </article>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px" id="analyticsBreakdown">
+                <strong>Pipeline breakdown</strong>
+                <p style="color: var(--text-muted); margin: 0">Stats will appear after loading workspace data.</p>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px" id="analyticsActivity">
+                <strong>Activity velocity</strong>
+                <p style="color: var(--text-muted); margin: 0">Recent activity trends will show here.</p>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="activity">
+            <article class="panel">
+              <header>
+                <h3>Activity & audit log</h3>
+                <span>Inspect system, AI and user level events</span>
+              </header>
+              <div class="grid two">
+                <label class="field">
+                  <span>Event type</span>
+                  <select class="input" id="activityFilterType">
+                    <option value="all">All events</option>
+                    <option value="project">Projects</option>
+                    <option value="candidate">Candidates</option>
+                    <option value="ai">AI automation</option>
+                    <option value="security">Security</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Window</span>
+                  <select class="input" id="activityFilterWindow">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="all">All time</option>
+                  </select>
+                </label>
+              </div>
+              <ul class="timeline" id="activityAuditList">
+                <li class="timeline-item empty">
+                  <div>
+                    <strong>No activity loaded</strong>
+                    <span>Once signed in, detailed audit events will appear here.</span>
+                  </div>
+                  <span></span>
+                </li>
+              </ul>
+            </article>
+          </section>
+          <section class="view" data-view="admin">
+            <article class="panel">
+              <header>
+                <h3>Admin & security controls</h3>
+                <span>Manage users, feature flags and advanced AI infrastructure</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Users</strong>
+                <table class="table" aria-label="Workspace users">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminUsersTableBody">
+                    <tr>
+                      <td colspan="3" class="table-empty">Only administrators can view user rosters.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <form id="adminUserRoleForm" class="grid two" style="gap: 12px">
+                  <label class="field">
+                    <span>User</span>
+                    <select class="input" id="adminUserSelect">
+                      <option value="">Select user…</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Role</span>
+                    <select class="input" id="adminRoleSelect">
+                      <option value="recruiter">Recruiter</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </label>
+                  <div class="field" style="grid-column: 1 / -1">
+                    <button class="primary-btn" type="submit">Update role</button>
+                  </div>
+                </form>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Feature toggles</strong>
+                <table class="table" aria-label="Feature flags">
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>Value</th>
+                      <th>Updated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminFeatureTableBody">
+                    <tr>
+                      <td colspan="4" class="table-empty">Feature flag data will appear for administrators.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Prompt packs</strong>
+                <ul id="adminPromptList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+                  <li class="empty-state">Prompt pack catalog will load for administrators.</li>
+                </ul>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Embedding indices</strong>
+                <table class="table" aria-label="Embedding indices">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Dimension</th>
+                      <th>Location</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminEmbeddingTableBody">
+                    <tr>
+                      <td colspan="3" class="table-empty">No embeddings registered.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Integration credentials</strong>
+                <ul id="adminIntegrationsList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+                  <li class="empty-state">Integration status available for administrators.</li>
+                </ul>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="queue">
+            <article class="panel">
+              <header>
+                <h3>Queue & background processing</h3>
+                <span>Monitor background workers and job throughput</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <ul id="queueStatusList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+                  <li class="empty-state">Queue metrics will load automatically.</li>
+                </ul>
+              </div>
+              <div class="quick-actions">
+                <button type="button" class="logout-btn" id="queueRefreshButton">Refresh queue status</button>
+              </div>
+            </article>
+          </section>
+          <section class="view" data-view="config">
+            <article class="panel">
+              <header>
+                <h3>System diagnostics</h3>
+                <span>Inspect runtime configuration and update cadence</span>
+              </header>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Runtime configuration</strong>
+                <ul id="systemConfigList" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+                  <li class="empty-state">Configuration will load after authentication.</li>
+                </ul>
+              </div>
+              <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
+                <strong>Auto updater</strong>
+                <p id="autoUpdateStatus" style="color: var(--text-muted); margin: 0">Updates not yet checked.</p>
+                <div class="quick-actions">
+                  <button type="button" class="logout-btn" id="autoUpdateCheckButton">Check for updates</button>
+                  <button type="button" class="logout-btn" id="autoUpdateInstallButton" disabled>Install update</button>
                 </div>
               </div>
             </article>
@@ -978,26 +1579,156 @@
         aiProfilesMeta: document.getElementById('aiProfilesMeta'),
         aiTrackedProjectsCount: document.getElementById('aiTrackedProjectsCount'),
         aiTrackedProjectsMeta: document.getElementById('aiTrackedProjectsMeta'),
-        aiJobsTableBody: document.getElementById('aiJobsTableBody')
+        aiJobsTableBody: document.getElementById('aiJobsTableBody'),
+        documentsTableBody: document.getElementById('documentsTableBody'),
+        documentUploadForm: document.getElementById('documentUploadForm'),
+        documentScopeSelect: document.getElementById('documentScopeSelect'),
+        documentProjectSelect: document.getElementById('documentProjectSelect'),
+        documentAnalysisSelect: document.getElementById('documentAnalysisSelect'),
+        documentAnalyzeButton: document.getElementById('documentAnalyzeButton'),
+        documentAnalysisResult: document.getElementById('documentAnalysisResult'),
+        candidateSelectAll: document.getElementById('candidateSelectAll'),
+        candidateBulkForm: document.getElementById('candidateBulkForm'),
+        candidateBulkAction: document.getElementById('candidateBulkAction'),
+        candidateBulkTag: document.getElementById('candidateBulkTag'),
+        candidateBulkFeedback: document.getElementById('candidateBulkFeedback'),
+        candidateDuplicatesList: document.getElementById('candidateDuplicatesList'),
+        screeningForm: document.getElementById('screeningForm'),
+        screeningCandidateSelect: document.getElementById('screeningCandidateSelect'),
+        screeningPositionSelect: document.getElementById('screeningPositionSelect'),
+        screeningYearsInput: document.getElementById('screeningYearsInput'),
+        screeningLeadershipSelect: document.getElementById('screeningLeadershipSelect'),
+        screeningSkillsInput: document.getElementById('screeningSkillsInput'),
+        screeningResult: document.getElementById('screeningResult'),
+        outreachEmailForm: document.getElementById('outreachEmailForm'),
+        outreachEmailResult: document.getElementById('outreachEmailResult'),
+        outreachCandidateName: document.getElementById('outreachCandidateName'),
+        outreachRoleTitle: document.getElementById('outreachRoleTitle'),
+        outreachLocation: document.getElementById('outreachLocation'),
+        outreachSkills: document.getElementById('outreachSkills'),
+        outreachHighlights: document.getElementById('outreachHighlights'),
+        outreachCompany: document.getElementById('outreachCompany'),
+        outreachProjectSummary: document.getElementById('outreachProjectSummary'),
+        outreachCallForm: document.getElementById('outreachCallForm'),
+        outreachCallResult: document.getElementById('outreachCallResult'),
+        callCandidateName: document.getElementById('callCandidateName'),
+        callRoleTitle: document.getElementById('callRoleTitle'),
+        callLocation: document.getElementById('callLocation'),
+        callValueProps: document.getElementById('callValueProps'),
+        researchSummary: document.getElementById('researchSummary'),
+        marketResearchForm: document.getElementById('marketResearchForm'),
+        marketResearchProjectSelect: document.getElementById('marketResearchProjectSelect'),
+        marketResearchRegion: document.getElementById('marketResearchRegion'),
+        marketResearchSector: document.getElementById('marketResearchSector'),
+        marketResearchStatus: document.getElementById('marketResearchStatus'),
+        salaryBenchmarkForm: document.getElementById('salaryBenchmarkForm'),
+        salaryTitle: document.getElementById('salaryTitle'),
+        salaryRegion: document.getElementById('salaryRegion'),
+        salarySector: document.getElementById('salarySector'),
+        salarySeniority: document.getElementById('salarySeniority'),
+        salaryBenchmarkResult: document.getElementById('salaryBenchmarkResult'),
+        interviewsTableBody: document.getElementById('interviewsTableBody'),
+        interviewForm: document.getElementById('interviewForm'),
+        interviewCandidateSelect: document.getElementById('interviewCandidateSelect'),
+        interviewPositionSelect: document.getElementById('interviewPositionSelect'),
+        interviewDateInput: document.getElementById('interviewDateInput'),
+        interviewModeInput: document.getElementById('interviewModeInput'),
+        interviewLocationInput: document.getElementById('interviewLocationInput'),
+        interviewNotesInput: document.getElementById('interviewNotesInput'),
+        analyticsProjectsTotal: document.getElementById('analyticsProjectsTotal'),
+        analyticsProjectsMeta: document.getElementById('analyticsProjectsMeta'),
+        analyticsCandidatesTotal: document.getElementById('analyticsCandidatesTotal'),
+        analyticsCandidatesMeta: document.getElementById('analyticsCandidatesMeta'),
+        analyticsInterviewsTotal: document.getElementById('analyticsInterviewsTotal'),
+        analyticsInterviewsMeta: document.getElementById('analyticsInterviewsMeta'),
+        analyticsBreakdown: document.getElementById('analyticsBreakdown'),
+        analyticsActivity: document.getElementById('analyticsActivity'),
+        activityFilterType: document.getElementById('activityFilterType'),
+        activityFilterWindow: document.getElementById('activityFilterWindow'),
+        activityAuditList: document.getElementById('activityAuditList'),
+        adminNavButton: document.querySelector('.nav-admin'),
+        adminUsersTableBody: document.getElementById('adminUsersTableBody'),
+        adminUserRoleForm: document.getElementById('adminUserRoleForm'),
+        adminUserSelect: document.getElementById('adminUserSelect'),
+        adminRoleSelect: document.getElementById('adminRoleSelect'),
+        adminFeatureTableBody: document.getElementById('adminFeatureTableBody'),
+        adminPromptList: document.getElementById('adminPromptList'),
+        adminEmbeddingTableBody: document.getElementById('adminEmbeddingTableBody'),
+        adminIntegrationsList: document.getElementById('adminIntegrationsList'),
+        queueStatusList: document.getElementById('queueStatusList'),
+        queueRefreshButton: document.getElementById('queueRefreshButton'),
+        systemConfigList: document.getElementById('systemConfigList'),
+        autoUpdateStatus: document.getElementById('autoUpdateStatus'),
+        autoUpdateCheckButton: document.getElementById('autoUpdateCheckButton'),
+        autoUpdateInstallButton: document.getElementById('autoUpdateInstallButton'),
+        aiSourcingFeedback: document.getElementById('aiSourcingFeedback'),
+        linkedinXrayForm: document.getElementById('linkedinXrayForm'),
+        linkedinProjectSelect: document.getElementById('linkedinProjectSelect'),
+        linkedinTitleInput: document.getElementById('linkedinTitleInput'),
+        linkedinLocationInput: document.getElementById('linkedinLocationInput'),
+        linkedinSkillsInput: document.getElementById('linkedinSkillsInput'),
+        smartRecruitersForm: document.getElementById('smartRecruitersForm'),
+        smartRecruitersProjectSelect: document.getElementById('smartRecruitersProjectSelect'),
+        smartRecruitersJobUrl: document.getElementById('smartRecruitersJobUrl'),
+        smartRecruitersNotes: document.getElementById('smartRecruitersNotes')
       };
 
-      const viewTitles = {
+        const viewTitles = {
         dashboard: 'Dashboard overview',
         projects: 'Project portfolio',
         candidates: 'Candidate pipelines',
         positions: 'Open positions',
         'ai-sourcing': 'AI sourcing intelligence',
-        settings: 'Workspace preferences'
+        settings: 'Workspace preferences',
+        documents: 'Document control center',
+        screening: 'AI screening cockpit',
+        outreach: 'AI-powered outreach',
+        research: 'Market intelligence',
+        interviews: 'Interview management',
+        analytics: 'Reporting & analytics',
+        activity: 'Activity & audit log',
+        admin: 'Administration',
+        queue: 'Queue monitoring',
+        config: 'System diagnostics'
       };
 
-      const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+        const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
-      const state = {
-        token: sessionStorage.getItem('recruitproAccessToken') || null,
-        loading: false,
-        backendUrl: null,
-        user: null
-      };
+        const initialAutoUpdateState = () => ({
+          available: false,
+          version: null,
+          downloaded: false,
+          checking: false,
+          progress: null,
+          error: null,
+          statusMessage: 'Updates not yet checked.'
+        });
+
+        const state = {
+          token: sessionStorage.getItem('recruitproAccessToken') || null,
+          loading: false,
+          backendUrl: null,
+          user: null,
+          projects: [],
+          positions: [],
+          candidates: [],
+          interviews: [],
+          documents: [],
+          duplicates: [],
+          reporting: null,
+          activity: [],
+          queueStatus: null,
+          systemConfig: null,
+          selectedCandidates: new Set(),
+          adminData: {
+            users: [],
+            features: [],
+            promptPacks: [],
+            embeddings: [],
+            integrations: {}
+          },
+          autoUpdate: initialAutoUpdateState()
+        };
 
       const toTitleCase = (value) => {
         if (!value) return '—';
@@ -1096,28 +1827,138 @@
         elements.aiTrackedProjectsMeta.textContent = 'No projects tracked yet';
         elements.aiJobsTableBody.innerHTML =
           '<tr><td colspan="4" class="table-empty">Launch a sourcing job to see campaign progress.</td></tr>';
+        resetAutoUpdateState();
       };
 
-      const setBackendStatus = (status) => {
-        backendStatus.textContent = status;
-      };
+        const setBackendStatus = (status) => {
+          backendStatus.textContent = status;
+        };
 
-      const resolveApi = (path = '') => {
-        const base = state.backendUrl || window.backendBaseUrl || '';
-        if (!path) {
-          return base;
-        }
-        if (path.startsWith('http://') || path.startsWith('https://')) {
-          return path;
-        }
-        if (!base) {
-          return path;
-        }
-        if (path.startsWith('/')) {
-          return `${base}${path}`;
-        }
-        return `${base}/${path}`;
-      };
+        const updateAutoUpdateUI = () => {
+          if (!elements.autoUpdateStatus) {
+            return;
+          }
+          const { statusMessage, downloaded, checking } = state.autoUpdate;
+          elements.autoUpdateStatus.textContent = statusMessage || 'Updates not yet checked.';
+          if (elements.autoUpdateCheckButton) {
+            elements.autoUpdateCheckButton.disabled = Boolean(checking);
+          }
+          if (elements.autoUpdateInstallButton) {
+            elements.autoUpdateInstallButton.disabled = !downloaded;
+          }
+        };
+
+        const applyAutoUpdatePatch = (patch) => {
+          Object.assign(state.autoUpdate, patch);
+          updateAutoUpdateUI();
+        };
+
+        const resetAutoUpdateState = () => {
+          Object.assign(state.autoUpdate, initialAutoUpdateState());
+          updateAutoUpdateUI();
+        };
+
+        let autoUpdaterListenersRegistered = false;
+
+        const registerAutoUpdaterListeners = () => {
+          if (autoUpdaterListenersRegistered) {
+            updateAutoUpdateUI();
+            return;
+          }
+          const api = window.electronAPI?.autoUpdater;
+          if (!api?.on) {
+            updateAutoUpdateUI();
+            return;
+          }
+          autoUpdaterListenersRegistered = true;
+
+          api.on('auto-updater:checking', () => {
+            applyAutoUpdatePatch({
+              checking: true,
+              available: false,
+              downloaded: false,
+              progress: null,
+              error: null,
+              statusMessage: 'Checking for updates…'
+            });
+          });
+
+          api.on('auto-updater:update-available', (info = {}) => {
+            const version = info?.version ?? null;
+            applyAutoUpdatePatch({
+              checking: false,
+              available: true,
+              downloaded: false,
+              version,
+              progress: null,
+              error: null,
+              statusMessage: `Update${version ? ` v${version}` : ''} available. Downloading…`
+            });
+          });
+
+          api.on('auto-updater:download-progress', (progress = {}) => {
+            const percent = Math.max(0, Math.min(100, Math.round(progress?.percent ?? 0)));
+            applyAutoUpdatePatch({
+              checking: false,
+              available: true,
+              downloaded: false,
+              progress: percent,
+              statusMessage: `Downloading update… ${percent}%`
+            });
+          });
+
+          api.on('auto-updater:update-downloaded', (info = {}) => {
+            const version = info?.version ?? state.autoUpdate.version;
+            applyAutoUpdatePatch({
+              checking: false,
+              available: true,
+              downloaded: true,
+              version,
+              progress: 100,
+              statusMessage: `Update${version ? ` v${version}` : ''} ready to install.`
+            });
+          });
+
+          api.on('auto-updater:update-not-available', () => {
+            applyAutoUpdatePatch({
+              checking: false,
+              available: false,
+              downloaded: false,
+              version: null,
+              progress: null,
+              statusMessage: 'You are running the latest version.',
+              error: null
+            });
+          });
+
+          api.on('auto-updater:error', (payload = {}) => {
+            const message = payload?.message || 'Unable to check for updates.';
+            applyAutoUpdatePatch({
+              checking: false,
+              error: message,
+              statusMessage: `Update error: ${message}`
+            });
+          });
+
+          updateAutoUpdateUI();
+        };
+
+        const resolveApi = (path = '') => {
+          const base = state.backendUrl || window.backendBaseUrl || '';
+          if (!path) {
+            return base;
+          }
+          if (path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+          }
+          if (!base) {
+            return path;
+          }
+          if (path.startsWith('/')) {
+            return `${base}${path}`;
+          }
+          return `${base}/${path}`;
+        };
 
       const ensureBackendUrl = async () => {
         if (state.backendUrl) {
@@ -1189,6 +2030,7 @@
         const projectList = Array.isArray(projects) ? projects : [];
         const candidateList = Array.isArray(candidates) ? candidates : [];
         const interviewList = Array.isArray(interviews) ? interviews : [];
+        state.activity = Array.isArray(activity) ? activity.slice() : [];
 
         const onTrackProjects = projectList.filter((project) => {
           const value = (project.status || '').toLowerCase();
@@ -1265,9 +2107,9 @@
 
         const activityList = elements.recentActivity;
         activityList.innerHTML = '';
-        const activityItems = Array.isArray(activity)
-          ? activity.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          : [];
+        const activityItems = state.activity
+          .slice()
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         if (activityItems.length === 0) {
           activityList.innerHTML =
             '<li class="timeline-item empty"><div><strong>No activity recorded</strong><span>Updates will appear once RecruitPro logs new events.</span></div><span></span></li>';
@@ -1300,6 +2142,7 @@
             activityUpdatedAt.textContent = 'Recent updates available';
           }
         }
+        renderActivityAudit();
       };
 
       const renderProjects = (projects) => {
@@ -1308,6 +2151,7 @@
           : [];
         let onTrack = 0;
         let attention = 0;
+        state.projects = rows;
         rows.forEach((project) => {
           const status = (project.status || '').toLowerCase();
           if (projectAttentionStatuses.has(status)) {
@@ -1351,12 +2195,20 @@
           tr.appendChild(hiresCell);
           tbody.appendChild(tr);
         });
+        populateProjectSelects();
       };
 
       const renderCandidates = (candidates, positions, interviews) => {
         const candidateRows = Array.isArray(candidates)
           ? candidates.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           : [];
+        state.candidates = candidateRows;
+        const validCandidateIds = new Set(candidateRows.map((candidate) => candidate.candidate_id));
+        state.selectedCandidates.forEach((id) => {
+          if (!validCandidateIds.has(id)) {
+            state.selectedCandidates.delete(id);
+          }
+        });
         const positionMap = new Map();
         if (Array.isArray(positions)) {
           positions.forEach((position) => positionMap.set(position.position_id, position));
@@ -1379,12 +2231,32 @@
         tbody.innerHTML = '';
         if (candidateRows.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="4" class="table-empty">Candidates will appear once they are added to your workspace.</td></tr>';
+            '<tr><td colspan="5" class="table-empty">Candidates will appear once they are added to your workspace.</td></tr>';
+          elements.candidateSelectAll.checked = false;
+          elements.candidateSelectAll.disabled = true;
+          updateCandidateBulkFeedback();
+          refreshCandidateSelects();
           return;
         }
 
-        candidateRows.slice(0, 6).forEach((candidate) => {
+        elements.candidateSelectAll.disabled = false;
+        candidateRows.slice(0, 8).forEach((candidate) => {
           const tr = document.createElement('tr');
+          const selectCell = document.createElement('td');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.dataset.candidateId = candidate.candidate_id;
+          checkbox.checked = state.selectedCandidates.has(candidate.candidate_id);
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              state.selectedCandidates.add(candidate.candidate_id);
+            } else {
+              state.selectedCandidates.delete(candidate.candidate_id);
+            }
+            syncCandidateSelectAll();
+            updateCandidateBulkFeedback();
+          });
+          selectCell.appendChild(checkbox);
           const nameCell = document.createElement('td');
           nameCell.textContent = candidate.name || 'Unnamed candidate';
           const roleCell = document.createElement('td');
@@ -1394,18 +2266,23 @@
           statusCell.appendChild(createBadge(candidate.status));
           const sourceCell = document.createElement('td');
           sourceCell.textContent = candidate.source || '—';
+          tr.appendChild(selectCell);
           tr.appendChild(nameCell);
           tr.appendChild(roleCell);
           tr.appendChild(statusCell);
           tr.appendChild(sourceCell);
           tbody.appendChild(tr);
         });
+        syncCandidateSelectAll();
+        updateCandidateBulkFeedback();
+        refreshCandidateSelects();
       };
 
       const renderPositions = (positions) => {
         const rows = Array.isArray(positions)
           ? positions.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           : [];
+        state.positions = rows;
         const openPositions = rows.filter((position) => {
           const value = (position.status || '').toLowerCase();
           return !value || !['closed', 'filled', 'completed', 'archived'].includes(value);
@@ -1444,11 +2321,13 @@
           tr.appendChild(openingsCell);
           tbody.appendChild(tr);
         });
+        refreshCandidateSelects();
       };
 
       const renderSourcing = (overview) => {
         const summary = overview?.summary || {};
         const jobs = Array.isArray(overview?.jobs) ? overview.jobs : [];
+        state.sourcingOverview = overview;
 
         elements.aiActiveJobsCount.textContent = formatNumber(summary.active_jobs || 0);
         elements.aiActiveJobsMeta.textContent =
@@ -1490,6 +2369,725 @@
         });
       };
 
+      const formatDateTime = (value) => {
+        if (!value) {
+          return '—';
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return '—';
+        }
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      };
+
+      const populateProjectSelects = () => {
+        const selects = [
+          elements.documentProjectSelect,
+          elements.marketResearchProjectSelect,
+          elements.linkedinProjectSelect,
+          elements.smartRecruitersProjectSelect
+        ].filter(Boolean);
+        if (selects.length === 0) {
+          return;
+        }
+        const options = ['<option value="">Select project…</option>'];
+        state.projects.forEach((project) => {
+          options.push(`<option value="${project.project_id}">${project.name || 'Untitled project'}</option>`);
+        });
+        const html = options.join('');
+        selects.forEach((select) => {
+          const current = select.value;
+          select.innerHTML = html;
+          if (current && state.projects.some((project) => project.project_id === current)) {
+            select.value = current;
+          }
+        });
+      };
+
+      const refreshCandidateSelects = () => {
+        const candidateSelects = [elements.screeningCandidateSelect, elements.interviewCandidateSelect].filter(Boolean);
+        if (candidateSelects.length) {
+          const candidateOptions = ['<option value="">Select candidate…</option>'];
+          state.candidates.forEach((candidate) => {
+            candidateOptions.push(
+              `<option value="${candidate.candidate_id}">${candidate.name || 'Unnamed candidate'}</option>`
+            );
+          });
+          const candidateHtml = candidateOptions.join('');
+          candidateSelects.forEach((select) => {
+            const current = select.value;
+            select.innerHTML = candidateHtml;
+            if (current && state.candidates.some((candidate) => candidate.candidate_id === current)) {
+              select.value = current;
+            }
+          });
+        }
+
+        const positionSelects = [elements.screeningPositionSelect, elements.interviewPositionSelect].filter(Boolean);
+        if (positionSelects.length) {
+          const positionOptions = ['<option value="">Select position…</option>'];
+          state.positions.forEach((position) => {
+            positionOptions.push(
+              `<option value="${position.position_id}">${position.title || 'Untitled role'}</option>`
+            );
+          });
+          const positionHtml = positionOptions.join('');
+          positionSelects.forEach((select) => {
+            const current = select.value;
+            select.innerHTML = positionHtml;
+            if (current && state.positions.some((position) => position.position_id === current)) {
+              select.value = current;
+            }
+          });
+        }
+      };
+
+      const syncCandidateSelectAll = () => {
+        if (!elements.candidateSelectAll) {
+          return;
+        }
+        const visibleCheckboxes = Array.from(
+          elements.candidatesTableBody.querySelectorAll('input[type="checkbox"][data-candidate-id]')
+        );
+        if (visibleCheckboxes.length === 0) {
+          elements.candidateSelectAll.checked = false;
+          return;
+        }
+        const allSelected = visibleCheckboxes.every((checkbox) => checkbox.checked);
+        elements.candidateSelectAll.checked = allSelected;
+      };
+
+      const updateCandidateBulkFeedback = () => {
+        if (!elements.candidateBulkFeedback) {
+          return;
+        }
+        const count = state.selectedCandidates.size;
+        if (count === 0) {
+          elements.candidateBulkFeedback.textContent = 'Select candidates above to enable bulk workflows.';
+          return;
+        }
+        elements.candidateBulkFeedback.textContent = `${formatNumber(count)} candidate${count === 1 ? '' : 's'} selected.`;
+      };
+
+      const renderDocuments = (documents) => {
+        const docs = Array.isArray(documents)
+          ? documents.slice().sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at))
+          : [];
+        state.documents = docs;
+        const tbody = elements.documentsTableBody;
+        tbody.innerHTML = '';
+        if (docs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Upload a document to populate this list.</td></tr>';
+        } else {
+          docs.slice(0, 8).forEach((doc) => {
+            const tr = document.createElement('tr');
+            const filename = document.createElement('td');
+            filename.textContent = doc.filename || doc.id;
+            const scope = document.createElement('td');
+            scope.textContent = doc.scope === 'project' ? 'Project' : 'Workspace';
+            const uploaded = document.createElement('td');
+            uploaded.textContent = formatDateTime(doc.uploaded_at);
+            const owner = document.createElement('td');
+            owner.textContent = doc.owner_user || '—';
+            tr.appendChild(filename);
+            tr.appendChild(scope);
+            tr.appendChild(uploaded);
+            tr.appendChild(owner);
+            tbody.appendChild(tr);
+          });
+        }
+
+        const selectOptions = ['<option value="">Select document…</option>'];
+        docs.forEach((doc) => {
+          selectOptions.push(`<option value="${doc.id}">${doc.filename || doc.id}</option>`);
+        });
+        elements.documentAnalysisSelect.innerHTML = selectOptions.join('');
+      };
+
+      const renderDocumentAnalysis = (analysis) => {
+        const container = elements.documentAnalysisResult;
+        if (!container) {
+          return;
+        }
+        if (!analysis) {
+          container.innerHTML =
+            '<strong>No analysis yet</strong><p style="color: var(--text-muted); margin: 0">Select a document to generate insights, summaries and recommended follow-up actions.</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+        const title = document.createElement('strong');
+        title.textContent = analysis.document_type
+          ? `Detected ${toTitleCase(analysis.document_type)}`
+          : 'Document analysis';
+        container.appendChild(title);
+
+        const summary = document.createElement('p');
+        summary.style.color = 'var(--text-muted)';
+        summary.textContent =
+          analysis.file_diagnostics?.summary ||
+          'AI processing complete. Review recommended roles and research actions below.';
+        container.appendChild(summary);
+
+        if (analysis.project_info) {
+          const project = analysis.project_info;
+          const projectBlock = document.createElement('div');
+          projectBlock.innerHTML = `<strong>Project</strong><p style="color: var(--text-muted); margin: 4px 0">${
+            project.name || 'Unassigned project'
+          } · ${project.location_region || '—'}</p>`;
+          container.appendChild(projectBlock);
+        }
+
+        if (Array.isArray(analysis.positions) && analysis.positions.length) {
+          const list = document.createElement('ul');
+          list.style.margin = '0';
+          list.style.paddingLeft = '18px';
+          list.style.display = 'flex';
+          list.style.flexDirection = 'column';
+          list.style.gap = '4px';
+          analysis.positions.slice(0, 5).forEach((position) => {
+            const item = document.createElement('li');
+            item.textContent = `${position.title || 'Role'} • ${position.location || 'Location TBD'}`;
+            list.appendChild(item);
+          });
+          container.appendChild(list);
+        }
+
+        if (analysis.market_research_recommended) {
+          const researchNote = document.createElement('p');
+          researchNote.style.color = 'var(--accent)';
+          researchNote.textContent = 'Market research recommended — launch a study from the Research view.';
+          container.appendChild(researchNote);
+        }
+      };
+
+      const renderDuplicates = (duplicates) => {
+        const list = elements.candidateDuplicatesList;
+        list.innerHTML = '';
+        const groups = Array.isArray(duplicates) ? duplicates : [];
+        if (groups.length === 0) {
+          list.innerHTML = '<li class="empty-state">No duplicates detected.</li>';
+          return;
+        }
+        groups.slice(0, 5).forEach((group) => {
+          const item = document.createElement('li');
+          item.style.display = 'flex';
+          item.style.flexDirection = 'column';
+          item.style.gap = '4px';
+          const heading = document.createElement('strong');
+          heading.textContent = `${toTitleCase(group.type)} match (${group.count})`;
+          const detail = document.createElement('span');
+          detail.style.color = 'var(--text-muted)';
+          detail.textContent = group.value;
+          const names = document.createElement('div');
+          names.style.display = 'flex';
+          names.style.flexWrap = 'wrap';
+          names.style.gap = '4px';
+          (group.candidates || []).forEach((candidate) => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.textContent = candidate.name || candidate.candidate_id;
+            names.appendChild(chip);
+          });
+          item.appendChild(heading);
+          item.appendChild(detail);
+          item.appendChild(names);
+          list.appendChild(item);
+        });
+      };
+
+      const renderScreeningResult = (result) => {
+        const container = elements.screeningResult;
+        if (!container) {
+          return;
+        }
+        if (!result) {
+          container.innerHTML =
+            '<strong>Awaiting screening request</strong><p style="color: var(--text-muted); margin: 0">Choose a candidate and position to receive a structured fit assessment.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        const heading = document.createElement('strong');
+        const numericScore = Number(result.overall || result.score || result.match);
+        heading.textContent = Number.isFinite(numericScore)
+          ? `Fit score: ${Math.round(numericScore)}`
+          : 'Screening result';
+        const details = document.createElement('pre');
+        details.style.margin = '0';
+        details.style.padding = '12px';
+        details.style.background = 'rgba(15, 23, 42, 0.25)';
+        details.style.borderRadius = '12px';
+        details.textContent = JSON.stringify(result, null, 2);
+        container.appendChild(heading);
+        container.appendChild(details);
+      };
+
+      const renderOutreachEmail = (email) => {
+        const container = elements.outreachEmailResult;
+        if (!container) {
+          return;
+        }
+        if (!email) {
+          container.innerHTML =
+            '<strong>No email generated</strong><p style="color: var(--text-muted); margin: 0">Fill out the form above to craft a personalised candidate email.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        const subject = document.createElement('strong');
+        subject.textContent = email.subject || 'Outreach email';
+        const body = document.createElement('pre');
+        body.style.margin = '0';
+        body.style.whiteSpace = 'pre-wrap';
+        body.textContent = email.body || JSON.stringify(email, null, 2);
+        container.appendChild(subject);
+        container.appendChild(body);
+      };
+
+      const renderCallScript = (script) => {
+        const container = elements.outreachCallResult;
+        if (!container) {
+          return;
+        }
+        if (!script) {
+          container.innerHTML =
+            '<strong>No call script yet</strong><p style="color: var(--text-muted); margin: 0">Submit candidate context to receive a structured script.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        const title = document.createElement('strong');
+        title.textContent = `${script.candidate || 'Candidate'} — ${script.role || 'Role'}`;
+        container.appendChild(title);
+        if (script.sections) {
+          const sections = document.createElement('ul');
+          sections.style.margin = '0';
+          sections.style.paddingLeft = '18px';
+          Object.entries(script.sections).forEach(([section, content]) => {
+            const li = document.createElement('li');
+            li.textContent = `${toTitleCase(section)}: ${content}`;
+            sections.appendChild(li);
+          });
+          container.appendChild(sections);
+        } else {
+          const summary = document.createElement('pre');
+          summary.style.margin = '0';
+          summary.textContent = JSON.stringify(script, null, 2);
+          container.appendChild(summary);
+        }
+      };
+
+      const renderInterviews = (interviews) => {
+        const rows = Array.isArray(interviews)
+          ? interviews.slice().sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at))
+          : [];
+        state.interviews = rows;
+        const tbody = elements.interviewsTableBody;
+        tbody.innerHTML = '';
+        if (rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="table-empty">No interviews scheduled yet.</td></tr>';
+          return;
+        }
+
+        const candidateMap = new Map(state.candidates.map((candidate) => [candidate.candidate_id, candidate]));
+        const positionMap = new Map(state.positions.map((position) => [position.position_id, position]));
+        rows.slice(0, 8).forEach((interview) => {
+          const tr = document.createElement('tr');
+          const candidateCell = document.createElement('td');
+          candidateCell.textContent = candidateMap.get(interview.candidate_id)?.name || 'Unknown candidate';
+          const positionCell = document.createElement('td');
+          positionCell.textContent = positionMap.get(interview.position_id)?.title || 'Unassigned role';
+          const timeCell = document.createElement('td');
+          timeCell.textContent = formatDateTime(interview.scheduled_at);
+          const modeCell = document.createElement('td');
+          modeCell.textContent = interview.mode || '—';
+          tr.appendChild(candidateCell);
+          tr.appendChild(positionCell);
+          tr.appendChild(timeCell);
+          tr.appendChild(modeCell);
+          tbody.appendChild(tr);
+        });
+      };
+
+      const renderAnalytics = (reporting) => {
+        state.reporting = reporting || null;
+        if (!reporting) {
+          elements.analyticsProjectsTotal.textContent = '0';
+          elements.analyticsProjectsMeta.textContent = 'Awaiting data';
+          elements.analyticsCandidatesTotal.textContent = '0';
+          elements.analyticsCandidatesMeta.textContent = 'Awaiting data';
+          elements.analyticsInterviewsTotal.textContent = '0';
+          elements.analyticsInterviewsMeta.textContent = 'Awaiting data';
+          elements.analyticsBreakdown.innerHTML =
+            '<strong>Pipeline breakdown</strong><p style="color: var(--text-muted); margin: 0">Stats will appear after loading workspace data.</p>';
+          elements.analyticsActivity.innerHTML =
+            '<strong>Activity velocity</strong><p style="color: var(--text-muted); margin: 0">Recent activity trends will show here.</p>';
+          return;
+        }
+
+        const projectStats = reporting.projects || {};
+        elements.analyticsProjectsTotal.textContent = formatNumber(projectStats.total || 0);
+        const activeProjects = Object.entries(projectStats.by_status || {}).filter(([status]) => !projectAttentionStatuses.has(status));
+        elements.analyticsProjectsMeta.textContent = activeProjects.length
+          ? `${formatNumber(activeProjects.reduce((sum, [, count]) => sum + Number(count || 0), 0))} active projects`
+          : 'Awaiting data';
+
+        const candidateStats = reporting.candidates || {};
+        elements.analyticsCandidatesTotal.textContent = formatNumber(candidateStats.total || 0);
+        elements.analyticsCandidatesMeta.textContent = candidateStats.total
+          ? `${Object.entries(candidateStats.by_status || {})
+              .slice(0, 3)
+              .map(([status, count]) => `${toTitleCase(status)} ${formatNumber(count || 0)}`)
+              .join(' • ')}`
+          : 'Awaiting data';
+
+        const interviewStats = reporting.interviews || {};
+        elements.analyticsInterviewsTotal.textContent = formatNumber(interviewStats.total || 0);
+        elements.analyticsInterviewsMeta.textContent = interviewStats.upcoming
+          ? `${formatNumber(interviewStats.upcoming)} upcoming`
+          : 'No interviews scheduled';
+
+        const breakdownParts = [];
+        const projectBreakdown = Object.entries(projectStats.by_status || {});
+        if (projectBreakdown.length) {
+          breakdownParts.push(
+            `<div><strong>Projects</strong><p style="color: var(--text-muted); margin: 2px 0">${projectBreakdown
+              .slice(0, 4)
+              .map(([status, count]) => `${toTitleCase(status)}: ${formatNumber(count || 0)}`)
+              .join(' • ')}</p></div>`
+          );
+        }
+        const positionStats = reporting.positions || {};
+        const positionBreakdown = Object.entries(positionStats.by_status || {});
+        if (positionBreakdown.length) {
+          breakdownParts.push(
+            `<div><strong>Positions</strong><p style="color: var(--text-muted); margin: 2px 0">${positionBreakdown
+              .slice(0, 4)
+              .map(([status, count]) => `${toTitleCase(status)}: ${formatNumber(count || 0)}`)
+              .join(' • ')}</p></div>`
+          );
+        }
+        elements.analyticsBreakdown.innerHTML =
+          breakdownParts.length > 0
+            ? `<strong>Pipeline breakdown</strong>${breakdownParts.join('')}`
+            : '<strong>Pipeline breakdown</strong><p style="color: var(--text-muted); margin: 0">Stats will appear after loading workspace data.</p>';
+
+        const activityStats = reporting.activity || {};
+        const velocity = Object.entries(activityStats.velocity_30_days || {});
+        elements.analyticsActivity.innerHTML = velocity.length
+          ? `<strong>Activity velocity</strong><p style="color: var(--text-muted); margin: 0">${velocity
+              .slice(0, 5)
+              .map(([status, count]) => `${toTitleCase(status)}: ${formatNumber(count || 0)}`)
+              .join(' • ')}</p>`
+          : '<strong>Activity velocity</strong><p style="color: var(--text-muted); margin: 0">Recent activity trends will show here.</p>';
+      };
+
+      const renderResearch = (reporting) => {
+        const container = elements.researchSummary;
+        if (!container) {
+          return;
+        }
+        container.innerHTML = '<strong>Recent studies</strong>';
+        const items = reporting?.market_research || [];
+        if (!Array.isArray(items) || items.length === 0) {
+          const empty = document.createElement('p');
+          empty.style.color = 'var(--text-muted)';
+          empty.style.margin = '0';
+          empty.textContent = 'Upload documents or run market analysis to populate research snapshots.';
+          container.appendChild(empty);
+          return;
+        }
+        items.slice(0, 5).forEach((item) => {
+          const block = document.createElement('div');
+          block.style.display = 'flex';
+          block.style.flexDirection = 'column';
+          block.style.gap = '4px';
+          const heading = document.createElement('strong');
+          heading.textContent = `${item.region || 'Region'} • ${item.sector || 'Sector'} (${toTitleCase(item.status || '')})`;
+          const summary = document.createElement('span');
+          summary.style.color = 'var(--text-muted)';
+          summary.textContent = `${item.finding_count || 0} key findings • ${formatDateTime(item.completed_at)}`;
+          block.appendChild(heading);
+          block.appendChild(summary);
+          container.appendChild(block);
+        });
+      };
+
+      const classifyActivity = (eventType) => {
+        const value = (eventType || '').toLowerCase();
+        if (!value) {
+          return 'other';
+        }
+        if (value.includes('project')) {
+          return 'project';
+        }
+        if (value.includes('candidate') || value.includes('interview')) {
+          return 'candidate';
+        }
+        if (value.includes('login') || value.includes('logout') || value.includes('password')) {
+          return 'security';
+        }
+        if (value.includes('ai') || value.includes('smartrecruiters') || value.includes('linkedin')) {
+          return 'ai';
+        }
+        return 'other';
+      };
+
+      const renderActivityAudit = () => {
+        const list = elements.activityAuditList;
+        if (!list) {
+          return;
+        }
+        list.innerHTML = '';
+        const typeFilter = elements.activityFilterType?.value || 'all';
+        const windowFilter = elements.activityFilterWindow?.value || '30';
+        const now = Date.now();
+        const windowMs = windowFilter === 'all' ? 0 : Number(windowFilter) * 24 * 60 * 60 * 1000;
+        const filtered = state.activity
+          .filter((item) => {
+            if (windowMs) {
+              const timestamp = new Date(item.created_at || 0).getTime();
+              if (Number.isNaN(timestamp) || now - timestamp > windowMs) {
+                return false;
+              }
+            }
+            if (typeFilter === 'all') {
+              return true;
+            }
+            return classifyActivity(item.event_type) === typeFilter;
+          })
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (filtered.length === 0) {
+          list.innerHTML =
+            '<li class="timeline-item empty"><div><strong>No activity matches filters</strong><span>Adjust filters to review additional events.</span></div><span></span></li>';
+          return;
+        }
+
+        filtered.slice(0, 20).forEach((item) => {
+          const li = document.createElement('li');
+          li.className = 'timeline-item';
+          const wrapper = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = toTitleCase(item.event_type);
+          const message = document.createElement('span');
+          message.textContent = item.message || '';
+          wrapper.appendChild(title);
+          wrapper.appendChild(message);
+          const time = document.createElement('span');
+          time.textContent = formatRelativeTime(item.created_at);
+          li.appendChild(wrapper);
+          li.appendChild(time);
+          list.appendChild(li);
+        });
+      };
+
+      const renderQueueStatus = (status) => {
+        state.queueStatus = status || null;
+        const list = elements.queueStatusList;
+        if (!list) {
+          return;
+        }
+        list.innerHTML = '';
+        if (!status) {
+          list.innerHTML = '<li class="empty-state">Queue metrics unavailable.</li>';
+          return;
+        }
+        const items = [
+          ['Queued jobs', status.queued ?? 0],
+          ['Processed', status.processed ?? 0],
+          ['Failed', status.failed ?? 0],
+          ['Workers active', status.is_running ? 'Yes' : 'No']
+        ];
+        items.forEach(([label, value]) => {
+          const li = document.createElement('li');
+          li.textContent = `${label}: ${value}`;
+          list.appendChild(li);
+        });
+        if (status.last_job) {
+          const last = document.createElement('li');
+          last.textContent = `Last job: ${status.last_job.job_type || 'unknown'} (${status.last_job.status})`;
+          list.appendChild(last);
+        }
+        if (status.last_error) {
+          const error = document.createElement('li');
+          error.style.color = 'var(--warning)';
+          error.textContent = `Last error: ${status.last_error}`;
+          list.appendChild(error);
+        }
+      };
+
+      const renderSystemConfig = (config) => {
+        state.systemConfig = config || null;
+        const list = elements.systemConfigList;
+        if (!list) {
+          return;
+        }
+        list.innerHTML = '';
+        if (!config) {
+          list.innerHTML = '<li class="empty-state">Configuration will load after authentication.</li>';
+          return;
+        }
+        const entries = [
+          ['Application', config.app_name],
+          ['Environment', config.environment],
+          ['Storage path', config.storage_path],
+          ['Gemini integration', config.gemini_enabled ? 'Configured' : 'Missing'],
+          ['SmartRecruiters', config.smartrecruiters_enabled ? 'Configured' : 'Missing'],
+          ['Auto updates', config.auto_updates ? 'Enabled' : 'Disabled']
+        ];
+        entries.forEach(([label, value]) => {
+          const li = document.createElement('li');
+          li.textContent = `${label}: ${value ?? '—'}`;
+          list.appendChild(li);
+        });
+      };
+
+      const renderAdminData = (data) => {
+        state.adminData = data || {
+          users: [],
+          features: [],
+          promptPacks: [],
+          embeddings: [],
+          integrations: {}
+        };
+        if (elements.adminNavButton) {
+          elements.adminNavButton.style.display = state.user?.role === 'admin' ? 'block' : 'none';
+        }
+
+        const users = state.adminData.users || [];
+        const usersBody = elements.adminUsersTableBody;
+        if (usersBody) {
+          usersBody.innerHTML = '';
+          if (!users.length) {
+            usersBody.innerHTML = '<tr><td colspan="3" class="table-empty">Only administrators can view user rosters.</td></tr>';
+          } else {
+            users.forEach((user) => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${user.name || 'User'}</td><td>${user.email}</td><td>${toTitleCase(user.role)}</td>`;
+              usersBody.appendChild(tr);
+            });
+          }
+          const userOptions = ['<option value="">Select user…</option>'];
+          users.forEach((user) => userOptions.push(`<option value="${user.user_id}">${user.email}</option>`));
+          elements.adminUserSelect.innerHTML = userOptions.join('');
+        }
+
+        const features = state.adminData.features || [];
+        const featureBody = elements.adminFeatureTableBody;
+        if (featureBody) {
+          featureBody.innerHTML = '';
+          if (!features.length) {
+            featureBody.innerHTML = '<tr><td colspan="4" class="table-empty">Feature flag data will appear for administrators.</td></tr>';
+          } else {
+            features.forEach((feature) => {
+              const tr = document.createElement('tr');
+              const value = feature.value;
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'logout-btn';
+              if (typeof value === 'boolean') {
+                button.textContent = value ? 'Disable' : 'Enable';
+                button.addEventListener('click', () => updateFeatureToggle(feature.key, !value));
+              } else {
+                button.textContent = 'Refresh';
+                button.addEventListener('click', () => updateFeatureToggle(feature.key, value));
+              }
+              const actionCell = document.createElement('td');
+              actionCell.appendChild(button);
+              tr.innerHTML = `<td>${feature.key}</td><td>${JSON.stringify(value)}</td><td>${formatDateTime(
+                feature.updated_at
+              )}</td>`;
+              tr.appendChild(actionCell);
+              featureBody.appendChild(tr);
+            });
+          }
+        }
+
+        const promptList = elements.adminPromptList;
+        if (promptList) {
+          promptList.innerHTML = '';
+          const prompts = state.adminData.promptPacks || [];
+          if (!prompts.length) {
+            promptList.innerHTML = '<li class="empty-state">Prompt pack catalog will load for administrators.</li>';
+          } else {
+            prompts.forEach((prompt) => {
+              const li = document.createElement('li');
+              li.innerHTML = `<strong>${prompt.name}</strong><span style="color: var(--text-muted)">${prompt.category}</span>`;
+              promptList.appendChild(li);
+            });
+          }
+        }
+
+        const embeddingBody = elements.adminEmbeddingTableBody;
+        if (embeddingBody) {
+          embeddingBody.innerHTML = '';
+          const embeddings = state.adminData.embeddings || [];
+          if (!embeddings.length) {
+            embeddingBody.innerHTML = '<tr><td colspan="3" class="table-empty">No embeddings registered.</td></tr>';
+          } else {
+            embeddings.forEach((embedding) => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${embedding.name}</td><td>${embedding.vector_dim}</td><td>${embedding.location_uri}</td>`;
+              embeddingBody.appendChild(tr);
+            });
+          }
+        }
+
+        const integrationsList = elements.adminIntegrationsList;
+        if (integrationsList) {
+          integrationsList.innerHTML = '';
+          const integrations = state.adminData.integrations || {};
+          const entries = Object.entries(integrations);
+          if (entries.length === 0) {
+            integrationsList.innerHTML = '<li class="empty-state">Integration status available for administrators.</li>';
+          } else {
+            entries.forEach(([key, value]) => {
+              const li = document.createElement('li');
+              li.textContent = `${key}: ${value.configured ? value.masked : 'Not configured'} (${value.source || 'n/a'})`;
+              integrationsList.appendChild(li);
+            });
+          }
+        }
+      };
+
+      const fetchAdminData = async () => {
+        if (state.user?.role !== 'admin') {
+          renderAdminData(null);
+          return;
+        }
+        try {
+          const [users, features, promptPacks, embeddings, integrations] = await Promise.all([
+            authorizedFetch('/api/admin/users'),
+            authorizedFetch('/api/admin/advanced/features'),
+            authorizedFetch('/api/admin/advanced/prompt-packs'),
+            authorizedFetch('/api/admin/embeddings'),
+            authorizedFetch('/api/admin/integrations')
+          ]);
+          renderAdminData({
+            users: users?.users || [],
+            features: Array.isArray(features) ? features : [],
+            promptPacks: Array.isArray(promptPacks) ? promptPacks : [],
+            embeddings: Array.isArray(embeddings) ? embeddings : [],
+            integrations: integrations || {}
+          });
+        } catch (error) {
+          console.error('Failed to load admin data', error);
+          renderAdminData(null);
+        }
+      };
+
+      const updateFeatureToggle = async (key, value) => {
+        try {
+          await authorizedFetch(`/api/admin/advanced/features/${encodeURIComponent(key)}`, {
+            method: 'PUT',
+            body: JSON.stringify({ value })
+          });
+          await fetchAdminData();
+        } catch (error) {
+          console.error('Failed to update feature toggle', error);
+          window.alert(error.message || 'Unable to update feature flag.');
+        }
+      };
+
       const loadAppData = async ({ showErrors = false } = {}) => {
         if (!state.token || state.loading) {
           return false;
@@ -1498,7 +3096,21 @@
         setBackendStatus('Syncing data…');
         try {
           await ensureBackendUrl();
-          const [user, stats, activity, projects, positions, candidates, interviews, sourcing] = await Promise.all([
+          const [
+            user,
+            stats,
+            activity,
+            projects,
+            positions,
+            candidates,
+            interviews,
+            sourcing,
+            documents,
+            duplicates,
+            reporting,
+            queueStatus,
+            systemConfig
+          ] = await Promise.all([
             authorizedFetch('/api/user'),
             authorizedFetch('/api/dashboard/stats'),
             authorizedFetch('/api/activity'),
@@ -1506,7 +3118,12 @@
             authorizedFetch('/api/positions'),
             authorizedFetch('/api/candidates'),
             authorizedFetch('/api/interviews'),
-            authorizedFetch('/api/sourcing/overview')
+            authorizedFetch('/api/sourcing/overview'),
+            authorizedFetch('/api/documents'),
+            authorizedFetch('/api/candidates/duplicates'),
+            authorizedFetch('/api/reporting/overview'),
+            authorizedFetch('/api/queue/status'),
+            authorizedFetch('/api/system/config')
           ]);
           state.user = user;
           renderDashboard(stats, activity, projects, candidates, interviews);
@@ -1514,6 +3131,18 @@
           renderCandidates(candidates, positions, interviews);
           renderPositions(positions);
           renderSourcing(sourcing);
+          renderDocuments(documents);
+          renderDuplicates(duplicates);
+          renderInterviews(interviews);
+          renderAnalytics(reporting);
+          renderResearch(reporting);
+          renderQueueStatus(queueStatus);
+          renderSystemConfig(systemConfig);
+          if (state.user?.role === 'admin') {
+            await fetchAdminData();
+          } else {
+            renderAdminData(null);
+          }
           setBackendStatus(state.backendUrl ? `Connected to ${state.backendUrl}` : 'Connected');
           return true;
         } catch (error) {
@@ -1549,6 +3178,449 @@
       };
 
       todayDate.textContent = formatToday();
+
+      if (elements.candidateSelectAll) {
+        elements.candidateSelectAll.addEventListener('change', () => {
+          const shouldSelect = Boolean(elements.candidateSelectAll.checked);
+          const checkboxes = elements.candidatesTableBody.querySelectorAll('input[type="checkbox"][data-candidate-id]');
+          checkboxes.forEach((checkbox) => {
+            const id = checkbox.dataset.candidateId;
+            checkbox.checked = shouldSelect;
+            if (shouldSelect) {
+              state.selectedCandidates.add(id);
+            } else {
+              state.selectedCandidates.delete(id);
+            }
+          });
+          updateCandidateBulkFeedback();
+          syncCandidateSelectAll();
+        });
+      }
+
+      if (elements.candidateBulkForm) {
+        elements.candidateBulkForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const ids = Array.from(state.selectedCandidates);
+          if (ids.length === 0) {
+            window.alert('Select at least one candidate to run bulk actions.');
+            return;
+          }
+          const action = elements.candidateBulkAction.value;
+          const tag = elements.candidateBulkTag.value.trim();
+          if (action === 'add_tag' && !tag) {
+            window.alert('Enter a tag to apply to selected candidates.');
+            return;
+          }
+          try {
+            if (action === 'export') {
+              const response = await fetch(resolveApi('/api/candidates/bulk-action'), {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${state.token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action, candidate_ids: ids })
+              });
+              if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || 'Export failed');
+              }
+              const blob = await response.blob();
+              const url = URL.createObjectURL(blob);
+              const extension = response.headers.get('content-type')?.includes('sheet') ? 'xlsx' : 'csv';
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `candidates-export.${extension}`;
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+              URL.revokeObjectURL(url);
+              elements.candidateBulkFeedback.textContent = 'Export generated successfully.';
+            } else {
+              const result = await authorizedFetch('/api/candidates/bulk-action', {
+                method: 'POST',
+                body: JSON.stringify({ action, candidate_ids: ids, tag: action === 'add_tag' ? tag : undefined })
+              });
+              elements.candidateBulkFeedback.textContent =
+                result?.message || `${action === 'delete' ? 'Deleted' : 'Updated'} ${formatNumber(result?.success_count || 0)} candidates.`;
+            }
+            state.selectedCandidates.clear();
+            await loadAppData();
+          } catch (error) {
+            console.error('Bulk action failed', error);
+            window.alert(error.message || 'Unable to process bulk action.');
+          }
+        });
+      }
+
+      if (elements.documentScopeSelect && elements.documentProjectSelect) {
+        const syncScope = () => {
+          const isProject = elements.documentScopeSelect.value === 'project';
+          elements.documentProjectSelect.disabled = !isProject;
+          if (!isProject) {
+            elements.documentProjectSelect.value = '';
+          }
+        };
+        syncScope();
+        elements.documentScopeSelect.addEventListener('change', syncScope);
+      }
+
+      if (elements.documentUploadForm) {
+        elements.documentUploadForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.documentUploadForm);
+          if (!formData.get('scope_id')) {
+            formData.delete('scope_id');
+          }
+          try {
+            await authorizedFetch('/api/documents/upload', {
+              method: 'POST',
+              body: formData
+            });
+            elements.documentUploadForm.reset();
+            await loadAppData();
+          } catch (error) {
+            console.error('Document upload failed', error);
+            window.alert(error.message || 'Unable to upload document.');
+          }
+        });
+      }
+
+      if (elements.documentAnalyzeButton) {
+        elements.documentAnalyzeButton.addEventListener('click', async () => {
+          const documentId = elements.documentAnalysisSelect.value;
+          if (!documentId) {
+            window.alert('Select a document to analyze.');
+            return;
+          }
+          const documentRecord = state.documents.find((doc) => doc.id === documentId);
+          try {
+            const analysis = await authorizedFetch('/api/ai/analyze-file', {
+              method: 'POST',
+              body: JSON.stringify({
+                document_id: documentId,
+                project_id: documentRecord?.scope === 'project' ? documentRecord.scope_id : undefined,
+                trigger_market_research: true
+              })
+            });
+            renderDocumentAnalysis(analysis);
+            await loadAppData();
+          } catch (error) {
+            console.error('Document analysis failed', error);
+            window.alert(error.message || 'Unable to analyze document.');
+          }
+        });
+      }
+
+      if (elements.screeningForm) {
+        elements.screeningForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const candidateId = elements.screeningCandidateSelect.value;
+          const positionId = elements.screeningPositionSelect.value;
+          if (!candidateId || !positionId) {
+            window.alert('Select a candidate and position to screen.');
+            return;
+          }
+          const skills = elements.screeningSkillsInput.value
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          try {
+            const result = await authorizedFetch('/api/ai/screen-candidate', {
+              method: 'POST',
+              body: JSON.stringify({
+                candidate_id: candidateId,
+                position_id: positionId,
+                skills,
+                years_experience: Number(elements.screeningYearsInput.value) || 0,
+                leadership: elements.screeningLeadershipSelect.value === 'yes'
+              })
+            });
+            renderScreeningResult(result);
+            await loadAppData();
+          } catch (error) {
+            console.error('Screening failed', error);
+            window.alert(error.message || 'Unable to run screening.');
+          }
+        });
+      }
+
+      if (elements.outreachEmailForm) {
+        elements.outreachEmailForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const skills = elements.outreachSkills.value
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          const highlights = elements.outreachHighlights.value
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          try {
+            const email = await authorizedFetch('/api/ai/generate-email', {
+              method: 'POST',
+              body: JSON.stringify({
+                candidate_name: elements.outreachCandidateName.value,
+                title: elements.outreachRoleTitle.value,
+                location: elements.outreachLocation.value,
+                skills,
+                highlights,
+                company: elements.outreachCompany.value,
+                project_summary: elements.outreachProjectSummary.value
+              })
+            });
+            renderOutreachEmail(email);
+          } catch (error) {
+            console.error('Email generation failed', error);
+            window.alert(error.message || 'Unable to generate outreach email.');
+          }
+        });
+      }
+
+      if (elements.outreachCallForm) {
+        elements.outreachCallForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const valueProps = elements.callValueProps.value
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          try {
+            const script = await authorizedFetch('/api/ai/call-script', {
+              method: 'POST',
+              body: JSON.stringify({
+                candidate_name: elements.callCandidateName.value,
+                title: elements.callRoleTitle.value,
+                location: elements.callLocation.value,
+                value_props: valueProps
+              })
+            });
+            renderCallScript(script);
+          } catch (error) {
+            console.error('Call script generation failed', error);
+            window.alert(error.message || 'Unable to generate call script.');
+          }
+        });
+      }
+
+      if (elements.marketResearchForm) {
+        elements.marketResearchForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          if (!elements.marketResearchProjectSelect.value) {
+            window.alert('Select a project to request research.');
+            return;
+          }
+          try {
+            const response = await authorizedFetch('/api/research/market-analysis', {
+              method: 'POST',
+              body: JSON.stringify({
+                project_id: elements.marketResearchProjectSelect.value,
+                region: elements.marketResearchRegion.value,
+                sector: elements.marketResearchSector.value
+              })
+            });
+            if (response?.status === 'completed') {
+              elements.marketResearchStatus.textContent = 'Market research available.';
+            } else {
+              elements.marketResearchStatus.textContent = 'Research job queued successfully.';
+            }
+            await loadAppData();
+          } catch (error) {
+            console.error('Market research request failed', error);
+            window.alert(error.message || 'Unable to request market research.');
+          }
+        });
+      }
+
+      if (elements.salaryBenchmarkForm) {
+        elements.salaryBenchmarkForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          try {
+            const payload = {
+              title: elements.salaryTitle.value,
+              region: elements.salaryRegion.value
+            };
+            const seniority = elements.salarySeniority.value.trim();
+            if (seniority) {
+              payload.seniority = seniority;
+            }
+            const sector = elements.salarySector ? elements.salarySector.value.trim() : '';
+            if (sector) {
+              payload.sector = sector;
+            }
+
+            const result = await authorizedFetch('/api/research/salary-benchmark', {
+              method: 'POST',
+              body: JSON.stringify(payload)
+            });
+
+            const lines = [
+              `<strong>${result.currency} ${formatNumber(result.annual_mid)}</strong>`,
+              `<p style="color: var(--text-muted); margin: 0">Range: ${formatNumber(result.annual_min)} - ${formatNumber(
+                result.annual_max
+              )}</p>`
+            ];
+            if (result.rationale) {
+              lines.push(`<p style="color: var(--text-muted); margin: 0">${result.rationale}</p>`);
+            }
+            if (Array.isArray(result.sources) && result.sources.length) {
+              const summary = result.sources
+                .map((source) => source.name || source.url || 'Source')
+                .join(', ');
+              lines.push(`<p style="color: var(--text-muted); margin: 0">Sources: ${summary}</p>`);
+            }
+            elements.salaryBenchmarkResult.innerHTML = lines.join('');
+          } catch (error) {
+            console.error('Salary benchmark failed', error);
+            window.alert(error.message || 'Unable to fetch salary benchmark.');
+          }
+        });
+      }
+
+      if (elements.interviewForm) {
+        elements.interviewForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const candidateId = elements.interviewCandidateSelect.value;
+          const positionId = elements.interviewPositionSelect.value;
+          if (!candidateId || !positionId) {
+            window.alert('Select a candidate and position.');
+            return;
+          }
+          try {
+            await authorizedFetch('/api/interviews', {
+              method: 'POST',
+              body: JSON.stringify({
+                candidate_id: candidateId,
+                position_id: positionId,
+                scheduled_at: elements.interviewDateInput.value,
+                mode: elements.interviewModeInput.value,
+                location: elements.interviewLocationInput.value,
+                notes: elements.interviewNotesInput.value
+              })
+            });
+            elements.interviewForm.reset();
+            await loadAppData();
+          } catch (error) {
+            console.error('Interview scheduling failed', error);
+            window.alert(error.message || 'Unable to schedule interview.');
+          }
+        });
+      }
+
+      if (elements.queueRefreshButton) {
+        elements.queueRefreshButton.addEventListener('click', async () => {
+          try {
+            const status = await authorizedFetch('/api/queue/status');
+            renderQueueStatus(status);
+          } catch (error) {
+            console.error('Queue refresh failed', error);
+            window.alert(error.message || 'Unable to refresh queue status.');
+          }
+        });
+      }
+
+      if (elements.autoUpdateCheckButton && window.electronAPI?.autoUpdater?.checkNow) {
+        elements.autoUpdateCheckButton.addEventListener('click', () => {
+          applyAutoUpdatePatch({
+            checking: true,
+            statusMessage: 'Checking for updates…',
+            error: null
+          });
+          window.electronAPI.autoUpdater.checkNow();
+        });
+      }
+
+      if (elements.autoUpdateInstallButton && window.electronAPI?.autoUpdater?.quitAndInstall) {
+        elements.autoUpdateInstallButton.addEventListener('click', () => {
+          if (state.autoUpdate.downloaded) {
+            window.electronAPI.autoUpdater.quitAndInstall();
+          }
+        });
+      }
+
+      if (elements.linkedinXrayForm) {
+        elements.linkedinXrayForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          if (!elements.linkedinProjectSelect.value) {
+            window.alert('Select a project for the LinkedIn X-Ray search.');
+            return;
+          }
+          try {
+            await authorizedFetch('/api/sourcing/linkedin-xray/start', {
+              method: 'POST',
+              body: JSON.stringify({
+                project_id: elements.linkedinProjectSelect.value,
+                title: elements.linkedinTitleInput.value,
+                location: elements.linkedinLocationInput.value,
+                skills: elements.linkedinSkillsInput.value
+              })
+            });
+            elements.aiSourcingFeedback.textContent = 'LinkedIn X-Ray job queued.';
+            await loadAppData();
+          } catch (error) {
+            console.error('LinkedIn X-Ray start failed', error);
+            window.alert(error.message || 'Unable to start LinkedIn sourcing.');
+          }
+        });
+      }
+
+      if (elements.smartRecruitersForm) {
+        elements.smartRecruitersForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          if (!elements.smartRecruitersProjectSelect.value) {
+            window.alert('Select a project for the SmartRecruiters import.');
+            return;
+          }
+          try {
+            await authorizedFetch('/api/smartrecruiters/bulk', {
+              method: 'POST',
+              body: JSON.stringify({
+                project_id: elements.smartRecruitersProjectSelect.value,
+                jobs: [
+                  {
+                    position_id: state.positions[0]?.position_id || '',
+                    job_url: elements.smartRecruitersJobUrl.value,
+                    filters: { notes: elements.smartRecruitersNotes.value }
+                  }
+                ]
+              })
+            });
+            elements.aiSourcingFeedback.textContent = 'SmartRecruiters automation queued.';
+            await loadAppData();
+          } catch (error) {
+            console.error('SmartRecruiters automation failed', error);
+            window.alert(error.message || 'Unable to queue SmartRecruiters automation.');
+          }
+        });
+      }
+
+      if (elements.activityFilterType) {
+        elements.activityFilterType.addEventListener('change', renderActivityAudit);
+      }
+      if (elements.activityFilterWindow) {
+        elements.activityFilterWindow.addEventListener('change', renderActivityAudit);
+      }
+
+      if (elements.adminUserRoleForm) {
+        elements.adminUserRoleForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const userId = elements.adminUserSelect.value;
+          const role = elements.adminRoleSelect.value;
+          if (!userId || !role) {
+            window.alert('Select a user and role.');
+            return;
+          }
+          try {
+            await authorizedFetch(`/api/admin/users/${userId}/role`, {
+              method: 'PUT',
+              body: JSON.stringify({ role })
+            });
+            await fetchAdminData();
+          } catch (error) {
+            console.error('User role update failed', error);
+            window.alert(error.message || 'Unable to update user role.');
+          }
+        });
+      }
 
       loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -1637,6 +3709,7 @@
       });
 
       resetDynamicContent();
+      registerAutoUpdaterListeners();
       setBackendStatus('Connecting…');
 
       if (window.electronAPI?.onBackendReady) {

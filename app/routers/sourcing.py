@@ -1,17 +1,99 @@
 """Sourcing orchestration endpoints."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
-from ..models import AIJob, SourcingJob, SourcingResult
+from ..models import AIJob, Position, Project, SourcingJob, SourcingResult
 from ..schemas import SmartRecruitersBulkRequest, SourcingJobStatusResponse
 from ..services.ai import start_linkedin_xray, start_smartrecruiters_bulk
 from ..services.activity import log_activity
 
 router = APIRouter(prefix="/api", tags=["sourcing"])
+
+
+@router.get("/sourcing/overview")
+def sourcing_overview(
+    project_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> Dict[str, Any]:
+    job_query = (
+        db.query(SourcingJob)
+        .join(Project, SourcingJob.project_id == Project.project_id)
+        .filter(Project.created_by == current_user.user_id)
+        .order_by(SourcingJob.created_at.desc())
+    )
+    if project_id:
+        job_query = job_query.filter(SourcingJob.project_id == project_id)
+    jobs = job_query.all()
+
+    job_payload: list[Dict[str, Any]] = []
+    active_jobs = 0
+    total_profiles = 0
+    tracked_projects: set[str] = set()
+
+    for job in jobs:
+        status = (job.status or "pending").lower()
+        if status not in {"completed", "failed"}:
+            active_jobs += 1
+        total_profiles += job.found_count or 0
+        if job.project_id:
+            tracked_projects.add(job.project_id)
+
+        project = db.get(Project, job.project_id) if job.project_id else None
+        position = db.get(Position, job.position_id) if job.position_id else None
+
+        job_payload.append(
+            {
+                "sourcing_job_id": job.sourcing_job_id,
+                "project_name": project.name if project else None,
+                "position_title": position.title if position else None,
+                "status": job.status,
+                "progress": job.progress or 0,
+                "found_count": job.found_count or 0,
+                "created_at": job.created_at,
+                "updated_at": job.updated_at,
+            }
+        )
+
+    result_query = (
+        db.query(SourcingResult)
+        .join(SourcingJob, SourcingResult.sourcing_job_id == SourcingJob.sourcing_job_id)
+        .join(Project, SourcingJob.project_id == Project.project_id)
+        .filter(Project.created_by == current_user.user_id)
+        .order_by(SourcingResult.created_at.desc())
+    )
+    if project_id:
+        result_query = result_query.filter(SourcingJob.project_id == project_id)
+    results = result_query.limit(12).all()
+
+    result_payload = [
+        {
+            "result_id": result.result_id,
+            "name": result.name,
+            "title": result.title,
+            "company": result.company,
+            "location": result.location,
+            "profile_url": result.profile_url,
+            "quality_score": result.quality_score,
+            "created_at": result.created_at,
+        }
+        for result in results
+    ]
+
+    return {
+        "summary": {
+            "total_jobs": len(jobs),
+            "active_jobs": active_jobs,
+            "total_profiles": total_profiles,
+            "tracked_projects": len(tracked_projects),
+        },
+        "jobs": job_payload,
+        "results": result_payload,
+    }
 
 
 @router.post("/sourcing/linkedin-xray/start")

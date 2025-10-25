@@ -368,6 +368,55 @@
         gap: 16px;
       }
 
+      .featured-card {
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        background: rgba(59, 130, 246, 0.12);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .featured-card h4 {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .featured-card p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+      }
+
+      .chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .chip-list .chip {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.18);
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        color: var(--text);
+      }
+
+      .empty-state {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        padding: 12px 0;
+      }
+
+      .table-empty {
+        text-align: left;
+        color: var(--text-muted);
+        padding: 18px 12px;
+      }
+
       .panel header {
         display: flex;
         justify-content: space-between;
@@ -408,6 +457,11 @@
         background: var(--accent);
         margin-top: 6px;
         box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+      }
+
+      .timeline-item.empty::before {
+        background: transparent;
+        box-shadow: none;
       }
 
       .timeline-item strong {
@@ -620,55 +674,54 @@
           <section class="view" data-view="dashboard" data-state="active">
             <div class="grid three">
               <article class="stat-card">
-                <span class="label">Active Projects</span>
-                <strong>12</strong>
-                <footer>4 launching this week</footer>
+                <span class="label">Active projects</span>
+                <strong id="dashboardProjectsCount">0</strong>
+                <footer id="dashboardProjectsMeta">No projects yet</footer>
               </article>
               <article class="stat-card">
-                <span class="label">Candidates in review</span>
-                <strong>87</strong>
-                <footer>+18 since yesterday</footer>
+                <span class="label">Candidates in pipeline</span>
+                <strong id="dashboardCandidatesCount">0</strong>
+                <footer id="dashboardCandidatesMeta">No candidates yet</footer>
               </article>
               <article class="stat-card">
-                <span class="label">AI outreach replies</span>
-                <strong>32</strong>
-                <footer class="badge success">78% response rate</footer>
+                <span class="label">Interviews scheduled</span>
+                <strong id="dashboardInterviewsCount">0</strong>
+                <footer id="dashboardInterviewsMeta">No interviews scheduled</footer>
               </article>
             </div>
 
             <article class="panel">
               <header>
+                <h3>Insights</h3>
+                <span>Live data sourced from your RecruitPro workspace</span>
+              </header>
+              <div id="dashboardFeatured" class="featured-card">
+                <h4>No candidates spotlighted yet</h4>
+                <p>Add candidates to highlight profiles that need your attention.</p>
+              </div>
+              <div>
+                <strong>Next best actions</strong>
+                <ul
+                  id="dashboardSuggestions"
+                  style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px"
+                >
+                  <li class="empty-state">Sign in to load workspace suggestions.</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="panel">
+              <header>
                 <h3>Recent activity</h3>
-                <span>Last refreshed moments ago</span>
+                <span id="activityUpdatedAt">Waiting for updates…</span>
               </header>
               <ul class="timeline" id="recentActivity">
-                <li class="timeline-item">
+                <li class="timeline-item empty">
                   <div>
-                    <strong>Offer accepted!</strong>
-                    <span>Aria Chen signed the Staff Backend Engineer offer for Atlas CRM.</span>
+                    <strong>No activity recorded</strong>
+                    <span>Updates will appear once RecruitPro logs new events.</span>
                   </div>
-                  <span>5m ago</span>
-                </li>
-                <li class="timeline-item">
-                  <div>
-                    <strong>New campaign launched</strong>
-                    <span>AI sourcing activated for "Enterprise AE - West Coast" with 150 leads queued.</span>
-                  </div>
-                  <span>22m ago</span>
-                </li>
-                <li class="timeline-item">
-                  <div>
-                    <strong>Candidate advanced</strong>
-                    <span>Juan Rivera moved to onsite panel for "Head of Product Design".</span>
-                  </div>
-                  <span>1h ago</span>
-                </li>
-                <li class="timeline-item">
-                  <div>
-                    <strong>New position request</strong>
-                    <span>FinOps requested support for a Senior Payroll Analyst search.</span>
-                  </div>
-                  <span>3h ago</span>
+                  <span></span>
                 </li>
               </ul>
             </article>
@@ -683,13 +736,13 @@
               <div class="grid two">
                 <article class="stat-card">
                   <span class="label">Projects on track</span>
-                  <strong>9</strong>
-                  <footer class="badge success">75% hitting weekly goals</footer>
+                  <strong id="projectsOnTrackCount">0</strong>
+                  <footer id="projectsOnTrackMeta">No data yet</footer>
                 </article>
                 <article class="stat-card">
-                  <span class="label">Need attention</span>
-                  <strong>3</strong>
-                  <footer class="badge warning">Blocked on hiring manager feedback</footer>
+                  <span class="label">Needs attention</span>
+                  <strong id="projectsAttentionCount">0</strong>
+                  <footer id="projectsAttentionMeta">Awaiting updates</footer>
                 </article>
               </div>
               <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 0">
@@ -697,29 +750,14 @@
                   <thead>
                     <tr>
                       <th>Project</th>
-                      <th>Owner</th>
-                      <th>Stage</th>
-                      <th>Pipeline health</th>
+                      <th>Client</th>
+                      <th>Status</th>
+                      <th>Target hires</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="projectsTableBody">
                     <tr>
-                      <td>Atlas CRM - Staff Backend Engineer</td>
-                      <td>Jordan Miles</td>
-                      <td><span class="badge info">Final interviews</span></td>
-                      <td>8 ready for onsite</td>
-                    </tr>
-                    <tr>
-                      <td>NovaPay - Lead iOS Engineer</td>
-                      <td>Sasha Patel</td>
-                      <td><span class="badge warning">Sourcing</span></td>
-                      <td>Requires design partnership</td>
-                    </tr>
-                    <tr>
-                      <td>Orbit Analytics - Product Marketing Lead</td>
-                      <td>Cam Ramirez</td>
-                      <td><span class="badge success">Offer</span></td>
-                      <td>Offer drafting with hiring manager</td>
+                      <td colspan="4" class="table-empty">Sign in to load project data.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -739,14 +777,14 @@
               </header>
               <div class="grid two">
                 <article class="stat-card">
-                  <span class="label">Interviews this week</span>
-                  <strong>41</strong>
-                  <footer class="badge info">12 scheduled for tomorrow</footer>
+                  <span class="label">Active candidates</span>
+                  <strong id="candidatesActiveCount">0</strong>
+                  <footer id="candidatesActiveMeta">No candidates tracked</footer>
                 </article>
                 <article class="stat-card">
-                  <span class="label">Pending feedback</span>
-                  <strong>7</strong>
-                  <footer class="badge warning">Follow up by EOD</footer>
+                  <span class="label">Feedback pending</span>
+                  <strong id="candidatesPendingFeedbackCount">0</strong>
+                  <footer id="candidatesPendingMeta">All feedback submitted</footer>
                 </article>
               </div>
               <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 0">
@@ -756,27 +794,12 @@
                       <th>Candidate</th>
                       <th>Role</th>
                       <th>Status</th>
-                      <th>Next step</th>
+                      <th>Source</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="candidatesTableBody">
                     <tr>
-                      <td>Aria Chen</td>
-                      <td>Staff Backend Engineer</td>
-                      <td><span class="badge success">Offer</span></td>
-                      <td>Comp package review</td>
-                    </tr>
-                    <tr>
-                      <td>Devin Blake</td>
-                      <td>Head of Product Design</td>
-                      <td><span class="badge info">Onsite</span></td>
-                      <td>Panel interview recap</td>
-                    </tr>
-                    <tr>
-                      <td>Nia Roberts</td>
-                      <td>Enterprise AE</td>
-                      <td><span class="badge warning">Manager review</span></td>
-                      <td>Await hiring manager notes</td>
+                      <td colspan="4" class="table-empty">Candidates will appear once they are added to your workspace.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -796,13 +819,13 @@
               <div class="grid two">
                 <article class="stat-card">
                   <span class="label">Open requisitions</span>
-                  <strong>18</strong>
-                  <footer class="badge info">6 forecast to close in 30 days</footer>
+                  <strong id="positionsOpenCount">0</strong>
+                  <footer id="positionsOpenMeta">No open positions</footer>
                 </article>
                 <article class="stat-card">
                   <span class="label">New requests</span>
-                  <strong>4</strong>
-                  <footer class="badge warning">Awaiting scoping call</footer>
+                  <strong id="positionsNewCount">0</strong>
+                  <footer id="positionsNewMeta">No new requests</footer>
                 </article>
               </div>
               <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 0">
@@ -811,28 +834,13 @@
                     <tr>
                       <th>Position</th>
                       <th>Department</th>
-                      <th>Stage</th>
-                      <th>Target start</th>
+                      <th>Status</th>
+                      <th>Openings</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="positionsTableBody">
                     <tr>
-                      <td>Senior Payroll Analyst</td>
-                      <td>Finance</td>
-                      <td><span class="badge warning">Intake</span></td>
-                      <td>July 15</td>
-                    </tr>
-                    <tr>
-                      <td>Director of Customer Success</td>
-                      <td>Operations</td>
-                      <td><span class="badge info">Interviewing</span></td>
-                      <td>August 1</td>
-                    </tr>
-                    <tr>
-                      <td>Platform Security Engineer</td>
-                      <td>Engineering</td>
-                      <td><span class="badge success">Offer</span></td>
-                      <td>June 24</td>
+                      <td colspan="4" class="table-empty">Create or import positions to see them here.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -852,18 +860,18 @@
               <div class="grid three">
                 <article class="stat-card">
                   <span class="label">Active campaigns</span>
-                  <strong>6</strong>
-                  <footer class="badge info">3 auto-enrich enabled</footer>
+                  <strong id="aiActiveJobsCount">0</strong>
+                  <footer id="aiActiveJobsMeta">No sourcing jobs running</footer>
                 </article>
                 <article class="stat-card">
-                  <span class="label">Qualified leads</span>
-                  <strong>214</strong>
-                  <footer>Goal: 250 this week</footer>
+                  <span class="label">Profiles generated</span>
+                  <strong id="aiProfilesCount">0</strong>
+                  <footer id="aiProfilesMeta">No profiles generated</footer>
                 </article>
                 <article class="stat-card">
-                  <span class="label">Replies</span>
-                  <strong>32</strong>
-                  <footer class="badge success">High intent: 14</footer>
+                  <span class="label">Tracked projects</span>
+                  <strong id="aiTrackedProjectsCount">0</strong>
+                  <footer id="aiTrackedProjectsMeta">No projects tracked yet</footer>
                 </article>
               </div>
               <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 12px">
@@ -871,29 +879,14 @@
                   <thead>
                     <tr>
                       <th>Campaign</th>
-                      <th>Target</th>
-                      <th>Stage</th>
-                      <th>Performance</th>
+                      <th>Project</th>
+                      <th>Status</th>
+                      <th>Progress</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="aiJobsTableBody">
                     <tr>
-                      <td>Enterprise AE - West Coast</td>
-                      <td>Sales</td>
-                      <td><span class="badge info">Running</span></td>
-                      <td>150 leads • 42% reply</td>
-                    </tr>
-                    <tr>
-                      <td>Senior Data Scientist - ML Ops</td>
-                      <td>Engineering</td>
-                      <td><span class="badge warning">Paused</span></td>
-                      <td>Review outreach copy</td>
-                    </tr>
-                    <tr>
-                      <td>Lifecycle Marketing Manager</td>
-                      <td>Marketing</td>
-                      <td><span class="badge success">Completed</span></td>
-                      <td>18 qualified • 5 onsite</td>
+                      <td colspan="4" class="table-empty">Launch a sourcing job to see campaign progress.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -944,6 +937,7 @@
     <script>
       const loginScreen = document.getElementById('loginScreen');
       const loginForm = document.getElementById('loginForm');
+      const loginButton = loginForm.querySelector('button');
       const appLayout = document.getElementById('appLayout');
       const navButtons = Array.from(document.querySelectorAll('[data-view-target]'));
       const views = Array.from(document.querySelectorAll('.view'));
@@ -951,6 +945,41 @@
       const logoutButton = document.getElementById('logoutButton');
       const backendStatus = document.getElementById('backendStatus');
       const todayDate = document.getElementById('todayDate');
+      const activityUpdatedAt = document.getElementById('activityUpdatedAt');
+
+      const elements = {
+        dashboardProjectsCount: document.getElementById('dashboardProjectsCount'),
+        dashboardProjectsMeta: document.getElementById('dashboardProjectsMeta'),
+        dashboardCandidatesCount: document.getElementById('dashboardCandidatesCount'),
+        dashboardCandidatesMeta: document.getElementById('dashboardCandidatesMeta'),
+        dashboardInterviewsCount: document.getElementById('dashboardInterviewsCount'),
+        dashboardInterviewsMeta: document.getElementById('dashboardInterviewsMeta'),
+        dashboardFeatured: document.getElementById('dashboardFeatured'),
+        dashboardSuggestions: document.getElementById('dashboardSuggestions'),
+        recentActivity: document.getElementById('recentActivity'),
+        projectsOnTrackCount: document.getElementById('projectsOnTrackCount'),
+        projectsOnTrackMeta: document.getElementById('projectsOnTrackMeta'),
+        projectsAttentionCount: document.getElementById('projectsAttentionCount'),
+        projectsAttentionMeta: document.getElementById('projectsAttentionMeta'),
+        projectsTableBody: document.getElementById('projectsTableBody'),
+        candidatesActiveCount: document.getElementById('candidatesActiveCount'),
+        candidatesActiveMeta: document.getElementById('candidatesActiveMeta'),
+        candidatesPendingFeedbackCount: document.getElementById('candidatesPendingFeedbackCount'),
+        candidatesPendingMeta: document.getElementById('candidatesPendingMeta'),
+        candidatesTableBody: document.getElementById('candidatesTableBody'),
+        positionsOpenCount: document.getElementById('positionsOpenCount'),
+        positionsOpenMeta: document.getElementById('positionsOpenMeta'),
+        positionsNewCount: document.getElementById('positionsNewCount'),
+        positionsNewMeta: document.getElementById('positionsNewMeta'),
+        positionsTableBody: document.getElementById('positionsTableBody'),
+        aiActiveJobsCount: document.getElementById('aiActiveJobsCount'),
+        aiActiveJobsMeta: document.getElementById('aiActiveJobsMeta'),
+        aiProfilesCount: document.getElementById('aiProfilesCount'),
+        aiProfilesMeta: document.getElementById('aiProfilesMeta'),
+        aiTrackedProjectsCount: document.getElementById('aiTrackedProjectsCount'),
+        aiTrackedProjectsMeta: document.getElementById('aiTrackedProjectsMeta'),
+        aiJobsTableBody: document.getElementById('aiJobsTableBody')
+      };
 
       const viewTitles = {
         dashboard: 'Dashboard overview',
@@ -960,6 +989,556 @@
         'ai-sourcing': 'AI sourcing intelligence',
         settings: 'Workspace preferences'
       };
+
+      const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
+      const state = {
+        token: sessionStorage.getItem('recruitproAccessToken') || null,
+        loading: false,
+        backendUrl: null,
+        user: null
+      };
+
+      const toTitleCase = (value) => {
+        if (!value) return '—';
+        return value
+          .toString()
+          .replace(/[_-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+      };
+
+      const formatNumber = (value) => numberFormatter.format(Math.max(0, Math.round(value ?? 0)));
+
+      const formatRelativeTime = (input) => {
+        if (!input) return 'Just now';
+        const timestamp = new Date(input);
+        if (Number.isNaN(timestamp.getTime())) {
+          return 'Just now';
+        }
+        const diff = Date.now() - timestamp.getTime();
+        if (diff <= 0) {
+          return 'Just now';
+        }
+        const seconds = Math.floor(diff / 1000);
+        if (seconds < 60) return 'Just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        return timestamp.toLocaleDateString();
+      };
+
+      const projectAttentionStatuses = new Set(['paused', 'blocked', 'on-hold', 'hold', 'delayed', 'overdue', 'stalled', 'draft', 'needs-attention']);
+      const closedProjectStatuses = new Set(['archived', 'closed', 'cancelled', 'canceled']);
+      const newPositionStatuses = new Set(['draft', 'intake', 'new', 'requested']);
+
+      const mapBadgeClass = (status) => {
+        const value = (status || '').toLowerCase();
+        if (!value) return 'badge info';
+        if (['offer', 'completed', 'hired', 'success', 'ready', 'active', 'live'].some((key) => value.includes(key))) {
+          return 'badge success';
+        }
+        if (
+          ['blocked', 'paused', 'hold', 'delayed', 'overdue', 'failed', 'needs-attention', 'escalated', 'draft'].some((key) =>
+            value.includes(key)
+          )
+        ) {
+          return 'badge warning';
+        }
+        return 'badge info';
+      };
+
+      const createBadge = (status) => {
+        const badge = document.createElement('span');
+        badge.className = mapBadgeClass(status);
+        badge.textContent = toTitleCase(status) || '—';
+        return badge;
+      };
+
+      const resetDynamicContent = () => {
+        elements.dashboardProjectsCount.textContent = '0';
+        elements.dashboardProjectsMeta.textContent = 'No projects yet';
+        elements.dashboardCandidatesCount.textContent = '0';
+        elements.dashboardCandidatesMeta.textContent = 'No candidates yet';
+        elements.dashboardInterviewsCount.textContent = '0';
+        elements.dashboardInterviewsMeta.textContent = 'No interviews scheduled';
+        elements.dashboardFeatured.innerHTML =
+          '<h4>No candidates spotlighted yet</h4><p>Add candidates to highlight profiles that need your attention.</p>';
+        elements.dashboardSuggestions.innerHTML =
+          '<li class="empty-state">Sign in to load workspace suggestions.</li>';
+        elements.recentActivity.innerHTML =
+          '<li class="timeline-item empty"><div><strong>No activity recorded</strong><span>Updates will appear once RecruitPro logs new events.</span></div><span></span></li>';
+        activityUpdatedAt.textContent = 'Waiting for updates…';
+        elements.projectsOnTrackCount.textContent = '0';
+        elements.projectsOnTrackMeta.textContent = 'No data yet';
+        elements.projectsAttentionCount.textContent = '0';
+        elements.projectsAttentionMeta.textContent = 'Awaiting updates';
+        elements.projectsTableBody.innerHTML = '<tr><td colspan="4" class="table-empty">Sign in to load project data.</td></tr>';
+        elements.candidatesActiveCount.textContent = '0';
+        elements.candidatesActiveMeta.textContent = 'No candidates tracked';
+        elements.candidatesPendingFeedbackCount.textContent = '0';
+        elements.candidatesPendingMeta.textContent = 'All feedback submitted';
+        elements.candidatesTableBody.innerHTML =
+          '<tr><td colspan="4" class="table-empty">Candidates will appear once they are added to your workspace.</td></tr>';
+        elements.positionsOpenCount.textContent = '0';
+        elements.positionsOpenMeta.textContent = 'No open positions';
+        elements.positionsNewCount.textContent = '0';
+        elements.positionsNewMeta.textContent = 'No new requests';
+        elements.positionsTableBody.innerHTML =
+          '<tr><td colspan="4" class="table-empty">Create or import positions to see them here.</td></tr>';
+        elements.aiActiveJobsCount.textContent = '0';
+        elements.aiActiveJobsMeta.textContent = 'No sourcing jobs running';
+        elements.aiProfilesCount.textContent = '0';
+        elements.aiProfilesMeta.textContent = 'No profiles generated';
+        elements.aiTrackedProjectsCount.textContent = '0';
+        elements.aiTrackedProjectsMeta.textContent = 'No projects tracked yet';
+        elements.aiJobsTableBody.innerHTML =
+          '<tr><td colspan="4" class="table-empty">Launch a sourcing job to see campaign progress.</td></tr>';
+      };
+
+      const setBackendStatus = (status) => {
+        backendStatus.textContent = status;
+      };
+
+      const resolveApi = (path = '') => {
+        const base = state.backendUrl || window.backendBaseUrl || '';
+        if (!path) {
+          return base;
+        }
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          return path;
+        }
+        if (!base) {
+          return path;
+        }
+        if (path.startsWith('/')) {
+          return `${base}${path}`;
+        }
+        return `${base}/${path}`;
+      };
+
+      const ensureBackendUrl = async () => {
+        if (state.backendUrl) {
+          return state.backendUrl;
+        }
+        if (window.backendBaseUrl) {
+          state.backendUrl = window.backendBaseUrl;
+          return state.backendUrl;
+        }
+        if (window.electronAPI?.getBackendUrl) {
+          try {
+            const url = await window.electronAPI.getBackendUrl();
+            if (url) {
+              state.backendUrl = url;
+              window.backendBaseUrl = url;
+              setBackendStatus(`Connected to ${url}`);
+              return state.backendUrl;
+            }
+          } catch (error) {
+            console.warn('Failed to resolve backend URL', error);
+          }
+        }
+        return state.backendUrl || '';
+      };
+
+      const setToken = (token) => {
+        state.token = token;
+        if (token) {
+          sessionStorage.setItem('recruitproAccessToken', token);
+        } else {
+          sessionStorage.removeItem('recruitproAccessToken');
+        }
+      };
+
+      const handleUnauthorized = () => {
+        setToken(null);
+        showLogin();
+        setBackendStatus('Authentication required');
+      };
+
+      const authorizedFetch = async (path, options = {}) => {
+        if (!state.token) {
+          throw new Error('Not authenticated');
+        }
+        await ensureBackendUrl();
+        const url = resolveApi(path);
+        const headers = new Headers(options.headers || {});
+        headers.set('Authorization', `Bearer ${state.token}`);
+        if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+          headers.set('Content-Type', 'application/json');
+        }
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+          handleUnauthorized();
+          throw new Error('Authentication expired');
+        }
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message || `Request failed with status ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          return response.json();
+        }
+        return response.text();
+      };
+
+      const renderDashboard = (stats, activity, projects, candidates, interviews) => {
+        const projectList = Array.isArray(projects) ? projects : [];
+        const candidateList = Array.isArray(candidates) ? candidates : [];
+        const interviewList = Array.isArray(interviews) ? interviews : [];
+
+        const onTrackProjects = projectList.filter((project) => {
+          const value = (project.status || '').toLowerCase();
+          if (closedProjectStatuses.has(value)) {
+            return false;
+          }
+          if (projectAttentionStatuses.has(value)) {
+            return false;
+          }
+          return true;
+        });
+
+        elements.dashboardProjectsCount.textContent = formatNumber(projectList.length);
+        elements.dashboardProjectsMeta.textContent = projectList.length
+          ? `${formatNumber(onTrackProjects.length)} active of ${formatNumber(projectList.length)} tracked`
+          : 'No projects yet';
+
+        const pipeline = stats?.pipeline || {};
+        const totalCandidates = pipeline.total ?? candidateList.length ?? 0;
+        elements.dashboardCandidatesCount.textContent = formatNumber(totalCandidates);
+        elements.dashboardCandidatesMeta.textContent =
+          totalCandidates > 0
+            ? `Sourcing ${formatNumber(pipeline.sourcing || 0)} • Screening ${formatNumber(pipeline.screening || 0)}`
+            : 'No candidates yet';
+
+        const interviewsCount = pipeline.interviews ?? interviewList.length ?? 0;
+        elements.dashboardInterviewsCount.textContent = formatNumber(interviewsCount);
+        elements.dashboardInterviewsMeta.textContent =
+          interviewsCount > 0 || (pipeline.offers ?? 0) > 0
+            ? `Offers ${formatNumber(pipeline.offers || 0)} • Sourcing ${formatNumber(pipeline.sourcing || 0)}`
+            : 'No interviews scheduled';
+
+        const featuredContainer = elements.dashboardFeatured;
+        featuredContainer.innerHTML = '';
+        if (stats?.featured_candidate) {
+          const candidate = stats.featured_candidate;
+          const heading = document.createElement('h4');
+          heading.textContent = candidate.name || 'Featured candidate';
+          const summary = document.createElement('p');
+          summary.textContent = candidate.summary || 'Review the latest candidate insights.';
+          featuredContainer.appendChild(heading);
+          featuredContainer.appendChild(summary);
+          if (Array.isArray(candidate.tags) && candidate.tags.length) {
+            const tagList = document.createElement('div');
+            tagList.className = 'chip-list';
+            candidate.tags.forEach((tag) => {
+              const tagChip = document.createElement('span');
+              tagChip.className = 'chip';
+              tagChip.textContent = tag;
+              tagList.appendChild(tagChip);
+            });
+            featuredContainer.appendChild(tagList);
+          }
+        } else {
+          featuredContainer.innerHTML =
+            '<h4>No candidates spotlighted yet</h4><p>Add candidates to highlight profiles that need your attention.</p>';
+        }
+
+        const suggestions = Array.isArray(stats?.suggestions) ? stats.suggestions.filter(Boolean) : [];
+        const suggestionsList = elements.dashboardSuggestions;
+        suggestionsList.innerHTML = '';
+        if (suggestions.length === 0) {
+          const li = document.createElement('li');
+          li.className = 'empty-state';
+          li.textContent = 'No suggestions available yet. Engage with your workspace to surface guidance.';
+          suggestionsList.appendChild(li);
+        } else {
+          suggestions.forEach((text) => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            suggestionsList.appendChild(li);
+          });
+        }
+
+        const activityList = elements.recentActivity;
+        activityList.innerHTML = '';
+        const activityItems = Array.isArray(activity)
+          ? activity.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          : [];
+        if (activityItems.length === 0) {
+          activityList.innerHTML =
+            '<li class="timeline-item empty"><div><strong>No activity recorded</strong><span>Updates will appear once RecruitPro logs new events.</span></div><span></span></li>';
+          activityUpdatedAt.textContent = 'No activity yet';
+        } else {
+          activityItems.slice(0, 6).forEach((item) => {
+            const li = document.createElement('li');
+            li.className = 'timeline-item';
+            const wrapper = document.createElement('div');
+            const heading = document.createElement('strong');
+            heading.textContent = toTitleCase(item.event_type);
+            const message = document.createElement('span');
+            message.textContent = item.message || '';
+            wrapper.appendChild(heading);
+            wrapper.appendChild(message);
+            const time = document.createElement('span');
+            time.textContent = formatRelativeTime(item.created_at);
+            li.appendChild(wrapper);
+            li.appendChild(time);
+            activityList.appendChild(li);
+          });
+          const latestTimestamp = activityItems[0]?.created_at;
+          if (latestTimestamp) {
+            const refreshedAt = new Date(latestTimestamp);
+            activityUpdatedAt.textContent = `Latest update ${refreshedAt.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}`;
+          } else {
+            activityUpdatedAt.textContent = 'Recent updates available';
+          }
+        }
+      };
+
+      const renderProjects = (projects) => {
+        const rows = Array.isArray(projects)
+          ? projects.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          : [];
+        let onTrack = 0;
+        let attention = 0;
+        rows.forEach((project) => {
+          const status = (project.status || '').toLowerCase();
+          if (projectAttentionStatuses.has(status)) {
+            attention += 1;
+          } else if (!closedProjectStatuses.has(status)) {
+            onTrack += 1;
+          }
+        });
+
+        elements.projectsOnTrackCount.textContent = formatNumber(onTrack);
+        elements.projectsOnTrackMeta.textContent = rows.length
+          ? `${formatNumber(onTrack)} currently healthy`
+          : 'Add a project to get started.';
+        elements.projectsAttentionCount.textContent = formatNumber(attention);
+        elements.projectsAttentionMeta.textContent = attention
+          ? `${formatNumber(attention)} require follow-up`
+          : 'No projects flagged.';
+
+        const tbody = elements.projectsTableBody;
+        tbody.innerHTML = '';
+        if (rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Sign in to load project data.</td></tr>';
+          return;
+        }
+
+        rows.slice(0, 6).forEach((project) => {
+          const tr = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          nameCell.textContent = project.name || 'Untitled project';
+          const clientCell = document.createElement('td');
+          clientCell.textContent = project.client || '—';
+          const statusCell = document.createElement('td');
+          statusCell.appendChild(createBadge(project.status));
+          const hiresCell = document.createElement('td');
+          const target = formatNumber(project.target_hires || 0);
+          const hired = formatNumber(project.hires_count || 0);
+          hiresCell.textContent = `${target} target • ${hired} hired`;
+          tr.appendChild(nameCell);
+          tr.appendChild(clientCell);
+          tr.appendChild(statusCell);
+          tr.appendChild(hiresCell);
+          tbody.appendChild(tr);
+        });
+      };
+
+      const renderCandidates = (candidates, positions, interviews) => {
+        const candidateRows = Array.isArray(candidates)
+          ? candidates.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          : [];
+        const positionMap = new Map();
+        if (Array.isArray(positions)) {
+          positions.forEach((position) => positionMap.set(position.position_id, position));
+        }
+        const pendingFeedback = candidateRows.filter((candidate) => {
+          const status = (candidate.status || '').toLowerCase();
+          return status.includes('feedback') || status.includes('pending');
+        }).length;
+        const projectCount = new Set(candidateRows.map((candidate) => candidate.project_id).filter(Boolean)).size;
+
+        elements.candidatesActiveCount.textContent = formatNumber(candidateRows.length);
+        elements.candidatesActiveMeta.textContent =
+          candidateRows.length > 0 ? `Across ${formatNumber(projectCount)} projects` : 'No candidates tracked';
+
+        elements.candidatesPendingFeedbackCount.textContent = formatNumber(pendingFeedback);
+        elements.candidatesPendingMeta.textContent =
+          pendingFeedback > 0 ? `${formatNumber(pendingFeedback)} awaiting feedback` : 'All feedback submitted';
+
+        const tbody = elements.candidatesTableBody;
+        tbody.innerHTML = '';
+        if (candidateRows.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="table-empty">Candidates will appear once they are added to your workspace.</td></tr>';
+          return;
+        }
+
+        candidateRows.slice(0, 6).forEach((candidate) => {
+          const tr = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          nameCell.textContent = candidate.name || 'Unnamed candidate';
+          const roleCell = document.createElement('td');
+          const position = candidate.position_id ? positionMap.get(candidate.position_id) : null;
+          roleCell.textContent = position?.title || '—';
+          const statusCell = document.createElement('td');
+          statusCell.appendChild(createBadge(candidate.status));
+          const sourceCell = document.createElement('td');
+          sourceCell.textContent = candidate.source || '—';
+          tr.appendChild(nameCell);
+          tr.appendChild(roleCell);
+          tr.appendChild(statusCell);
+          tr.appendChild(sourceCell);
+          tbody.appendChild(tr);
+        });
+      };
+
+      const renderPositions = (positions) => {
+        const rows = Array.isArray(positions)
+          ? positions.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          : [];
+        const openPositions = rows.filter((position) => {
+          const value = (position.status || '').toLowerCase();
+          return !value || !['closed', 'filled', 'completed', 'archived'].includes(value);
+        });
+        const newRequests = rows.filter((position) => newPositionStatuses.has((position.status || '').toLowerCase()));
+
+        elements.positionsOpenCount.textContent = formatNumber(openPositions.length);
+        elements.positionsOpenMeta.textContent =
+          openPositions.length > 0 ? `${formatNumber(openPositions.length)} active roles` : 'No open positions';
+
+        elements.positionsNewCount.textContent = formatNumber(newRequests.length);
+        elements.positionsNewMeta.textContent =
+          newRequests.length > 0 ? `${formatNumber(newRequests.length)} awaiting kickoff` : 'No new requests';
+
+        const tbody = elements.positionsTableBody;
+        tbody.innerHTML = '';
+        if (rows.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="table-empty">Create or import positions to see them here.</td></tr>';
+          return;
+        }
+
+        rows.slice(0, 6).forEach((position) => {
+          const tr = document.createElement('tr');
+          const titleCell = document.createElement('td');
+          titleCell.textContent = position.title || 'Untitled role';
+          const departmentCell = document.createElement('td');
+          departmentCell.textContent = position.department || '—';
+          const statusCell = document.createElement('td');
+          statusCell.appendChild(createBadge(position.status));
+          const openingsCell = document.createElement('td');
+          openingsCell.textContent = formatNumber(position.openings ?? 0);
+          tr.appendChild(titleCell);
+          tr.appendChild(departmentCell);
+          tr.appendChild(statusCell);
+          tr.appendChild(openingsCell);
+          tbody.appendChild(tr);
+        });
+      };
+
+      const renderSourcing = (overview) => {
+        const summary = overview?.summary || {};
+        const jobs = Array.isArray(overview?.jobs) ? overview.jobs : [];
+
+        elements.aiActiveJobsCount.textContent = formatNumber(summary.active_jobs || 0);
+        elements.aiActiveJobsMeta.textContent =
+          summary.total_jobs > 0
+            ? `${formatNumber(summary.total_jobs)} total jobs tracked`
+            : 'No sourcing jobs running';
+        elements.aiProfilesCount.textContent = formatNumber(summary.total_profiles || 0);
+        elements.aiProfilesMeta.textContent =
+          summary.total_profiles > 0 ? 'Profiles generated by automation' : 'No profiles generated';
+        elements.aiTrackedProjectsCount.textContent = formatNumber(summary.tracked_projects || 0);
+        elements.aiTrackedProjectsMeta.textContent =
+          summary.tracked_projects > 0 ? 'Projects with sourcing automation' : 'No projects tracked yet';
+
+        const tbody = elements.aiJobsTableBody;
+        tbody.innerHTML = '';
+        if (jobs.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="table-empty">Launch a sourcing job to see campaign progress.</td></tr>';
+          return;
+        }
+
+        jobs.slice(0, 6).forEach((job) => {
+          const tr = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          nameCell.textContent = job.position_title || 'Sourcing job';
+          const projectCell = document.createElement('td');
+          projectCell.textContent = job.project_name || '—';
+          const statusCell = document.createElement('td');
+          statusCell.appendChild(createBadge(job.status));
+          const progressCell = document.createElement('td');
+          const progress = typeof job.progress === 'number' ? `${Math.round(job.progress)}%` : '0%';
+          const profiles = formatNumber(job.found_count || 0);
+          progressCell.textContent = `${profiles} profiles • ${progress}`;
+          tr.appendChild(nameCell);
+          tr.appendChild(projectCell);
+          tr.appendChild(statusCell);
+          tr.appendChild(progressCell);
+          tbody.appendChild(tr);
+        });
+      };
+
+      const loadAppData = async ({ showErrors = false } = {}) => {
+        if (!state.token || state.loading) {
+          return false;
+        }
+        state.loading = true;
+        setBackendStatus('Syncing data…');
+        try {
+          await ensureBackendUrl();
+          const [user, stats, activity, projects, positions, candidates, interviews, sourcing] = await Promise.all([
+            authorizedFetch('/api/user'),
+            authorizedFetch('/api/dashboard/stats'),
+            authorizedFetch('/api/activity'),
+            authorizedFetch('/api/projects'),
+            authorizedFetch('/api/positions'),
+            authorizedFetch('/api/candidates'),
+            authorizedFetch('/api/interviews'),
+            authorizedFetch('/api/sourcing/overview')
+          ]);
+          state.user = user;
+          renderDashboard(stats, activity, projects, candidates, interviews);
+          renderProjects(projects);
+          renderCandidates(candidates, positions, interviews);
+          renderPositions(positions);
+          renderSourcing(sourcing);
+          setBackendStatus(state.backendUrl ? `Connected to ${state.backendUrl}` : 'Connected');
+          return true;
+        } catch (error) {
+          console.error('Failed to load workspace data', error);
+          if (showErrors) {
+            window.alert(error.message || 'Unable to load workspace data. Please try again.');
+          }
+          return false;
+        } finally {
+          state.loading = false;
+        }
+      };
+
+      const showApp = () => {
+        loginScreen.style.display = 'none';
+        appLayout.setAttribute('data-state', 'visible');
+        activateView('dashboard');
+      };
+
+      function showLogin() {
+        appLayout.removeAttribute('data-state');
+        loginScreen.style.display = 'flex';
+        loginForm.reset();
+        resetDynamicContent();
+      }
 
       const formatToday = () => {
         const now = new Date();
@@ -971,40 +1550,7 @@
 
       todayDate.textContent = formatToday();
 
-      const setBackendStatus = (status) => {
-        backendStatus.textContent = status;
-      };
-
-      if (window.electronAPI?.onBackendReady) {
-        window.electronAPI.onBackendReady(({ url }) => {
-          setBackendStatus('Connected');
-          if (url) {
-            backendStatus.textContent = `Connected to ${url}`;
-          }
-        });
-      } else {
-        setBackendStatus('Ready');
-      }
-
-      if (window.electronAPI?.onBackendExit) {
-        window.electronAPI.onBackendExit(({ message }) => {
-          setBackendStatus('Disconnected');
-          window.alert(message || 'The backend stopped unexpectedly.');
-        });
-      }
-
-      const showApp = () => {
-        loginScreen.style.display = 'none';
-        appLayout.setAttribute('data-state', 'visible');
-      };
-
-      const showLogin = () => {
-        appLayout.removeAttribute('data-state');
-        loginScreen.style.display = 'flex';
-        loginForm.reset();
-      };
-
-      loginForm.addEventListener('submit', (event) => {
+      loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(loginForm);
         const email = String(formData.get('email') || '').trim();
@@ -1013,11 +1559,53 @@
           window.alert('Enter your work email and password to continue.');
           return;
         }
-        showApp();
+
+        loginButton.disabled = true;
+        const originalLabel = loginButton.textContent;
+        loginButton.textContent = 'Signing in…';
+
+        try {
+          await ensureBackendUrl();
+          const response = await fetch(resolveApi('/api/auth/login'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ username: email, password })
+          });
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(message || 'Login failed.');
+          }
+          const payload = await response.json();
+          if (!payload?.access_token) {
+            throw new Error('Login response was missing an access token.');
+          }
+          setToken(payload.access_token);
+          const loaded = await loadAppData({ showErrors: true });
+          if (loaded) {
+            showApp();
+          } else {
+            handleUnauthorized();
+          }
+        } catch (error) {
+          console.error('Login failed', error);
+          window.alert(error.message || 'Unable to sign in. Please verify your credentials and try again.');
+        } finally {
+          loginButton.disabled = false;
+          loginButton.textContent = originalLabel;
+        }
       });
 
-      logoutButton.addEventListener('click', () => {
+      logoutButton.addEventListener('click', async () => {
+        if (state.token) {
+          try {
+            await authorizedFetch('/api/auth/logout', { method: 'POST' });
+          } catch (error) {
+            console.warn('Logout request failed', error);
+          }
+        }
+        setToken(null);
         showLogin();
+        setBackendStatus('Signed out');
       });
 
       const activateView = (viewName) => {
@@ -1048,7 +1636,50 @@
         });
       });
 
-      activateView('dashboard');
+      resetDynamicContent();
+      setBackendStatus('Connecting…');
+
+      if (window.electronAPI?.onBackendReady) {
+        window.electronAPI.onBackendReady(({ url }) => {
+          if (url) {
+            state.backendUrl = url;
+            window.backendBaseUrl = url;
+            setBackendStatus(`Connected to ${url}`);
+          } else {
+            setBackendStatus('Connected');
+          }
+          if (state.token) {
+            loadAppData().catch((error) => console.error('Failed to refresh data after backend ready', error));
+          }
+        });
+      } else {
+        setBackendStatus('Ready');
+      }
+
+      if (window.electronAPI?.onBackendExit) {
+        window.electronAPI.onBackendExit(({ message }) => {
+          setBackendStatus('Disconnected');
+          window.alert(message || 'The backend stopped unexpectedly.');
+        });
+      }
+
+      const initializeFromSession = async () => {
+        if (!state.token) {
+          showLogin();
+          return;
+        }
+        const loaded = await loadAppData({ showErrors: true });
+        if (loaded) {
+          showApp();
+        } else {
+          handleUnauthorized();
+        }
+      };
+
+      initializeFromSession().catch((error) => {
+        console.error('Failed to initialize session', error);
+        handleUnauthorized();
+      });
     </script>
   </body>
 </html>

@@ -1,12 +1,179 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+const isPlainObject = (value) =>
+  Object.prototype.toString.call(value) === '[object Object]';
+
+const sanitizeString = (value, fallback = undefined) =>
+  typeof value === 'string' ? value : fallback;
+
+const sanitizeBoolean = (value, fallback = false) =>
+  typeof value === 'boolean' ? value : Boolean(value ?? fallback);
+
+const sanitizeNumber = (value, fallback = undefined) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  const coerced = Number(value);
+  return Number.isFinite(coerced) ? coerced : fallback;
+};
+
+const sanitizeArray = (value, { sanitizer = (item) => item, fallback = undefined } = {}) => {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+  return value.map((item) => sanitizer(item)).filter((item) => item !== undefined);
+};
+
+function deepFreeze(object) {
+  if (!isPlainObject(object) && !Array.isArray(object)) {
+    return object;
+  }
+
+  Object.freeze(object);
+  Object.getOwnPropertyNames(object).forEach((key) => {
+    const value = object[key];
+    if ((isPlainObject(value) || Array.isArray(value)) && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return object;
+}
+
 function sanitizeDialogOptions(options = {}) {
-  try {
-    return JSON.parse(JSON.stringify(options));
-  } catch (error) {
-    console.warn('Failed to sanitize dialog options', error);
+  if (!isPlainObject(options)) {
     return {};
   }
+
+  const sanitized = {};
+
+  if (options.title !== undefined) {
+    sanitized.title = sanitizeString(options.title);
+  }
+
+  if (options.defaultPath !== undefined) {
+    sanitized.defaultPath = sanitizeString(options.defaultPath);
+  }
+
+  if (options.buttonLabel !== undefined) {
+    sanitized.buttonLabel = sanitizeString(options.buttonLabel);
+  }
+
+  if (options.filters !== undefined) {
+    sanitized.filters = sanitizeArray(options.filters, {
+      sanitizer: (filter) => {
+        if (!isPlainObject(filter)) {
+          return undefined;
+        }
+        const filterSanitized = {};
+        if (filter.name) {
+          filterSanitized.name = sanitizeString(filter.name, '');
+        }
+        if (filter.extensions) {
+          filterSanitized.extensions = sanitizeArray(filter.extensions, {
+            sanitizer: (extension) => sanitizeString(extension, ''),
+            fallback: []
+          });
+        }
+        return filterSanitized;
+      },
+      fallback: []
+    });
+  }
+
+  if (options.properties !== undefined) {
+    sanitized.properties = sanitizeArray(options.properties, {
+      sanitizer: (property) => sanitizeString(property, ''),
+      fallback: []
+    });
+  }
+
+  return sanitized;
+}
+
+function sanitizeTrayItems(items) {
+  return sanitizeArray(items, {
+    sanitizer: (item) => {
+      if (!isPlainObject(item)) {
+        return undefined;
+      }
+
+      const sanitizedItem = {};
+
+      if (item.type) {
+        sanitizedItem.type = sanitizeString(item.type, 'normal');
+      }
+
+      if (item.label) {
+        sanitizedItem.label = sanitizeString(item.label, '');
+      }
+
+      if (item.tooltip) {
+        sanitizedItem.tooltip = sanitizeString(item.tooltip, '');
+      }
+
+      if (item.enabled !== undefined) {
+        sanitizedItem.enabled = sanitizeBoolean(item.enabled, true);
+      }
+
+      if (item.checked !== undefined) {
+        sanitizedItem.checked = sanitizeBoolean(item.checked, false);
+      }
+
+      if (item.submenu) {
+        sanitizedItem.submenu = sanitizeTrayItems(item.submenu);
+      }
+
+      return sanitizedItem;
+    },
+    fallback: []
+  });
+}
+
+function sanitizeMenuItems(items) {
+  return sanitizeArray(items, {
+    sanitizer: (item) => {
+      if (!isPlainObject(item)) {
+        return undefined;
+      }
+
+      const sanitizedItem = {};
+
+      if (item.role) {
+        sanitizedItem.role = sanitizeString(item.role, '');
+      }
+
+      if (item.label) {
+        sanitizedItem.label = sanitizeString(item.label, '');
+      }
+
+      if (item.type) {
+        sanitizedItem.type = sanitizeString(item.type, 'normal');
+      }
+
+      if (item.submenu) {
+        sanitizedItem.submenu = sanitizeMenuItems(item.submenu);
+      }
+
+      if (item.accelerator) {
+        sanitizedItem.accelerator = sanitizeString(item.accelerator, '');
+      }
+
+      if (item.enabled !== undefined) {
+        sanitizedItem.enabled = sanitizeBoolean(item.enabled, true);
+      }
+
+      if (item.visible !== undefined) {
+        sanitizedItem.visible = sanitizeBoolean(item.visible, true);
+      }
+
+      if (item.checked !== undefined) {
+        sanitizedItem.checked = sanitizeBoolean(item.checked, false);
+      }
+
+      return sanitizedItem;
+    },
+    fallback: []
+  });
 }
 
 function createSubscription(allowedChannels) {
@@ -65,7 +232,7 @@ const backendApi = {
   getStatus: () => ipcRenderer.invoke('backend:get-status'),
   start: () => ipcRenderer.invoke('backend:start'),
   stop: (options = {}) => {
-    const sanitized = { force: Boolean(options.force) };
+    const sanitized = { force: sanitizeBoolean(options.force, false) };
     return ipcRenderer.invoke('backend:stop', sanitized);
   },
   restart: () => ipcRenderer.invoke('backend:restart'),
@@ -93,8 +260,8 @@ const windowApi = {
 const notificationApi = {
   show: ({ title, body } = {}) =>
     ipcRenderer.invoke('notification:show', {
-      title: typeof title === 'string' ? title : undefined,
-      body: typeof body === 'string' ? body : undefined
+      title: sanitizeString(title),
+      body: sanitizeString(body)
     })
 };
 
@@ -103,16 +270,16 @@ const appApi = {
 };
 
 const systemApi = {
-  setBadgeCount: (count) => ipcRenderer.invoke('system:badge:set-count', Number(count)),
+  setBadgeCount: (count) => ipcRenderer.invoke('system:badge:set-count', sanitizeNumber(count, 0)),
   clearBadge: () => ipcRenderer.invoke('system:badge:clear'),
   updateTray: ({ tooltip, items } = {}) =>
     ipcRenderer.invoke('system:tray:update', {
-      tooltip: typeof tooltip === 'string' ? tooltip : undefined,
-      items: Array.isArray(items) ? items : undefined
+      tooltip: sanitizeString(tooltip),
+      items: sanitizeTrayItems(items)
     }),
   setApplicationMenu: (items) =>
     ipcRenderer.invoke('system:menu:set-application-menu', {
-      items: Array.isArray(items) ? items : undefined
+      items: sanitizeMenuItems(items)
     }),
   clearApplicationMenu: () => ipcRenderer.invoke('system:menu:clear')
 };
@@ -126,11 +293,11 @@ const autoUpdaterApi = {
 const databaseApi = {
   backup: (destination) =>
     ipcRenderer.invoke('database:backup', {
-      destination: typeof destination === 'string' ? destination : ''
+      destination: sanitizeString(destination, '')
     }),
   restore: (source) =>
     ipcRenderer.invoke('database:restore', {
-      source: typeof source === 'string' ? source : ''
+      source: sanitizeString(source, '')
     })
 };
 
@@ -149,4 +316,4 @@ const electronAPI = {
   onBackendExit: backendApi.onExit
 };
 
-contextBridge.exposeInMainWorld('electronAPI', Object.freeze(electronAPI));
+contextBridge.exposeInMainWorld('electronAPI', deepFreeze(electronAPI));

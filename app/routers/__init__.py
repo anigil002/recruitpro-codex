@@ -1,6 +1,18 @@
 """Router package exports."""
 
-from . import activity, admin, ai, auth, candidates, documents, interviews, projects, sourcing, system
+from . import (
+    activity,
+    admin,
+    ai,
+    auth,
+    candidates,
+    documents,
+    interviews,
+    projects,
+    reporting,
+    sourcing,
+    system,
+)
 
 __all__ = [
     "activity",
@@ -11,6 +23,7 @@ __all__ = [
     "documents",
     "interviews",
     "projects",
+    "reporting",
     "sourcing",
     "system",
 ]

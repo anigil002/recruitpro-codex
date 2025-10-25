@@ -25,6 +25,7 @@ from .routers import (
     documents,
     interviews,
     projects,
+    reporting,
     sourcing,
     system,
 )
@@ -347,6 +348,7 @@ app.include_router(ai.router)
 app.include_router(sourcing.router)
 app.include_router(interviews.router)
 app.include_router(admin.router)
+app.include_router(reporting.router)
 app.include_router(system.router)
 
 

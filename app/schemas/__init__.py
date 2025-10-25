@@ -40,6 +40,10 @@ class UserSettingsUpdate(BaseModel):
     settings: dict
 
 
+class UserRoleUpdate(BaseModel):
+    role: str = Field(pattern="^(recruiter|admin)$")
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)
@@ -106,6 +110,19 @@ class ProjectUpdate(ProjectBase):
     research_done: Optional[int] = None
     research_status: Optional[str] = None
 
+
+class ProjectLifecycleUpdate(BaseModel):
+    project_id: str
+    status: Optional[str] = Field(default=None, pattern=r"^(active|on-hold|completed|archived)$")
+    priority: Optional[str] = Field(default=None, pattern=r"^(urgent|high|medium|low)$")
+    target_hires: Optional[int] = Field(default=None, ge=0)
+    tags: Optional[List[str]] = None
+
+
+class ProjectBulkLifecycleRequest(BaseModel):
+    updates: List[ProjectLifecycleUpdate]
+    cascade_positions: bool = False
+    position_status: Optional[str] = Field(default=None, pattern=r"^(draft|open|closed)$")
 
 class PositionBase(BaseModel):
     project_id: str

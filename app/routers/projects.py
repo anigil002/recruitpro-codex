@@ -13,7 +13,9 @@ from ..schemas import (
     PositionRead,
     PositionUpdate,
     ProjectCreate,
+    ProjectBulkLifecycleRequest,
     ProjectRead,
+    ProjectLifecycleUpdate,
     ProjectUpdate,
 )
 from ..services.activity import log_activity
@@ -151,6 +153,70 @@ def delete_project(project_id: str, db: Session = Depends(get_db), current_user=
         message=f"Deleted project {project.name}",
         event_type="project_deleted",
     )
+
+
+@router.post("/projects/bulk-lifecycle")
+def bulk_project_lifecycle(
+    payload: ProjectBulkLifecycleRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> dict:
+    if not payload.updates:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="updates required")
+
+    updated = 0
+    cascaded_positions = 0
+    errors: list[dict[str, str]] = []
+
+    for item in payload.updates:
+        project = db.get(Project, item.project_id)
+        if not project or project.created_by != current_user.user_id:
+            errors.append({"project_id": item.project_id, "error": "Project not found"})
+            continue
+
+        changed = False
+        if item.status and item.status != project.status:
+            project.status = item.status
+            changed = True
+        if item.priority and item.priority != project.priority:
+            project.priority = item.priority
+            changed = True
+        if item.target_hires is not None and item.target_hires != project.target_hires:
+            project.target_hires = item.target_hires
+            changed = True
+        if item.tags is not None:
+            project.tags = sorted(set(item.tags))
+            changed = True
+
+        if changed:
+            db.add(project)
+            updated += 1
+
+        if payload.cascade_positions and payload.position_status:
+            positions = (
+                db.query(Position)
+                .filter(Position.project_id == project.project_id)
+                .all()
+            )
+            for position in positions:
+                position.status = payload.position_status
+                db.add(position)
+            cascaded_positions += len(positions)
+
+    if updated:
+        log_activity(
+            db,
+            actor_type="user",
+            actor_id=current_user.user_id,
+            message=f"Bulk lifecycle update applied to {updated} projects",
+            event_type="project_bulk_update",
+        )
+
+    return {
+        "updated": updated,
+        "positions_updated": cascaded_positions,
+        "errors": errors or None,
+    }
 
 
 @router.get("/positions", response_model=List[PositionRead])

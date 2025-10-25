@@ -157,6 +157,57 @@ def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_curr
     ]
 
 
+@router.get("/candidates/duplicates")
+def candidate_duplicates(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> List[dict]:
+    """Return potential duplicate candidates grouped by matching signals."""
+
+    candidates = (
+        db.query(Candidate)
+        .join(Project, isouter=True)
+        .filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
+        .all()
+    )
+
+    def _serialize(candidate: Candidate) -> dict:
+        return {
+            "candidate_id": candidate.candidate_id,
+            "name": candidate.name,
+            "email": candidate.email,
+            "status": candidate.status,
+            "source": candidate.source,
+            "project_id": candidate.project_id,
+            "position_id": candidate.position_id,
+        }
+
+    groups: list[dict] = []
+    for field in ("email", "phone", "resume_url"):
+        buckets: dict[str, list[Candidate]] = {}
+        for candidate in candidates:
+            value = getattr(candidate, field)
+            if not value:
+                continue
+            key = value.strip().lower()
+            if not key:
+                continue
+            buckets.setdefault(key, []).append(candidate)
+        for key, items in buckets.items():
+            if len(items) < 2:
+                continue
+            groups.append(
+                {
+                    "type": field,
+                    "value": key,
+                    "count": len(items),
+                    "candidates": [_serialize(item) for item in items],
+                }
+            )
+
+    return groups
+
+
 @router.post("/candidates", response_model=CandidateRead, status_code=status.HTTP_201_CREATED)
 def create_candidate(
     payload: CandidateCreate,

@@ -23,7 +23,9 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DATABASE_URL", "RECRUITPRO_DATABASE_URL"),
     )
     storage_path: str = Field(default="storage")
-    cors_allowed_origins: List[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    cors_allowed_origins: List[str] | str | None = Field(
+        default_factory=lambda: ["http://localhost:3000"]
+    )
     gemini_api_key: SecretStr | None = Field(
         default=None,
         validation_alias=AliasChoices("GEMINI_API_KEY", "RECRUITPRO_GEMINI_API_KEY"),

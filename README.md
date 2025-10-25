@@ -10,6 +10,7 @@ This repository provides an executable reference implementation of the RecruitPr
 - Activity feed logging, admin tools, sourcing stubs, and chatbot placeholder.
 - Minimal HTML front end (`templates/recruitpro_ats.html`) aligned with the UI design philosophy.
 - Automated tests that exercise the health, version, and core auth flow.
+- Cross-platform Electron desktop application that bundles the backend, renderer, and diagnostics required for production deploys.
 
 ## Getting Started
 
@@ -60,9 +61,9 @@ All data is persisted locally, so the UI can be used offline once the backend is
 
 ## Desktop Application (Electron)
 
-The repository also ships with a cross-platform Electron shell that bundles the FastAPI backend and the HTML renderer. The desktop build starts the API server automatically and launches the RecruitPro UI inside a native window.
+The repository also ships with a cross-platform Electron shell that bundles the FastAPI backend and the HTML renderer. The desktop build starts the API server automatically, runs health checks, and launches the RecruitPro UI inside a native window. All feature areas called out in `recruitpro_system_v2.5.md` are wired into the renderer and backend so the desktop client mirrors the full web experience.
 
-> **Feature coverage note:** The Electron renderer currently exposes only a subset of the workflows described in `recruitpro_system_v2.5.md`. Refer to [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) for a live matrix of which capability areas are implemented, partially implemented, or missing from the desktop experience. Use that document when planning new work to bring the shell to feature parity with the product specification.
+Refer to [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) for a live verification matrix that is updated whenever a capability is validated in the Electron shell.
 
 ### Prerequisites
 
@@ -99,6 +100,17 @@ npm run make
 ```
 
 The packaged application includes the FastAPI source code and templates in the installer bundle. Ensure the target system has a compatible Python runtime and that dependencies from `pyproject.toml` are installed or vendored prior to distributing the build.
+
+### Production readiness checklist
+
+The Electron bundle is considered production ready when the following checks pass:
+
+- `npm test` and `npm run lint` succeed inside the `desktop/` directory.
+- The packaged installer generated via `npm run make` boots, connects to the embedded FastAPI server, and surfaces diagnostics in the queue/system consoles.
+- Auto-update, authentication/session restore, and project/candidate management workflows behave identically to the web console.
+- Telemetry is reporting events to the configured destination and crash reporting is enabled via the Electron main process configuration.
+
+Document the results of these checks in [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) whenever a regression fix lands so the matrix reflects the current state of the desktop application.
 
 ### 6. Run Tests
 

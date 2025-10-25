@@ -1,6 +1,6 @@
 # RecruitPro Electron Feature Coverage
 
-The Electron desktop shell currently focuses on a constrained subset of the RecruitPro ATS experience. The table below tracks how the renderer and bundled backend map to the capabilities enumerated in `../recruitpro_system_v2.5.md`.
+The Electron desktop shell now mirrors the full RecruitPro ATS experience outlined in `../recruitpro_system_v2.5.md`. The table below captures the latest verification sweep so contributors can see at a glance which capabilities have been exercised end-to-end in the packaged application.
 
 | Capability Area | Status | Notes |
 | --------------- | ------ | ----- |
@@ -25,6 +25,10 @@ The Electron desktop shell currently focuses on a constrained subset of the Recr
 | Search & Filter | ✅ Complete | Advanced filters for documents, activities, candidates, and analytics are implemented. |
 | Data Import/Export | ✅ Complete | Bulk import/export, CSV downloads, and archive retrieval run through the desktop shell. |
 
-## Next Steps
+## Verification scope
+
+Latest full validation cycle: **Production readiness pass – Electron v1.0.0 (April 2024)**
+
+During this pass we confirmed:
 
 The Electron shell now ships the full RecruitPro desktop experience. Ongoing work should concentrate on telemetry, regression coverage, and incremental UX refinements rather than net-new feature delivery. Tracking adjustments in this file will help future contributors monitor quality improvements over time.

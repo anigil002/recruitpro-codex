@@ -38,3 +38,18 @@ def test_register_and_login_flow():
     me_response = client.get("/api/user", headers={"Authorization": f"Bearer {token}"})
     assert me_response.status_code == 200
     assert me_response.json()["email"] == register_payload["email"]
+
+
+def test_super_admin_role_round_trip():
+    login_response = client.post(
+        "/api/auth/login",
+        data={"username": "nigil@na-recruitpro.com", "password": "nigil123"},
+        headers={"content-type": "application/x-www-form-urlencoded"},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+    me_response = client.get("/api/user", headers={"Authorization": f"Bearer {token}"})
+    assert me_response.status_code == 200
+    payload = me_response.json()
+    assert payload["email"] == "nigil@na-recruitpro.com"
+    assert payload["role"] == "super_admin"

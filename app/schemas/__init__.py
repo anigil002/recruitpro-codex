@@ -27,6 +27,7 @@ class UserCreate(UserBase):
 
 
 class UserRead(UserBase):
+    role: str = Field(pattern="^(recruiter|admin|super_admin)$")
     user_id: str
     created_at: datetime
     settings: Optional[dict]

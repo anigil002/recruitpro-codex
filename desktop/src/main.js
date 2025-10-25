@@ -38,6 +38,9 @@ let tray;
 let backendStartupError = null;
 let configuration = null;
 
+const FORCE_AUTO_UPDATE = process.env.FORCE_AUTO_UPDATE === '1';
+let autoUpdaterReady = false;
+
 const APP_PATHS = computeApplicationPaths();
 initializeApplicationDirectories(APP_PATHS);
 
@@ -110,8 +113,24 @@ const TRAY_COMMANDS = {
     }
   },
   'check-for-updates': () => {
+    if (!isAutoUpdaterSupported()) {
+      log.info('Auto updater is disabled in the current environment.');
+      sendToAllWindows('auto-updater:error', {
+        message: 'Updates are only available in packaged builds.'
+      });
+      return;
+    }
+
+    if (!autoUpdaterReady) {
+      const message = 'Auto update feed is not configured. Please verify publish settings.';
+      log.warn(message);
+      sendToAllWindows('auto-updater:error', { message });
+      return;
+    }
+
     autoUpdater.checkForUpdates().catch((error) => {
       log.error('Failed to check for updates', error);
+      sendToAllWindows('auto-updater:error', { message: error.message });
     });
   },
   'toggle-devtools': () => {
@@ -749,7 +768,7 @@ async function createWindow() {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: true
     }
   });
 
@@ -800,9 +819,65 @@ function createTray() {
   updateTrayMenu(getDefaultTrayTemplate());
 }
 
+function isAutoUpdaterSupported() {
+  return app.isPackaged || FORCE_AUTO_UPDATE;
+}
+
+function configureAutoUpdaterFeed() {
+  const envUrlCandidate = [
+    process.env.RECRUITPRO_UPDATE_FEED_URL,
+    process.env.RECRUITPRO_UPDATE_URL,
+    process.env.AUTO_UPDATE_URL
+  ].find((value) => typeof value === 'string' && value.trim().length > 0);
+
+  if (envUrlCandidate) {
+    const normalized = envUrlCandidate.replace(/\/+$/, '');
+    try {
+      autoUpdater.setFeedURL({ provider: 'generic', url: normalized });
+      autoUpdaterReady = true;
+      log.info('Auto updater feed configured from environment', { url: normalized });
+      return;
+    } catch (error) {
+      log.error('Failed to configure auto updater feed from environment', error);
+    }
+  }
+
+  if (typeof autoUpdater.getFeedURL === 'function') {
+    try {
+      const resolvedFeed = autoUpdater.getFeedURL();
+      if (resolvedFeed) {
+        autoUpdaterReady = true;
+        log.info('Auto updater feed resolved from build configuration', { url: resolvedFeed });
+        return;
+      }
+    } catch (error) {
+      log.error('Failed to read auto updater feed URL', error);
+    }
+  }
+
+  autoUpdaterReady = false;
+  log.warn('Auto updater feed URL is not configured; updates are disabled.');
+}
+
 function setupAutoUpdater() {
   autoUpdater.logger = log;
-  autoUpdater.autoDownload = false;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  if (!isAutoUpdaterSupported()) {
+    autoUpdaterReady = false;
+    log.info('Auto updater disabled for development builds.');
+    return;
+  }
+
+  configureAutoUpdaterFeed();
+
+  if (!autoUpdaterReady) {
+    sendToAllWindows('auto-updater:error', {
+      message: 'Auto updater feed URL is not configured.'
+    });
+    return;
+  }
 
   autoUpdater.on('checking-for-update', () => {
     log.info('Checking for updates');
@@ -847,6 +922,7 @@ function setupAutoUpdater() {
     .checkForUpdates()
     .catch((error) => {
       log.error('Initial update check failed', error);
+      sendToAllWindows('auto-updater:error', { message: error.message });
     });
 }
 
@@ -1063,6 +1139,11 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle('auto-updater:check-now', async () => {
+    if (!isAutoUpdaterSupported() || !autoUpdaterReady) {
+      log.info('Auto updater check skipped because the updater is not configured.');
+      return false;
+    }
+
     await autoUpdater.checkForUpdates();
     return true;
   });

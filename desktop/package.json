@@ -10,9 +10,13 @@
     "start": "electron .",
     "dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
     "lint": "echo 'No lint step configured'",
+    "stage-backend": "node ./scripts/stage-backend.js",
     "package": "electron-builder --dir",
     "make": "electron-builder",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "prepackage": "npm run stage-backend",
+    "premake": "npm run stage-backend",
+    "predist": "npm run stage-backend"
   },
   "devDependencies": {
     "electron": "^29.1.0",
@@ -30,24 +34,19 @@
       "renderer/**/*",
       "scripts/**/*",
       "preload.js",
-      "package.json"
+      "package.json",
+      "build/backend/**/*"
     ],
     "extraResources": [
       {
-        "from": "../app",
-        "to": "backend/app"
-      },
+        "from": "build/backend",
+        "to": "backend"
+      }
+    ],
+    "publish": [
       {
-        "from": "../templates",
-        "to": "backend/templates"
-      },
-      {
-        "from": "../pyproject.toml",
-        "to": "backend/pyproject.toml"
-      },
-      {
-        "from": "../README.md",
-        "to": "backend/README.md"
+        "provider": "generic",
+        "url": "https://updates.recruitprohq.com/recruitpro-desktop"
       }
     ],
     "mac": {

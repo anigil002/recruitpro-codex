@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecruitPro - {% if project %}{{ project.name }} positions{% else %}Project positions{% endif %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="./scripts/init-backend.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1173d4",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body class="font-display bg-background-light text-slate-200 antialiased dark:bg-background-dark">
+    <div class="relative flex min-h-screen w-full flex-row">
+      <!-- Side Navigation -->
+      <nav class="flex h-screen min-h-full w-64 flex-col justify-between border-r border-slate-300/10 bg-[#111a22] p-4">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 px-2">
+            <div class="flex size-10 items-center justify-center rounded-full bg-[#1f2d3a] text-sm font-semibold">
+              {{ (user.initials if user else 'RP') }}
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-medium text-white">{{ user.name if user else 'RecruitPro user' }}</span>
+              <span class="text-sm font-normal text-slate-400">{{ user.role if user else 'Guest' }}</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/app">
+              <span class="material-symbols-outlined text-slate-400">dashboard</span>
+              Dashboard
+            </a>
+            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="{% if project %}/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}{% else %}#{% endif %}">
+              <span class="material-symbols-outlined text-slate-400">folder</span>
+              Project overview
+            </a>
+            <a class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-white" href="#">
+              <span class="material-symbols-outlined">assignment</span>
+              Positions
+            </a>
+            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/ai/sourcing-overview{% if token %}?token={{ token }}{% endif %}">
+              <span class="material-symbols-outlined text-slate-400">auto_awesome</span>
+              AI sourcing
+            </a>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/settings">
+            <span class="material-symbols-outlined text-slate-400">settings</span>
+            Settings
+          </a>
+          <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="https://github.com/">
+            <span class="material-symbols-outlined text-slate-400">help</span>
+            Help Center
+          </a>
+        </div>
+      </nav>
+      <!-- Main Content -->
+      <main class="flex min-h-screen flex-1 flex-col gap-6 p-8">
+        {% if error %}
+        <div class="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {{ error }}
+        </div>
+        {% endif %}
+
+        {% if project %}
+        <header class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-col gap-1">
+            <h1 class="text-3xl font-bold leading-tight text-white">
+              {{ project.name }} · Positions
+            </h1>
+            <p class="text-sm text-slate-400">
+              {% if project.client %}Client {{ project.client }}{% else %}Internal{% endif %}
+              {% if project.location_region %}• {{ project.location_region }}{% endif %}
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span>Status: {{ project.status|title }}</span>
+            <span>Created {{ project.created_at.strftime('%Y-%m-%d') if project.created_at else '—' }}</span>
+          </div>
+        </header>
+
+        <section class="grid gap-4 md:grid-cols-3">
+          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+            <p class="text-xs text-slate-400">Total roles</p>
+            <p class="text-2xl font-semibold text-white">{{ position_stats.total }}</p>
+          </article>
+          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+            <p class="text-xs text-slate-400">Open roles</p>
+            <p class="text-2xl font-semibold text-white">{{ position_stats.open }}</p>
+          </article>
+          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+            <p class="text-xs text-slate-400">Candidates tracked</p>
+            <p class="text-2xl font-semibold text-white">{{ candidate_summary.total }}</p>
+          </article>
+        </section>
+
+        <section class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-[#111a22] p-3">
+          <div class="text-sm text-slate-400">
+            {{ positions|length }} position{{ 's' if positions|length != 1 else '' }} in this project.
+          </div>
+          <div class="flex items-center gap-2">
+            <a class="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800" href="/app">
+              Manage in console
+            </a>
+          </div>
+        </section>
+
+        <section class="w-full overflow-hidden rounded-xl border border-slate-800 bg-[#111a22]">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-800/50 text-xs uppercase text-slate-400">
+              <tr>
+                <th class="px-6 py-3">Position title</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3">Openings</th>
+                <th class="px-6 py-3">Applicants</th>
+                <th class="px-6 py-3">Created</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              {% if positions %}
+              {% for position in positions %}
+              <tr class="transition-colors hover:bg-slate-800/40">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-white">
+                  <div class="flex flex-col">
+                    <span>{{ position.title }}</span>
+                    <span class="text-xs text-slate-400">{{ position.department or 'Department TBD' }} • {{ position.location or 'Location TBD' }}</span>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  <span class="inline-flex items-center rounded-full bg-primary/20 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    {{ position.status|title }}
+                  </span>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{{ position.openings }}</td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{{ position.applicants_count }}</td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-300">
+                  {{ position.created_at.strftime('%Y-%m-%d') if position.created_at else '—' }}
+                </td>
+              </tr>
+              {% endfor %}
+              {% else %}
+              <tr>
+                <td class="px-6 py-6 text-center text-sm text-slate-400" colspan="5">
+                  No positions added yet. Create a position from the RecruitPro console to populate this table.
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </section>
+
+        <section class="rounded-xl border border-slate-800 bg-[#111a22] p-6">
+          <h2 class="text-lg font-semibold text-white">Recent candidates</h2>
+          {% if candidate_summary.recent %}
+          <ul class="mt-3 grid gap-3 sm:grid-cols-2">
+            {% for candidate in candidate_summary.recent %}
+            <li class="rounded-lg border border-slate-700 bg-slate-900/60 p-4 text-sm">
+              <p class="font-semibold text-white">{{ candidate.name }}</p>
+              <p class="text-xs text-slate-400">{{ candidate.status|title }}{% if candidate.source %} • {{ candidate.source }}{% endif %}</p>
+              <a class="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline" href="/candidate-profile?candidate_id={{ candidate.candidate_id }}{% if token %}&token={{ token }}{% endif %}" target="_blank" rel="noreferrer">
+                View profile
+                <span class="material-symbols-outlined text-sm">open_in_new</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-sm text-slate-400">Add candidates to the project to see quick links here.</p>
+          {% endif %}
+        </section>
+        {% else %}
+        <div class="rounded-lg border border-slate-800 bg-[#111a22] p-10 text-center text-slate-400">
+          Provide a <code class="rounded bg-slate-800 px-2 py-1 text-white">project_id</code> and a valid <code class="rounded bg-slate-800 px-2 py-1 text-white">token</code> to review positions.
+        </div>
+        {% endif %}
+      </main>
+    </div>
+  </body>
+</html>

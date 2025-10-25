@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import init_db
-from .deps import get_db
+from .deps import get_current_user, get_db
 from .routers import (
     activity,
     admin,
@@ -457,7 +457,11 @@ async def candidate_profile_page(
 
 
 @app.api_route("/settings", methods=["GET", "POST"], response_class=HTMLResponse)
-async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+async def settings_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> HTMLResponse:
     """Render and manage the workspace integration settings."""
 
     message: Optional[str] = None
@@ -482,7 +486,10 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
                 email = (form.get("smartrecruiters_email") or "").strip()
                 password = form.get("smartrecruiters_password") or ""
                 set_integration_credential(db, "smartrecruiters_email", email, user_id="settings_ui")
-                set_integration_credential(db, "smartrecruiters_password", password, user_id="settings_ui")
+                if password:
+                    set_integration_credential(
+                        db, "smartrecruiters_password", password, user_id="settings_ui"
+                    )
                 message = "SmartRecruiters credentials updated."
             else:
                 error = "Unknown settings section submitted."

@@ -110,6 +110,63 @@
         gap: 16px;
       }
 
+      .login-card form[hidden] {
+        display: none;
+      }
+
+      .login-form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+      }
+
+      .login-card-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        color: rgba(148, 163, 184, 0.9);
+      }
+
+      .login-card-footer[hidden] {
+        display: none;
+      }
+
+      .link-button {
+        border: none;
+        background: transparent;
+        color: #93c5fd;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .link-button:hover,
+      .link-button:focus {
+        color: #bfdbfe;
+        text-decoration: underline;
+      }
+
+      .info-card {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.95rem;
+      }
+
+      .info-card[hidden] {
+        display: none;
+      }
+
       .field {
         display: flex;
         flex-direction: column;
@@ -619,6 +676,14 @@
             <h1>Welcome back to RecruitPro</h1>
             <span>Sign in to review pipelines, manage candidates and launch AI sourcing campaigns.</span>
           </header>
+          <div class="info-card" id="forgotPasswordNotice" hidden>
+            <strong>Password reset assistance</strong>
+            <p>
+              Your RecruitPro administrator can help reset your password. Reach out to your workspace owner or email
+              <a class="link-button" href="mailto:support@recruitpro.app">support@recruitpro.app</a> for assistance.
+            </p>
+            <button class="link-button" type="button" id="dismissForgotPassword">Dismiss</button>
+          </div>
           <form id="loginForm" novalidate>
             <div class="field">
               <label for="email">Work Email</label>
@@ -628,8 +693,47 @@
               <label for="password">Password</label>
               <input class="input" type="password" id="password" name="password" placeholder="••••••••" required />
             </div>
+            <div class="login-form-footer">
+              <span></span>
+              <button class="link-button" type="button" id="forgotPasswordLink">Forgot password?</button>
+            </div>
             <button class="primary-btn" type="submit">Enter dashboard</button>
           </form>
+          <form id="signupForm" novalidate hidden>
+            <div class="field">
+              <label for="signupName">Full Name</label>
+              <input class="input" type="text" id="signupName" name="name" placeholder="Jordan Recruiter" required />
+            </div>
+            <div class="field">
+              <label for="signupEmail">Work Email</label>
+              <input class="input" type="email" id="signupEmail" name="email" placeholder="you@company.com" required />
+            </div>
+            <div class="field">
+              <label for="signupPassword">Password</label>
+              <input class="input" type="password" id="signupPassword" name="password" placeholder="Create a password" required minlength="8" />
+            </div>
+            <div class="field">
+              <label for="signupConfirmPassword">Confirm Password</label>
+              <input
+                class="input"
+                type="password"
+                id="signupConfirmPassword"
+                name="confirmPassword"
+                placeholder="Re-enter your password"
+                required
+                minlength="8"
+              />
+            </div>
+            <button class="primary-btn" type="submit">Create account</button>
+          </form>
+          <div class="login-card-footer" id="loginFooter">
+            <span>Need an account?</span>
+            <button class="link-button" type="button" id="showSignupLink">Create one</button>
+          </div>
+          <div class="login-card-footer" id="signupFooter" hidden>
+            <span>Already have an account?</span>
+            <button class="link-button" type="button" id="showLoginLink">Back to sign in</button>
+          </div>
         </article>
       </section>
 
@@ -1539,6 +1643,18 @@
       const loginScreen = document.getElementById('loginScreen');
       const loginForm = document.getElementById('loginForm');
       const loginButton = loginForm.querySelector('button');
+      const signupForm = document.getElementById('signupForm');
+      const signupButton = signupForm?.querySelector('button');
+      const loginFooter = document.getElementById('loginFooter');
+      const signupFooter = document.getElementById('signupFooter');
+      const showSignupLink = document.getElementById('showSignupLink');
+      const showLoginLink = document.getElementById('showLoginLink');
+      const loginCard = loginScreen.querySelector('.login-card');
+      const loginHeaderTitle = loginCard?.querySelector('h1');
+      const loginHeaderSubtitle = loginCard?.querySelector('header span');
+      const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+      const forgotPasswordNotice = document.getElementById('forgotPasswordNotice');
+      const dismissForgotPassword = document.getElementById('dismissForgotPassword');
       const appLayout = document.getElementById('appLayout');
       const navButtons = Array.from(document.querySelectorAll('[data-view-target]'));
       const views = Array.from(document.querySelectorAll('.view'));
@@ -1997,6 +2113,41 @@
         setToken(null);
         showLogin();
         setBackendStatus('Authentication required');
+      };
+
+      const setLoginMode = (mode) => {
+        const isSignup = mode === 'signup';
+        if (loginForm) {
+          loginForm.hidden = isSignup;
+          if (!isSignup) {
+            loginForm.reset();
+          }
+        }
+        if (signupForm) {
+          signupForm.hidden = !isSignup;
+          if (!isSignup) {
+            signupForm.reset();
+          }
+        }
+        if (loginFooter) {
+          loginFooter.hidden = isSignup;
+        }
+        if (signupFooter) {
+          signupFooter.hidden = !isSignup;
+        }
+        if (forgotPasswordNotice) {
+          forgotPasswordNotice.hidden = true;
+        }
+        if (loginHeaderTitle) {
+          loginHeaderTitle.textContent = isSignup
+            ? 'Create your RecruitPro account'
+            : 'Welcome back to RecruitPro';
+        }
+        if (loginHeaderSubtitle) {
+          loginHeaderSubtitle.textContent = isSignup
+            ? 'Set up your workspace login to start building candidate pipelines.'
+            : 'Sign in to review pipelines, manage candidates and launch AI sourcing campaigns.';
+        }
       };
 
       const authorizedFetch = async (path, options = {}) => {
@@ -3165,6 +3316,7 @@
       function showLogin() {
         appLayout.removeAttribute('data-state');
         loginScreen.style.display = 'flex';
+        setLoginMode('login');
         loginForm.reset();
         resetDynamicContent();
       }
@@ -3178,6 +3330,7 @@
       };
 
       todayDate.textContent = formatToday();
+      setLoginMode('login');
 
       if (elements.candidateSelectAll) {
         elements.candidateSelectAll.addEventListener('change', () => {
@@ -3622,6 +3775,31 @@
         });
       }
 
+      if (showSignupLink) {
+        showSignupLink.addEventListener('click', () => setLoginMode('signup'));
+      }
+
+      if (showLoginLink) {
+        showLoginLink.addEventListener('click', () => setLoginMode('login'));
+      }
+
+      if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          if (forgotPasswordNotice) {
+            forgotPasswordNotice.hidden = false;
+          } else {
+            window.alert('Please contact your RecruitPro administrator to reset your password.');
+          }
+        });
+      }
+
+      if (dismissForgotPassword && forgotPasswordNotice) {
+        dismissForgotPassword.addEventListener('click', () => {
+          forgotPasswordNotice.hidden = true;
+        });
+      }
+
       loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(loginForm);
@@ -3666,6 +3844,80 @@
           loginButton.textContent = originalLabel;
         }
       });
+
+      if (signupForm && signupButton) {
+        signupForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(signupForm);
+          const name = String(formData.get('name') || '').trim();
+          const email = String(formData.get('email') || '').trim();
+          const password = String(formData.get('password') || '').trim();
+          const confirmPassword = String(formData.get('confirmPassword') || '').trim();
+
+          if (!name || !email || !password || !confirmPassword) {
+            window.alert('All fields are required to create an account.');
+            return;
+          }
+
+          if (password.length < 8) {
+            window.alert('Passwords must be at least 8 characters long.');
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            window.alert('Passwords do not match. Please re-enter them.');
+            return;
+          }
+
+          signupButton.disabled = true;
+          const originalLabel = signupButton.textContent;
+          signupButton.textContent = 'Creating account…';
+
+          try {
+            await ensureBackendUrl();
+            const registerResponse = await fetch(resolveApi('/api/auth/register'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, password })
+            });
+
+            if (!registerResponse.ok) {
+              const message = await registerResponse.text();
+              throw new Error(message || 'Account creation failed.');
+            }
+
+            const loginResponse = await fetch(resolveApi('/api/auth/login'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({ username: email, password })
+            });
+
+            if (!loginResponse.ok) {
+              const message = await loginResponse.text();
+              throw new Error(message || 'Unable to sign in after registration.');
+            }
+
+            const payload = await loginResponse.json();
+            if (!payload?.access_token) {
+              throw new Error('Registration succeeded but login token was missing.');
+            }
+
+            setToken(payload.access_token);
+            const loaded = await loadAppData({ showErrors: true });
+            if (loaded) {
+              showApp();
+            } else {
+              handleUnauthorized();
+            }
+          } catch (error) {
+            console.error('Account registration failed', error);
+            window.alert(error.message || 'Unable to create your RecruitPro account.');
+          } finally {
+            signupButton.disabled = false;
+            signupButton.textContent = originalLabel;
+          }
+        });
+      }
 
       logoutButton.addEventListener('click', async () => {
         if (state.token) {

@@ -41,6 +41,8 @@ let configuration = null;
 const FORCE_AUTO_UPDATE = process.env.FORCE_AUTO_UPDATE === '1';
 let autoUpdaterReady = false;
 
+const appliedApiKeyEnvVars = new Set();
+
 const APP_PATHS = computeApplicationPaths();
 initializeApplicationDirectories(APP_PATHS);
 
@@ -360,8 +362,6 @@ async function saveConfiguration(configPath, config, logger) {
 
   return normalized;
 }
-
-const appliedApiKeyEnvVars = new Set();
 
 function applyConfigurationToEnvironment(config, paths, logger) {
   const normalized = normalizeConfiguration(config ?? DEFAULT_CONFIGURATION);

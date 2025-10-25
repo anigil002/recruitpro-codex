@@ -1,17 +1,20 @@
 """RecruitPro FastAPI application."""
 
 import json
+from contextlib import asynccontextmanager
 from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .config import get_settings
+from .database import init_db
 from .deps import get_db
 from .routers import (
     activity,
@@ -41,7 +44,16 @@ from .utils.security import decode_token
 
 settings = get_settings()
 
-app = FastAPI(title=settings.app_name)
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Initialize application resources before serving requests."""
+
+    init_db()
+    yield
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 if settings.cors_allowed_origins:
     app.add_middleware(
@@ -337,6 +349,16 @@ def index() -> RedirectResponse:
     """Provide a friendly landing page by redirecting to the UI shell."""
 
     return RedirectResponse(url="/app", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/doc", include_in_schema=False)
+async def docs_alias() -> HTMLResponse:
+    """Serve Swagger UI for legacy `/doc` requests."""
+
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url or "/openapi.json",
+        title=f"{app.title} - Swagger UI" if app.title else "Swagger UI",
+    )
 
 
 @app.get("/app", response_class=HTMLResponse)

@@ -62,6 +62,8 @@ All data is persisted locally, so the UI can be used offline once the backend is
 
 The repository also ships with a cross-platform Electron shell that bundles the FastAPI backend and the HTML renderer. The desktop build starts the API server automatically and launches the RecruitPro UI inside a native window.
 
+> **Feature coverage note:** The Electron renderer currently exposes only a subset of the workflows described in `recruitpro_system_v2.5.md`. Refer to [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) for a live matrix of which capability areas are implemented, partially implemented, or missing from the desktop experience. Use that document when planning new work to bring the shell to feature parity with the product specification.
+
 ### Prerequisites
 
 - Node.js 18+

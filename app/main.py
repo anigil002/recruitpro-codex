@@ -339,6 +339,13 @@ def index() -> RedirectResponse:
     return RedirectResponse(url="/app", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
+@app.get("/doc")
+def docs_alias() -> RedirectResponse:
+    """Redirect legacy `/doc` requests to FastAPI's `/docs` UI."""
+
+    return RedirectResponse(url="/docs", status_code=status.HTTP_308_PERMANENT_REDIRECT)
+
+
 @app.get("/app", response_class=HTMLResponse)
 async def application_shell(request: Request) -> HTMLResponse:
     """Serve the interactive RecruitPro console."""

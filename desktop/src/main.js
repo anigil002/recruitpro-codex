@@ -14,10 +14,12 @@ const { autoUpdater } = require('electron-updater');
 
 const BackendSpawner = require('./backendSpawner');
 const HealthChecker = require('./healthChecker');
+const ProcessMonitor = require('./processMonitor');
+const RestartManager = require('./restartManager');
 
 const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
 const BACKEND_PORT = Number.parseInt(process.env.BACKEND_PORT || '8000', 10);
-const BACKEND_HEALTH_PATH = process.env.BACKEND_HEALTH_PATH || '/health';
+const BACKEND_HEALTH_PATH = process.env.BACKEND_HEALTH_PATH || '/api/health';
 
 const TRAY_ICON_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAALElEQVQ4T2NkIAIwEqmOYUACRmZgqEkSYDQqBgYGBob/QAaGBgYGhoYGhgYGNANAEWtDvxF9TxrAAAAAElFTkSuQmCC';
@@ -43,9 +45,11 @@ const healthChecker = new HealthChecker({
   host: BACKEND_HOST,
   port: BACKEND_PORT,
   path: BACKEND_HEALTH_PATH,
-  intervalMs: 7000,
   logger: log
 });
+
+const processMonitor = new ProcessMonitor({ logger: log, pollIntervalMs: 10000 });
+const restartManager = new RestartManager(backendSpawner, { logger: log });
 
 function getBackendUrl() {
   return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
@@ -254,9 +258,18 @@ function registerIpcHandlers() {
 }
 
 function wireBackendEvents() {
+  backendSpawner.on('spawned', ({ process }) => {
+    processMonitor.watch(process);
+    void healthChecker.start();
+    sendToAllWindows('backend:spawned', {
+      pid: process?.pid ?? null,
+      host: BACKEND_HOST,
+      port: BACKEND_PORT
+    });
+  });
+
   backendSpawner.on('ready', () => {
     backendStartupError = null;
-    healthChecker.start();
     const payload = { url: getBackendUrl() };
     sendToAllWindows('backend:ready', payload);
     showNotification('Backend ready', 'RecruitPro backend is now available.');
@@ -270,10 +283,9 @@ function wireBackendEvents() {
     healthChecker.stop();
     sendToAllWindows('backend:exit', {
       type: 'warning',
-      message: 'Backend exited unexpectedly. Please restart the application.',
+      message: 'Backend exited unexpectedly. Attempting automatic restart.',
       details
     });
-    showNotification('Backend exited', 'RecruitPro backend process stopped unexpectedly.');
   });
 
   backendSpawner.on('error', (error) => {
@@ -281,11 +293,61 @@ function wireBackendEvents() {
     sendToAllWindows('backend:error', { message: error.message });
   });
 
-  healthChecker.on('status-changed', (healthy) => {
-    sendToAllWindows('backend:health', { healthy });
-    if (!healthy) {
-      showNotification('Backend degraded', 'RecruitPro backend is not responding.');
-    }
+  healthChecker.on('startup', () => {
+    sendToAllWindows('backend:health-startup', {});
+  });
+
+  healthChecker.on('startup-delay', ({ delayMs }) => {
+    sendToAllWindows('backend:health-wait', { delayMs });
+  });
+
+  healthChecker.on('startup-timeout', () => {
+    sendToAllWindows('backend:health', { healthy: false, reason: 'timeout' });
+    showNotification('Backend startup delayed', 'RecruitPro backend did not respond within 30 seconds.');
+  });
+
+  healthChecker.on('healthy', () => {
+    sendToAllWindows('backend:health', { healthy: true });
+  });
+
+  healthChecker.on('unhealthy', () => {
+    sendToAllWindows('backend:health', { healthy: false });
+    showNotification('Backend degraded', 'RecruitPro backend is not responding.');
+  });
+
+  processMonitor.on('stats', (stats) => {
+    sendToAllWindows('backend:resource-usage', stats);
+  });
+
+  processMonitor.on('zombie-detected', ({ pid }) => {
+    sendToAllWindows('backend:zombie', { pid });
+    showNotification('Backend monitor warning', 'Backend process is unresponsive and will be restarted.');
+  });
+
+  processMonitor.on('exit', (details) => {
+    sendToAllWindows('backend:process-exit', details);
+  });
+
+  restartManager.on('scheduled', ({ attempt, delayMs, reason }) => {
+    sendToAllWindows('backend:restart-scheduled', { attempt, delayMs, reason });
+  });
+
+  restartManager.on('restarting', ({ attempt }) => {
+    sendToAllWindows('backend:restarting', { attempt });
+  });
+
+  restartManager.on('restarted', ({ attempt }) => {
+    sendToAllWindows('backend:restarted', { attempt });
+    showNotification('Backend restarted', `Attempt ${attempt} succeeded.`);
+  });
+
+  restartManager.on('attempt-failed', ({ attempt, error }) => {
+    sendToAllWindows('backend:restart-attempt-failed', { attempt, message: error?.message });
+  });
+
+  restartManager.on('failed', ({ attempts }) => {
+    sendToAllWindows('backend:restart-failed', { attempts });
+    showNotification('Backend restart failed', 'RecruitPro backend could not be restarted. Please restart the app.');
   });
 }
 
@@ -328,6 +390,8 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   healthChecker.stop();
+  restartManager.stop();
+  processMonitor.stop();
   backendSpawner.stop().catch((error) => {
     log.error('Failed to stop backend cleanly', error);
   });

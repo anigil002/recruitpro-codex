@@ -58,6 +58,46 @@ Navigate to `http://localhost:8000/app` after signing into the API. The lightwei
 
 All data is persisted locally, so the UI can be used offline once the backend is running.
 
+## Desktop Application (Electron)
+
+The repository also ships with a cross-platform Electron shell that bundles the FastAPI backend and the HTML renderer. The desktop build starts the API server automatically and launches the RecruitPro UI inside a native window.
+
+### Prerequisites
+
+- Node.js 18+
+- npm 9+
+- Python 3.11 with the RecruitPro dependencies installed (the Electron build reuses the backend from this repository)
+
+### Install dependencies
+
+```bash
+cd desktop
+npm install
+```
+
+### Run the desktop app in development
+
+```bash
+npm start
+```
+
+The Electron main process will spawn the FastAPI backend (using `python3 -m uvicorn app.main:app`) and wait for it to become available on `http://127.0.0.1:8000` before showing the window. To use a different Python interpreter or port, set the following environment variables before running the command:
+
+```bash
+export ELECTRON_PYTHON="/path/to/python"
+export BACKEND_PORT=8010
+```
+
+### Package installers
+
+Electron Builder is configured to produce installers for macOS (DMG), Windows (NSIS), and Linux (AppImage/Deb). To generate distributables, run:
+
+```bash
+npm run make
+```
+
+The packaged application includes the FastAPI source code and templates in the installer bundle. Ensure the target system has a compatible Python runtime and that dependencies from `pyproject.toml` are installed or vendored prior to distributing the build.
+
 ### 6. Run Tests
 
 ```bash

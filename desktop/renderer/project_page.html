@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecruitPro - {% if project %}{{ project.name }}{% else %}Project overview{% endif %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="./scripts/init-backend.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1173d4",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body class="bg-background-dark font-display text-white">
+    {% set token_query = '' %}
+    {% if token %}
+    {% set token_query = '&token=' + token %}
+    {% endif %}
+    <div class="flex h-screen w-full">
+      <!-- SideNavBar -->
+      <aside class="flex h-full flex-col justify-between bg-[#111a22] p-4 border-r border-r-[#233648]">
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-3 items-center">
+            <div
+              class="flex size-10 items-center justify-center rounded-full bg-[#1f2d3a] text-sm font-semibold"
+              aria-hidden="true"
+            >
+              {{ (user.initials if user else 'RP') }}
+            </div>
+            <div class="flex flex-col">
+              <h1 class="text-white text-base font-medium leading-normal">
+                {{ user.name if user else 'RecruitPro user' }}
+              </h1>
+              <p class="text-[#92adc9] text-sm font-normal leading-normal">
+                {{ user.role if user else 'Guest' }}
+              </p>
+            </div>
+          </div>
+          <nav class="flex flex-col gap-2">
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="/app"
+            >
+              <span class="material-symbols-outlined text-white text-2xl">dashboard</span>
+              <p class="text-white text-sm font-medium leading-normal">Dashboard</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#233648]"
+              href="{% if project %}/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}{% else %}#{% endif %}"
+            >
+              <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">folder</span>
+              <p class="text-white text-sm font-medium leading-normal">Projects</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="/project-positions{% if project %}?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}{% endif %}"
+            >
+              <span class="material-symbols-outlined text-white text-2xl">group</span>
+              <p class="text-white text-sm font-medium leading-normal">Positions</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="/ai/sourcing-overview{% if token %}?token={{ token }}{% endif %}"
+            >
+              <span class="material-symbols-outlined text-white text-2xl">analytics</span>
+              <p class="text-white text-sm font-medium leading-normal">AI sourcing</p>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
+              href="/settings"
+            >
+              <span class="material-symbols-outlined text-white text-2xl">settings</span>
+              <p class="text-white text-sm font-medium leading-normal">Settings</p>
+            </a>
+          </nav>
+        </div>
+        <div class="flex flex-col gap-4">
+          <a
+            class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
+            href="/app"
+          >
+            <span class="truncate">Open console</span>
+          </a>
+          <div class="flex flex-col gap-1">
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors" href="https://github.com/">
+              <span class="material-symbols-outlined text-white text-2xl">help_outline</span>
+              <p class="text-white text-sm font-medium leading-normal">Help</p>
+            </a>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- TopNavBar -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#233648] px-10 py-3 bg-[#111a22]">
+          <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 text-white">
+              <div class="size-6 text-primary">
+                <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">RecruitPro</h2>
+            </div>
+            <p class="hidden text-sm text-[#92adc9] md:block">
+              {% if project %}Connected to {{ project.name }}{% else %}Select a project to view live data{% endif %}
+            </p>
+          </div>
+          {% if user %}
+          <p class="text-sm text-[#92adc9]">{{ user.email }}</p>
+          {% endif %}
+        </header>
+        <!-- Page Content -->
+        <main class="flex-1 overflow-y-auto p-8 bg-background-dark">
+          <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            {% if error %}
+            <div class="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {{ error }}
+            </div>
+            {% endif %}
+
+            {% if project %}
+            <div class="flex flex-wrap justify-between items-start gap-4">
+              <div class="flex flex-col gap-2">
+                <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                  {{ project.name }}{% if project.sector %} · {{ project.sector }}{% endif %}
+                </p>
+                <p class="text-[#92adc9] text-base font-normal leading-normal">
+                  {% if project.client %}Client: {{ project.client }}{% else %}Internal project{% endif %}
+                  {% if project.location_region %} • {{ project.location_region }}{% endif %}
+                </p>
+                {% if project.tags %}
+                <div class="flex flex-wrap gap-2 pt-1">
+                  {% for tag in project.tags %}
+                  <span class="rounded-full border border-[#233648] px-3 py-1 text-xs text-[#92adc9]">{{ tag }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#233648] px-4">
+                  <p class="text-white text-sm font-medium leading-normal">{{ project.status|title }}</p>
+                </div>
+                <p class="text-xs text-[#92adc9]">
+                  Created {{ project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at else '—' }}
+                </p>
+              </div>
+            </div>
+
+            <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <article class="rounded-lg border border-[#233648] bg-[#111a22] p-4">
+                <p class="text-xs text-[#92adc9]">Total positions</p>
+                <p class="text-2xl font-semibold">{{ position_stats.total }}</p>
+                <p class="text-xs text-[#92adc9]">Open: {{ position_stats.open }} • Draft: {{ position_stats.draft }} • Closed: {{ position_stats.closed }}</p>
+              </article>
+              <article class="rounded-lg border border-[#233648] bg-[#111a22] p-4">
+                <p class="text-xs text-[#92adc9]">Target hires</p>
+                <p class="text-2xl font-semibold">{{ project.target_hires }}</p>
+                <p class="text-xs text-[#92adc9]">Hires booked: {{ project.hires_count }}</p>
+              </article>
+              <article class="rounded-lg border border-[#233648] bg-[#111a22] p-4">
+                <p class="text-xs text-[#92adc9]">Candidates tracked</p>
+                <p class="text-2xl font-semibold">{{ candidate_summary.total }}</p>
+                {% set lead_status = (candidate_summary.by_status[0].status if candidate_summary.by_status else 'n/a') %}
+                <p class="text-xs text-[#92adc9]">Top status: {{ lead_status }}</p>
+              </article>
+              <article class="rounded-lg border border-[#233648] bg-[#111a22] p-4">
+                <p class="text-xs text-[#92adc9]">Team members</p>
+                <p class="text-2xl font-semibold">{{ project.team_members|length }}</p>
+                <p class="text-xs text-[#92adc9]">{{ ', '.join(project.team_members) if project.team_members else 'No collaborators yet' }}</p>
+              </article>
+            </section>
+
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <section class="lg:col-span-2 flex flex-col gap-4">
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6 flex flex-col gap-3">
+                  <header class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Project brief</h3>
+                    {% if project.summary %}
+                    <span class="text-xs text-[#92adc9]">Summary provided</span>
+                    {% endif %}
+                  </header>
+                  <p class="text-sm text-[#92adc9] leading-relaxed">
+                    {{ project.summary or 'Add a project summary from the RecruitPro console to give your team context.' }}
+                  </p>
+                  {% if project.team_members %}
+                  <div class="flex flex-wrap gap-2 pt-2">
+                    {% for member in project.team_members %}
+                    <span class="rounded-full bg-[#233648] px-3 py-1 text-xs text-[#c2d7ef]">{{ member }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </article>
+
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <header class="flex items-center justify-between pb-3">
+                    <h3 class="text-lg font-semibold">Open positions</h3>
+                    <a
+                      class="text-sm font-medium text-primary hover:underline"
+                      href="/project-positions?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}"
+                    >
+                      Manage positions
+                    </a>
+                  </header>
+                  {% if positions %}
+                  <ul class="flex flex-col divide-y divide-[#233648]">
+                    {% for position in positions[:6] %}
+                    <li class="py-3 flex flex-col gap-1">
+                      <div class="flex items-center justify-between">
+                        <p class="text-sm font-semibold">{{ position.title }}</p>
+                        <span class="rounded-full bg-[#233648] px-2 py-0.5 text-xs text-[#c2d7ef]">{{ position.status|title }}</span>
+                      </div>
+                      <p class="text-xs text-[#92adc9]">
+                        {% if position.department %}{{ position.department }} · {% endif %}
+                        {% if position.location %}{{ position.location }}{% else %}Location TBD{% endif %}
+                      </p>
+                      <p class="text-xs text-[#92adc9]">Openings: {{ position.openings }} · Applicants: {{ position.applicants_count }}</p>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">No positions yet. Create one from the RecruitPro console.</p>
+                  {% endif %}
+                </article>
+
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <header class="flex items-center justify-between pb-3">
+                    <h3 class="text-lg font-semibold">Candidate pipeline</h3>
+                  </header>
+                  {% if candidate_summary.total > 0 %}
+                  <ul class="grid gap-3 sm:grid-cols-2">
+                    {% for status in candidate_summary.by_status %}
+                    <li class="rounded-lg border border-[#233648] bg-[#152433] p-3">
+                      <p class="text-xs text-[#92adc9] uppercase">{{ status.status }}</p>
+                      <p class="text-xl font-semibold">{{ status.count }}</p>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  <div class="pt-4">
+                    <h4 class="text-sm font-semibold text-white">Recent candidates</h4>
+                    <ul class="mt-2 flex flex-col gap-2">
+                      {% for item in candidate_summary.recent %}
+                      <li class="flex flex-col rounded-lg border border-[#233648] bg-[#152433] p-3 text-sm">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="font-medium">{{ item.name }}</span>
+                          <span class="text-xs text-[#92adc9]">{{ item.status|title }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs text-[#92adc9]">
+                          <span>{{ item.source or 'Unknown source' }}</span>
+                          <a
+                            class="text-primary hover:underline"
+                            href="/candidate-profile?candidate_id={{ item.candidate_id }}{% if token %}&token={{ token }}{% endif %}"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            View profile
+                          </a>
+                        </div>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">Add candidates to this project to see pipeline insights.</p>
+                  {% endif %}
+                </article>
+              </section>
+
+              <section class="flex flex-col gap-4">
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <h3 class="text-lg font-semibold">Project documents</h3>
+                  {% if documents %}
+                  <ul class="mt-3 flex flex-col gap-2">
+                    {% for doc in documents %}
+                    <li class="flex flex-col rounded-lg border border-[#233648] bg-[#152433] p-3 text-sm">
+                      <span class="font-medium">{{ doc.filename }}</span>
+                      <span class="text-xs text-[#92adc9]">Uploaded {{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') if doc.uploaded_at else 'recently' }}</span>
+                      {% if doc.url %}
+                      <a class="text-xs text-primary hover:underline" href="{{ doc.url }}" target="_blank" rel="noreferrer">Open file</a>
+                      {% endif %}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">No documents uploaded yet. Use the /api/documents/upload endpoint or the console uploader.</p>
+                  {% endif %}
+                </article>
+
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <h3 class="text-lg font-semibold">Market research</h3>
+                  {% if market_research %}
+                  <p class="text-sm text-[#92adc9]">Status: {{ market_research.status|title }} · {{ market_research.region }} · {{ market_research.window }}</p>
+                  <p class="pt-1 text-xs text-[#92adc9]">Completed {{ market_research.completed_at.strftime('%Y-%m-%d %H:%M') if market_research.completed_at else 'recently' }}</p>
+                  {% if market_research.findings %}
+                  <ul class="mt-3 list-disc pl-5 text-sm text-[#c2d7ef]">
+                    {% for item in market_research.findings %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% endif %}
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">Run AI research from the console to generate competitive insights.</p>
+                  {% endif %}
+                </article>
+
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <h3 class="text-lg font-semibold">AI screening</h3>
+                  {% if ai_screening %}
+                  <p class="text-sm text-[#92adc9]">Latest run {{ ai_screening.status|title }} on {{ ai_screening.created_at.strftime('%Y-%m-%d %H:%M') if ai_screening.created_at else '—' }}</p>
+                  {% if ai_screening.updated_at %}
+                  <p class="text-xs text-[#92adc9]">Updated {{ ai_screening.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                  {% endif %}
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">No AI screening activity yet. Trigger screening from the RecruitPro console.</p>
+                  {% endif %}
+                </article>
+
+                <article class="rounded-lg border border-[#233648] bg-[#111a22] p-6">
+                  <h3 class="text-lg font-semibold">Recent activity</h3>
+                  {% if recent_activity %}
+                  <ul class="mt-3 flex flex-col gap-2 text-sm">
+                    {% for item in recent_activity %}
+                    <li class="rounded-lg border border-[#233648] bg-[#152433] p-3">
+                      <p>{{ item.message }}</p>
+                      <p class="text-xs text-[#92adc9]">{{ item.event_type }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '—' }}</p>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="text-sm text-[#92adc9]">Activity will appear here after you interact with the project.</p>
+                  {% endif %}
+                </article>
+              </section>
+            </div>
+            {% else %}
+            <div class="rounded-lg border border-[#233648] bg-[#111a22] p-10 text-center text-[#92adc9]">
+              Provide a <code class="rounded bg-[#233648] px-2 py-1 text-white">project_id</code> and a valid <code class="rounded bg-[#233648] px-2 py-1 text-white">token</code> query parameter to load a project overview.
+            </div>
+            {% endif %}
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

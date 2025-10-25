@@ -6,3 +6,6 @@ __pycache__/
 storage/
 .pytest_cache/
 .poetry/
+desktop/node_modules/
+desktop/dist/
+desktop/out/

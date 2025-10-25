@@ -1,0 +1,2771 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RecruitPro Local Console</title>
+    <script defer src="./scripts/init-backend.js"></script>
+    <style>
+      :root {
+        color-scheme: dark light;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --bg: #0f172a;
+        --panel: #111a22;
+        --panel-border: #1e2a3a;
+        --accent: #3b82f6;
+        --accent-soft: #60a5fa;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --success: #22c55e;
+        --error: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        padding: 40px 16px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .shell {
+        width: min(1200px, 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 20px 45px -20px rgba(17, 115, 212, 0.25);
+      }
+
+      .panel + .panel {
+        margin-top: 0;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .grid-two {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid-three {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 960px) {
+        .grid-two {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .grid-three {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      textarea {
+        font: inherit;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.6);
+        color: inherit;
+      }
+
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+        background: var(--accent);
+        color: #0f172a;
+        align-self: flex-start;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px -12px rgba(96, 165, 250, 0.6);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .messages {
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: none;
+        line-height: 1.4;
+      }
+
+      .messages[data-state="visible"] {
+        display: block;
+      }
+
+      .messages[data-variant="success"] {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: var(--success);
+      }
+
+      .messages[data-variant="error"] {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: var(--error);
+      }
+
+      .messages[data-variant="info"] {
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.35);
+        color: var(--accent-soft);
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 768px) {
+        .stat-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      .stat-card {
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.65);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .stat-card strong {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .item-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .item-card {
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.55);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .item-card h4 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .kanban-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 16px 0 12px;
+      }
+
+      .kanban-filter {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        min-width: 180px;
+      }
+
+      .kanban-board {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(220px, 1fr);
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        margin-bottom: 24px;
+        scrollbar-width: thin;
+      }
+
+      .kanban-board::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .kanban-board::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.35);
+        border-radius: 999px;
+      }
+
+      @media (min-width: 1280px) {
+        .kanban-board {
+          grid-auto-flow: initial;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+      }
+
+      .kanban-column {
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid var(--panel-border);
+        border-top: 4px solid var(--column-accent, var(--accent));
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .kanban-column.is-over {
+        box-shadow: 0 0 0 2px var(--column-accent, var(--accent));
+        transform: translateY(-2px);
+        background: rgba(17, 24, 39, 0.72);
+      }
+
+      .kanban-column-header {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: 1px solid var(--panel-border);
+      }
+
+      .kanban-column-title {
+        font-weight: 600;
+        color: var(--column-accent, var(--accent));
+      }
+
+      .kanban-column-count {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+
+      .kanban-column-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        flex: 1;
+      }
+
+      .kanban-empty {
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px dashed rgba(148, 163, 184, 0.35);
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .kanban-card {
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.65);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        cursor: grab;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+      }
+
+      .kanban-card:active {
+        cursor: grabbing;
+      }
+
+      .kanban-card.is-dragging {
+        opacity: 0.65;
+        transform: scale(0.98);
+        box-shadow: 0 16px 32px -16px rgba(96, 165, 250, 0.45);
+      }
+
+      .kanban-card--updated {
+        box-shadow: 0 0 0 2px var(--column-accent, var(--accent));
+      }
+
+      .kanban-card-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .kanban-card-meta,
+      .kanban-card-detail {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .kanban-card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .kanban-card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .kanban-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: rgba(148, 163, 184, 0.22);
+        color: var(--text);
+      }
+
+      .kanban-card-link {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--accent);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        align-self: flex-start;
+      }
+
+      .kanban-card-link:hover,
+      .kanban-card-link:focus {
+        text-decoration: underline;
+        color: var(--accent-soft);
+      }
+
+      .empty-state {
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px dashed var(--panel-border);
+        background: rgba(15, 23, 42, 0.4);
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        background: rgba(59, 130, 246, 0.18);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        color: var(--accent-soft);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .subpanel {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--panel-border);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .activity-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .activity-feed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .activity-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .activity-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--muted);
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
+        transition: background 150ms ease, box-shadow 150ms ease;
+      }
+
+      .activity-status[data-state="connected"] .activity-status-dot {
+        background: var(--success);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+      }
+
+      .activity-status[data-state="connecting"] .activity-status-dot {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      }
+
+      .activity-status[data-state="error"] .activity-status-dot {
+        background: var(--error);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+      }
+
+      .activity-feed-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .activity-item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.55);
+      }
+
+      .activity-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-top: 6px;
+        background: rgba(148, 163, 184, 0.5);
+      }
+
+      .activity-item[data-variant="project"] .activity-marker {
+        background: rgba(96, 165, 250, 0.75);
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+      }
+
+      .activity-item[data-variant="candidate"] .activity-marker {
+        background: rgba(34, 197, 94, 0.8);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+
+      .activity-item[data-variant="document"] .activity-marker {
+        background: rgba(249, 115, 22, 0.85);
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+      }
+
+      .activity-item[data-variant="auth"] .activity-marker {
+        background: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+      }
+
+      .activity-item[data-variant="ai"] .activity-marker {
+        background: rgba(165, 180, 252, 0.9);
+        box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.18);
+      }
+
+      .activity-item[data-variant="interview"] .activity-marker {
+        background: rgba(244, 114, 182, 0.85);
+        box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.18);
+      }
+
+      .activity-item[data-variant="default"] .activity-marker {
+        background: rgba(148, 163, 184, 0.7);
+        box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.15);
+      }
+
+      .activity-message {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .activity-meta {
+        margin-top: 6px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .activity-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: var(--accent-soft);
+        text-transform: capitalize;
+      }
+
+      .activity-item[data-variant="candidate"] .activity-tag {
+        background: rgba(34, 197, 94, 0.12);
+        border-color: rgba(34, 197, 94, 0.25);
+        color: rgba(134, 239, 172, 0.95);
+      }
+
+      .activity-item[data-variant="document"] .activity-tag {
+        background: rgba(249, 115, 22, 0.12);
+        border-color: rgba(249, 115, 22, 0.25);
+        color: rgba(253, 186, 116, 0.95);
+      }
+
+      .activity-item[data-variant="auth"] .activity-tag {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.25);
+        color: rgba(191, 219, 254, 0.95);
+      }
+
+      .activity-item[data-variant="ai"] .activity-tag {
+        background: rgba(165, 180, 252, 0.15);
+        border-color: rgba(165, 180, 252, 0.25);
+        color: rgba(196, 181, 253, 0.95);
+      }
+
+      .activity-item[data-variant="interview"] .activity-tag {
+        background: rgba(244, 114, 182, 0.15);
+        border-color: rgba(244, 114, 182, 0.25);
+        color: rgba(251, 207, 232, 0.95);
+      }
+
+      .activity-item[data-variant="default"] .activity-tag {
+        background: rgba(148, 163, 184, 0.12);
+        border-color: rgba(148, 163, 184, 0.25);
+        color: rgba(226, 232, 240, 0.95);
+      }
+
+      .activity-empty {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .result-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .result-card {
+        border-radius: 10px;
+        border: 1px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.45);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .result-card h5 {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .result-card a {
+        align-self: flex-start;
+      }
+
+      .text-error {
+        color: var(--error);
+        font-size: 0.9rem;
+      }
+
+      .text-success {
+        color: var(--success);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="panel">
+        <div class="panel-header">
+          <div>
+            <h1>RecruitPro Local Console</h1>
+            <p class="muted">
+              Register, sign in, and manage projects, positions, and candidates powered by the FastAPI backend.
+            </p>
+          </div>
+          <button id="refresh-button" type="button">Refresh data</button>
+        </div>
+        <p class="muted" style="margin-top: 4px;">
+          The console talks directly to the REST API. All numbers below reflect the live SQLite database on your machine.
+        </p>
+      </header>
+
+      <div class="messages" id="messages" role="status" aria-live="polite"></div>
+
+      <section class="panel" id="auth-panel">
+        <h2>Get started locally</h2>
+        <p class="muted" style="margin-top: 8px;">
+          Create an account for local testing or sign in with an existing RecruitPro user. Passwords never leave your machine.
+        </p>
+        <div class="grid-two" style="margin-top: 24px;">
+          <form id="register-form">
+            <h3>Create account</h3>
+            <label>
+              Name
+              <input name="name" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <label>
+              Role
+              <select name="role">
+                <option value="recruiter">Recruiter</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <button type="submit">Register</button>
+            <p class="muted">The account is stored in SQLite and can be reused when you return.</p>
+          </form>
+
+          <form id="login-form">
+            <h3>Sign in</h3>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit">Log in</button>
+            <p class="muted">Successful login stores a token in your browser for reuse.</p>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="app-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Workspace</h2>
+            <p class="muted" id="workspace-user">Signed in as —</p>
+          </div>
+          <div class="actions">
+            <span class="badge" id="workspace-role"></span>
+            <button id="logout-button" type="button">Log out</button>
+          </div>
+        </div>
+
+        <div class="stat-grid" style="margin-bottom: 32px;">
+          <article class="stat-card">
+            <span class="muted">Projects</span>
+            <strong id="stat-projects">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Positions</span>
+            <strong id="stat-positions">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Open positions</span>
+            <strong id="stat-open-positions">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="muted">Candidates</span>
+            <strong id="stat-candidates">0</strong>
+          </article>
+        </div>
+
+        <section class="activity-feed" aria-live="polite" aria-atomic="false">
+          <div class="activity-feed-header">
+            <h3>Live activity</h3>
+            <span class="activity-status" id="activity-status" data-state="idle">
+              <span class="activity-status-dot" aria-hidden="true"></span>
+              <span id="activity-status-text">Live updates paused</span>
+            </span>
+          </div>
+          <p class="activity-empty" id="activity-empty">Connect to start seeing activity.</p>
+          <ul class="activity-feed-list" id="activity-feed-list"></ul>
+        </section>
+
+        <div class="grid-three">
+          <section>
+            <h3>Projects</h3>
+            <p class="muted" style="margin-top: 4px;">Manage client workstreams and define hiring goals.</p>
+            <ul class="item-list" id="projects-list"></ul>
+            <form id="project-form" autocomplete="off">
+              <h4>Create project</h4>
+              <label>
+                Project name
+                <input name="name" type="text" required />
+              </label>
+              <label>
+                Client name
+                <input name="client" type="text" />
+              </label>
+              <label>
+                Region / Location
+                <input name="location_region" type="text" />
+              </label>
+              <label>
+                Summary
+                <textarea name="summary" placeholder="Short internal description"></textarea>
+              </label>
+              <label>
+                Tags (comma separated)
+                <input name="tags" type="text" placeholder="fintech, remote, senior" />
+              </label>
+              <label>
+                Team members (comma separated)
+                <input name="team_members" type="text" placeholder="alex@example.com, taylor@example.com" />
+              </label>
+              <label>
+                Target hires
+                <input name="target_hires" type="number" min="0" step="1" />
+              </label>
+              <button type="submit">Save project</button>
+            </form>
+            <form id="document-upload-form" autocomplete="off">
+              <h4>Upload project document</h4>
+              <label>
+                Project
+                <select id="document-project" name="project_id" disabled required></select>
+              </label>
+              <label>
+                File
+                <input id="document-file" name="file" type="file" accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.pptx,.json,.rtf" required />
+              </label>
+              <p class="muted">Upload project briefs, scorecards, or other hiring collateral to kick off AI analysis.</p>
+              <button type="submit" disabled>Upload document</button>
+            </form>
+          </section>
+
+          <section>
+            <h3>Positions</h3>
+            <p class="muted" style="margin-top: 4px;">Attach open roles to each project to track headcount.</p>
+            <ul class="item-list" id="positions-list"></ul>
+            <form id="position-form" autocomplete="off">
+              <h4>Create position</h4>
+              <label>
+                Project
+                <select id="position-project" name="project_id" required></select>
+              </label>
+              <label>
+                Title
+                <input name="title" type="text" required />
+              </label>
+              <label>
+                Department
+                <input name="department" type="text" />
+              </label>
+              <label>
+                Location
+                <input name="location" type="text" />
+              </label>
+              <label>
+                Status
+                <select name="status">
+                  <option value="draft">Draft</option>
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+              <label>
+                Openings
+                <input name="openings" type="number" min="0" step="1" />
+              </label>
+              <label>
+                Responsibilities (one per line)
+                <textarea name="responsibilities" placeholder="Define interview loop\nPartner with hiring manager"></textarea>
+              </label>
+              <label>
+                Requirements (one per line)
+                <textarea name="requirements" placeholder="5+ years exp\nExperience with SaaS"></textarea>
+              </label>
+              <button type="submit">Save position</button>
+            </form>
+          </section>
+
+          <section>
+            <h3>Candidates</h3>
+            <p class="muted" style="margin-top: 4px;">Track talent pipeline and jump into detailed profiles.</p>
+            <div class="kanban-controls">
+              <label class="kanban-filter">
+                Project filter
+                <select id="candidate-filter-project"></select>
+              </label>
+              <label class="kanban-filter">
+                Position filter
+                <select id="candidate-filter-position"></select>
+              </label>
+            </div>
+            <div class="kanban-board" id="candidate-board" aria-live="polite"></div>
+            <form id="candidate-form" autocomplete="off">
+              <h4>Add candidate</h4>
+              <label>
+                Full name
+                <input name="name" type="text" required />
+              </label>
+              <label>
+                Source
+                <input name="source" type="text" placeholder="LinkedIn, Referral…" required />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" />
+              </label>
+              <label>
+                Project (optional)
+                <select id="candidate-project" name="project_id"></select>
+              </label>
+              <label>
+                Position (optional)
+                <select id="candidate-position" name="position_id"></select>
+              </label>
+              <label>
+                Status
+                <select name="status">
+                  <option value="new">New</option>
+                  <option value="screening">Screening</option>
+                  <option value="interviewing">Interviewing</option>
+                  <option value="offer">Offer</option>
+                  <option value="hired">Hired</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="withdrawn">Withdrawn</option>
+                </select>
+              </label>
+              <button type="submit">Save candidate</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="subpanel" id="linkedin-xray-panel">
+          <div>
+            <h3>LinkedIn X-Ray search</h3>
+            <p class="muted" style="margin-top: 4px;">
+              Launch boolean searches against LinkedIn from your sourcing playbook. Results will populate automatically once the AI agent finishes gathering profiles.
+            </p>
+          </div>
+          <form id="linkedin-xray-form" autocomplete="off">
+            <label>
+              Project
+              <select id="linkedin-project" name="project_id" required></select>
+            </label>
+            <label>
+              Search query
+              <input name="search_query" type="text" placeholder="\"Revenue Operations\" SaaS enterprise" required />
+            </label>
+            <label>
+              Locations (comma separated)
+              <input name="locations" type="text" placeholder="San Francisco, Remote" />
+            </label>
+            <label>
+              Titles to include (comma separated)
+              <input name="titles" type="text" placeholder="Head of Revenue Operations, VP Revenue" />
+            </label>
+            <label>
+              Must include keywords (one per line)
+              <textarea name="must_include" placeholder="GTM analytics\nSalesforce"></textarea>
+            </label>
+            <label>
+              Must exclude keywords (one per line)
+              <textarea name="must_exclude" placeholder="Agency recruiter\nContract"></textarea>
+            </label>
+            <label>
+              Result limit
+              <input name="result_limit" type="number" min="1" max="50" value="25" />
+            </label>
+            <button type="submit">Start LinkedIn search</button>
+            <p class="muted">Search criteria are saved inside the AI job and replayed through the async worker queue.</p>
+          </form>
+          <div>
+            <h4>Recent LinkedIn searches</h4>
+            <ul class="item-list" id="linkedin-xray-jobs"></ul>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        token: window.localStorage.getItem("recruitproToken"),
+        user: null,
+        projects: [],
+        positions: [],
+        candidates: [],
+        linkedinJobs: [],
+        activities: [],
+        activityKeys: new Set(),
+        candidateFilters: {
+          projectId: "all",
+          positionId: "all",
+        },
+      };
+
+      let activitySource = null;
+      const linkedinPolls = new Map();
+
+      const messagesEl = document.getElementById("messages");
+      const authPanel = document.getElementById("auth-panel");
+      const appPanel = document.getElementById("app-panel");
+      const workspaceUser = document.getElementById("workspace-user");
+      const workspaceRole = document.getElementById("workspace-role");
+      const statProjects = document.getElementById("stat-projects");
+      const statPositions = document.getElementById("stat-positions");
+      const statOpenPositions = document.getElementById("stat-open-positions");
+      const statCandidates = document.getElementById("stat-candidates");
+      const projectsList = document.getElementById("projects-list");
+      const positionsList = document.getElementById("positions-list");
+      const candidateBoard = document.getElementById("candidate-board");
+      const candidateFilterProjectSelect = document.getElementById("candidate-filter-project");
+      const candidateFilterPositionSelect = document.getElementById("candidate-filter-position");
+      const activityFeedList = document.getElementById("activity-feed-list");
+      const activityEmpty = document.getElementById("activity-empty");
+      const activityStatus = document.getElementById("activity-status");
+      const activityStatusText = document.getElementById("activity-status-text");
+      const positionProjectSelect = document.getElementById("position-project");
+      const candidateProjectSelect = document.getElementById("candidate-project");
+      const candidatePositionSelect = document.getElementById("candidate-position");
+      const documentProjectSelect = document.getElementById("document-project");
+      const documentUploadForm = document.getElementById("document-upload-form");
+      const documentFileInput = document.getElementById("document-file");
+      const linkedinForm = document.getElementById("linkedin-xray-form");
+      const linkedinProjectSelect = document.getElementById("linkedin-project");
+      const linkedinJobsList = document.getElementById("linkedin-xray-jobs");
+      const refreshButton = document.getElementById("refresh-button");
+      const logoutButton = document.getElementById("logout-button");
+
+      const KANBAN_STATUSES = [
+        { key: "new", label: "New", color: "#3b82f6" },
+        { key: "screening", label: "Screening", color: "#22d3ee" },
+        { key: "interviewing", label: "Interviewing", color: "#f97316" },
+        { key: "offer", label: "Offer", color: "#facc15" },
+        { key: "hired", label: "Hired", color: "#22c55e" },
+        { key: "rejected", label: "Rejected", color: "#ef4444" },
+        { key: "withdrawn", label: "Withdrawn", color: "#a855f7" },
+      ];
+      const KNOWN_STATUS_SET = new Set(KANBAN_STATUSES.map((status) => status.key));
+      let draggingCandidateId = null;
+      let draggingCandidateStatus = null;
+
+      function setMessage(text, variant = "info") {
+        if (!text) {
+          messagesEl.dataset.state = "hidden";
+          messagesEl.textContent = "";
+          return;
+        }
+        messagesEl.dataset.state = "visible";
+        messagesEl.dataset.variant = variant;
+        messagesEl.textContent = text;
+      }
+
+      function setActivityStatus(nextState, overrideText = null) {
+        if (!activityStatus || !activityStatusText) {
+          return;
+        }
+        const validStates = new Set(["idle", "connecting", "connected", "error"]);
+        const stateToApply = validStates.has(nextState) ? nextState : "idle";
+        activityStatus.dataset.state = stateToApply;
+
+        let text = overrideText;
+        if (!text) {
+          if (stateToApply === "connected") {
+            text = "Connected to live updates";
+          } else if (stateToApply === "connecting") {
+            text = "Connecting to live updates…";
+          } else if (stateToApply === "error") {
+            text = "Connection lost. Reconnecting…";
+          } else {
+            text = "Live updates paused";
+          }
+        }
+        activityStatusText.textContent = text;
+        renderActivityFeed();
+      }
+
+      function formatActivityTimestamp(value) {
+        if (!value) {
+          return "Just now";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "Just now";
+        }
+        const now = new Date();
+        const sameDay = date.toDateString() === now.toDateString();
+        const options = sameDay
+          ? { hour: "numeric", minute: "2-digit" }
+          : { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" };
+        if (!sameDay && date.getFullYear() !== now.getFullYear()) {
+          options.year = "numeric";
+        }
+        try {
+          return date.toLocaleString(undefined, options);
+        } catch (error) {
+          return date.toISOString();
+        }
+      }
+
+      function getActivityVariant(eventType) {
+        const value = (eventType || "").toString().toLowerCase();
+        if (!value) {
+          return "default";
+        }
+        if (value.startsWith("project") || value.startsWith("position")) {
+          return "project";
+        }
+        if (value.startsWith("candidate")) {
+          return "candidate";
+        }
+        if (value.includes("document") || value.includes("file")) {
+          return "document";
+        }
+        if (value.includes("login") || value.includes("logout") || value.includes("password") || value.includes("user_")) {
+          return "auth";
+        }
+        if (value.includes("interview")) {
+          return "interview";
+        }
+        if (
+          value.includes("ai") ||
+          value.includes("linkedin") ||
+          value.includes("market_research") ||
+          value.includes("smartrecruiters")
+        ) {
+          return "ai";
+        }
+        return "default";
+      }
+
+      function getActivityLabel(eventType) {
+        if (!eventType) {
+          return "Activity";
+        }
+        return eventType
+          .toString()
+          .split("_")
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function normalizeActivity(entry) {
+        if (!entry) {
+          return null;
+        }
+        const eventType = (entry.event_type || entry.type || "activity").toString();
+        const message = entry.message ? entry.message.toString() : "Activity update";
+        let createdAtIso = entry.created_at;
+        if (createdAtIso) {
+          const parsed = new Date(createdAtIso);
+          createdAtIso = Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+        } else {
+          createdAtIso = new Date().toISOString();
+        }
+        const key = `${createdAtIso}|${eventType.toLowerCase()}|${message}`;
+        return {
+          key,
+          activity_id: entry.activity_id || null,
+          event_type: eventType,
+          message,
+          created_at: createdAtIso,
+        };
+      }
+
+      function replaceActivities(entries) {
+        state.activities = [];
+        state.activityKeys = new Set();
+        if (!Array.isArray(entries) || entries.length === 0) {
+          renderActivityFeed();
+          return;
+        }
+        entries.slice(0, 20).forEach((entry) => {
+          const normalized = normalizeActivity(entry);
+          if (!normalized) {
+            return;
+          }
+          if (state.activityKeys.has(normalized.key)) {
+            return;
+          }
+          state.activityKeys.add(normalized.key);
+          state.activities.push(normalized);
+        });
+        renderActivityFeed();
+      }
+
+      function addActivity(entry, { prepend = true } = {}) {
+        const normalized = normalizeActivity(entry);
+        if (!normalized) {
+          return;
+        }
+        if (!state.activityKeys) {
+          state.activityKeys = new Set();
+        }
+        if (state.activityKeys.has(normalized.key)) {
+          return;
+        }
+        state.activityKeys.add(normalized.key);
+        if (prepend) {
+          state.activities.unshift(normalized);
+        } else {
+          state.activities.push(normalized);
+        }
+        if (state.activities.length > 20) {
+          const overflow = state.activities.splice(20);
+          overflow.forEach((item) => state.activityKeys.delete(item.key));
+        }
+        renderActivityFeed();
+      }
+
+      function renderActivityFeed() {
+        if (!activityFeedList || !activityEmpty) {
+          return;
+        }
+        activityFeedList.innerHTML = "";
+        if (!state.activities.length) {
+          const status = activityStatus ? activityStatus.dataset.state : "idle";
+          let emptyMessage = "Connect to start seeing activity.";
+          if (status === "connected") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connected to live updates";
+          } else if (status === "connecting") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connecting to live updates…";
+          } else if (status === "error") {
+            emptyMessage = activityStatusText ? activityStatusText.textContent : "Connection lost. Reconnecting…";
+          }
+          activityEmpty.textContent = emptyMessage;
+          activityEmpty.classList.remove("hidden");
+          return;
+        }
+
+        activityEmpty.classList.add("hidden");
+        state.activities.forEach((item) => {
+          const variant = getActivityVariant(item.event_type);
+          const listItem = document.createElement("li");
+          listItem.className = "activity-item";
+          listItem.dataset.variant = variant;
+
+          const marker = document.createElement("span");
+          marker.className = "activity-marker";
+          marker.setAttribute("aria-hidden", "true");
+
+          const body = document.createElement("div");
+          const message = document.createElement("p");
+          message.className = "activity-message";
+          message.textContent = item.message;
+
+          const meta = document.createElement("div");
+          meta.className = "activity-meta";
+          const tag = document.createElement("span");
+          tag.className = "activity-tag";
+          tag.textContent = getActivityLabel(item.event_type);
+
+          const timeEl = document.createElement("time");
+          timeEl.dateTime = item.created_at;
+          timeEl.textContent = formatActivityTimestamp(item.created_at);
+
+          meta.appendChild(tag);
+          meta.appendChild(timeEl);
+          body.appendChild(message);
+          body.appendChild(meta);
+          listItem.appendChild(marker);
+          listItem.appendChild(body);
+          activityFeedList.appendChild(listItem);
+        });
+      }
+
+      function closeActivityStream(nextState = null) {
+        if (activitySource) {
+          activitySource.close();
+          activitySource = null;
+        }
+        if (nextState) {
+          setActivityStatus(nextState);
+        }
+      }
+
+      function handleActivityEvent(event) {
+        let payload = null;
+        if (event.data) {
+          try {
+            payload = JSON.parse(event.data);
+          } catch (error) {
+            console.warn("Unable to parse activity payload", error);
+          }
+        }
+        if (payload && payload.message) {
+          setMessage(payload.message, "info");
+        }
+        if (payload) {
+          addActivity(payload);
+        }
+        if (state.token) {
+          loadWorkspace(false);
+        }
+      }
+
+      function handleJobEvent(event) {
+        let payload = null;
+        if (event.data) {
+          try {
+            payload = JSON.parse(event.data);
+          } catch (error) {
+            console.warn("Unable to parse job payload", error);
+          }
+        }
+        if (!payload) {
+          return;
+        }
+        const jobId = payload.job_id ? `Job ${payload.job_id}` : "AI job";
+        const status = payload.status || "updated";
+        let variant = "info";
+        if (status === "completed") {
+          variant = "success";
+        } else if (status === "failed") {
+          variant = "error";
+        }
+        const detail = payload.error ? ` (${payload.error})` : "";
+        setMessage(`${jobId} ${status}${detail}.`, variant);
+        if (payload.job_id && isTrackedLinkedInJob(payload.job_id)) {
+          upsertLinkedInJob({
+            job_id: payload.job_id,
+            status: payload.status,
+            error: payload.error,
+            updated_at: new Date().toISOString(),
+          });
+          renderLinkedInJobs();
+          scheduleLinkedInJobPoll(payload.job_id, true);
+        }
+      }
+
+      function openActivityStream() {
+        if (!state.token) {
+          closeActivityStream("idle");
+          return;
+        }
+        const streamUrl = new URL("/api/activity/stream", window.location.origin);
+        streamUrl.searchParams.set("token", state.token);
+        closeActivityStream();
+        setActivityStatus("connecting");
+        const source = new EventSource(streamUrl.toString());
+        source.addEventListener("activity", handleActivityEvent);
+        source.addEventListener("job", handleJobEvent);
+        source.onopen = () => {
+          setActivityStatus("connected");
+        };
+        source.onerror = () => {
+          // Allow the browser to retry automatically.
+          if (state.token) {
+            setActivityStatus("error");
+          }
+        };
+        activitySource = source;
+      }
+
+      function ensureActivityStream() {
+        if (!state.token) {
+          closeActivityStream("idle");
+          return;
+        }
+        if (!activitySource) {
+          openActivityStream();
+        }
+      }
+
+      function clearLinkedInPolls() {
+        linkedinPolls.forEach((timeout) => window.clearTimeout(timeout));
+        linkedinPolls.clear();
+      }
+
+      function isTrackedLinkedInJob(jobId) {
+        if (!jobId) {
+          return false;
+        }
+        return state.linkedinJobs.some((job) => job.job_id === jobId);
+      }
+
+      function upsertLinkedInJob(partial) {
+        if (!partial || !partial.job_id) {
+          return;
+        }
+        const index = state.linkedinJobs.findIndex((job) => job.job_id === partial.job_id);
+        const existing = index >= 0 ? state.linkedinJobs[index] : null;
+        const merged = {
+          job_id: partial.job_id,
+          status: partial.status || (existing ? existing.status : "queued"),
+          progress:
+            partial.progress !== undefined && partial.progress !== null
+              ? partial.progress
+              : existing && existing.progress !== undefined
+              ? existing.progress
+              : null,
+          found_count:
+            partial.found_count !== undefined && partial.found_count !== null
+              ? partial.found_count
+              : existing && existing.found_count !== undefined
+              ? existing.found_count
+              : null,
+          results: Array.isArray(partial.results)
+            ? partial.results
+            : existing && Array.isArray(existing.results)
+            ? existing.results
+            : [],
+          error:
+            partial.error !== undefined
+              ? partial.error
+              : existing && existing.error !== undefined
+              ? existing.error
+              : null,
+          search_query:
+            partial.search_query !== undefined
+              ? partial.search_query
+              : existing && existing.search_query !== undefined
+              ? existing.search_query
+              : "",
+          project_id:
+            partial.project_id !== undefined
+              ? partial.project_id
+              : existing && existing.project_id !== undefined
+              ? existing.project_id
+              : null,
+          locations:
+            partial.locations !== undefined
+              ? partial.locations || []
+              : existing && existing.locations !== undefined
+              ? existing.locations
+              : [],
+          titles:
+            partial.titles !== undefined
+              ? partial.titles || []
+              : existing && existing.titles !== undefined
+              ? existing.titles
+              : [],
+          must_include:
+            partial.must_include !== undefined
+              ? partial.must_include || []
+              : existing && existing.must_include !== undefined
+              ? existing.must_include
+              : [],
+          must_exclude:
+            partial.must_exclude !== undefined
+              ? partial.must_exclude || []
+              : existing && existing.must_exclude !== undefined
+              ? existing.must_exclude
+              : [],
+          result_limit:
+            partial.result_limit !== undefined
+              ? partial.result_limit
+              : existing && existing.result_limit !== undefined
+              ? existing.result_limit
+              : null,
+          updated_at: partial.updated_at || new Date().toISOString(),
+        };
+        if (index >= 0) {
+          state.linkedinJobs[index] = merged;
+        } else {
+          state.linkedinJobs.unshift(merged);
+        }
+      }
+
+      function renderLinkedInJobs() {
+        if (!linkedinJobsList) {
+          return;
+        }
+        linkedinJobsList.innerHTML = "";
+        if (state.linkedinJobs.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "Start a LinkedIn X-Ray search to see candidate leads.";
+          linkedinJobsList.appendChild(empty);
+          return;
+        }
+
+        state.linkedinJobs.forEach((job) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = job.search_query ? job.search_query : `Job ${job.job_id}`;
+          item.appendChild(title);
+
+          const jobIdLine = document.createElement("p");
+          jobIdLine.className = "muted";
+          jobIdLine.textContent = `Job ID: ${job.job_id}`;
+          item.appendChild(jobIdLine);
+
+          if (job.project_id) {
+            const project = projectLookup(job.project_id);
+            if (project) {
+              const projectLine = document.createElement("p");
+              projectLine.className = "muted";
+              projectLine.textContent = `Project: ${project.name}`;
+              item.appendChild(projectLine);
+            }
+          }
+
+          const statusLine = document.createElement("p");
+          const statusParts = [`Status: ${job.status || "queued"}`];
+          if (job.progress !== null && job.progress !== undefined) {
+            statusParts.push(`Progress: ${job.progress}%`);
+          }
+          if (job.found_count !== null && job.found_count !== undefined) {
+            statusParts.push(`Profiles: ${job.found_count}`);
+          }
+          statusLine.textContent = statusParts.join(" • ");
+          if (job.status === "completed") {
+            statusLine.className = "text-success";
+          } else if (job.status === "failed") {
+            statusLine.className = "text-error";
+          } else {
+            statusLine.className = "muted";
+          }
+          item.appendChild(statusLine);
+
+          if (job.error) {
+            const errorLine = document.createElement("p");
+            errorLine.className = "text-error";
+            errorLine.textContent = job.error;
+            item.appendChild(errorLine);
+          }
+
+          if (job.updated_at) {
+            const updated = new Date(job.updated_at);
+            if (!Number.isNaN(updated.getTime())) {
+              const updatedLine = document.createElement("p");
+              updatedLine.className = "muted";
+              updatedLine.textContent = `Updated ${updated.toLocaleTimeString()}`;
+              item.appendChild(updatedLine);
+            }
+          }
+
+          if (job.locations && job.locations.length) {
+            const locationsLine = document.createElement("p");
+            locationsLine.className = "muted";
+            locationsLine.textContent = `Locations: ${job.locations.join(", ")}`;
+            item.appendChild(locationsLine);
+          }
+
+          if (job.titles && job.titles.length) {
+            const titlesLine = document.createElement("p");
+            titlesLine.className = "muted";
+            titlesLine.textContent = `Titles: ${job.titles.join(", ")}`;
+            item.appendChild(titlesLine);
+          }
+
+          if (job.must_include && job.must_include.length) {
+            const includeLine = document.createElement("p");
+            includeLine.className = "muted";
+            includeLine.textContent = `Must include: ${job.must_include.join(", ")}`;
+            item.appendChild(includeLine);
+          }
+
+          if (job.must_exclude && job.must_exclude.length) {
+            const excludeLine = document.createElement("p");
+            excludeLine.className = "muted";
+            excludeLine.textContent = `Must exclude: ${job.must_exclude.join(", ")}`;
+            item.appendChild(excludeLine);
+          }
+
+          if (job.result_limit) {
+            const limitLine = document.createElement("p");
+            limitLine.className = "muted";
+            limitLine.textContent = `Requested results: ${job.result_limit}`;
+            item.appendChild(limitLine);
+          }
+
+          if (Array.isArray(job.results) && job.results.length) {
+            const resultsList = document.createElement("div");
+            resultsList.className = "result-list";
+            job.results.forEach((result, index) => {
+              const card = document.createElement("div");
+              card.className = "result-card";
+
+              const heading = document.createElement("h5");
+              heading.textContent = result.name || result.title || `Profile ${index + 1}`;
+              card.appendChild(heading);
+
+              const metaParts = [];
+              if (result.title) metaParts.push(result.title);
+              if (result.location) metaParts.push(result.location);
+              if (result.platform) metaParts.push(result.platform);
+              if (metaParts.length) {
+                const meta = document.createElement("p");
+                meta.className = "muted";
+                meta.textContent = metaParts.join(" • ");
+                card.appendChild(meta);
+              }
+
+              if (result.summary) {
+                const summary = document.createElement("p");
+                summary.textContent = result.summary;
+                card.appendChild(summary);
+              }
+
+              if (result.profile_url) {
+                const link = document.createElement("a");
+                link.href = result.profile_url;
+                link.textContent = "Open profile";
+                link.target = "_blank";
+                link.rel = "noreferrer";
+                card.appendChild(link);
+              }
+
+              resultsList.appendChild(card);
+            });
+            item.appendChild(resultsList);
+          } else if (job.status === "completed") {
+            const emptyResults = document.createElement("p");
+            emptyResults.className = "muted";
+            emptyResults.textContent = "No profiles returned for this search.";
+            item.appendChild(emptyResults);
+          }
+
+          linkedinJobsList.appendChild(item);
+        });
+      }
+
+      async function runLinkedInJobPoll(jobId) {
+        if (!jobId || !isTrackedLinkedInJob(jobId)) {
+          return;
+        }
+        if (linkedinPolls.has(jobId)) {
+          linkedinPolls.delete(jobId);
+        }
+        try {
+          const job = await apiFetch(`/api/sourcing/jobs/${encodeURIComponent(jobId)}`);
+          if (!job || !isTrackedLinkedInJob(jobId)) {
+            return;
+          }
+          upsertLinkedInJob({
+            job_id: job.job_id,
+            status: job.status,
+            progress: job.progress,
+            found_count: job.found_count,
+            results: job.results,
+            updated_at: new Date().toISOString(),
+          });
+          renderLinkedInJobs();
+          if (job.status && !["completed", "failed", "cancelled"].includes(job.status)) {
+            scheduleLinkedInJobPoll(jobId);
+          }
+        } catch (error) {
+          if (error && typeof error.message === "string" && error.message.includes("404")) {
+            scheduleLinkedInJobPoll(jobId);
+            return;
+          }
+          console.error("LinkedIn X-Ray polling failed", error);
+        }
+      }
+
+      function scheduleLinkedInJobPoll(jobId, immediate = false) {
+        if (!jobId || !isTrackedLinkedInJob(jobId)) {
+          return;
+        }
+        if (linkedinPolls.has(jobId)) {
+          window.clearTimeout(linkedinPolls.get(jobId));
+          linkedinPolls.delete(jobId);
+        }
+        if (immediate) {
+          runLinkedInJobPoll(jobId);
+          return;
+        }
+        const timeout = window.setTimeout(() => runLinkedInJobPoll(jobId), 4000);
+        linkedinPolls.set(jobId, timeout);
+      }
+
+      function toList(value) {
+        return value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function toLines(value) {
+        return value
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+      }
+
+      async function apiFetch(path, options = {}) {
+        const config = { method: "GET", headers: { Accept: "application/json" }, ...options };
+        config.headers = new Headers(config.headers);
+
+        if (state.token) {
+          config.headers.set("Authorization", `Bearer ${state.token}`);
+        }
+
+        const url = window.resolveApiUrl ? window.resolveApiUrl(path) : path;
+        const response = await fetch(url, config);
+        const text = await response.text();
+        let data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (error) {
+            data = null;
+          }
+        }
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            handleLogout(false);
+          }
+          const detail = data && (data.detail || data.message);
+          throw new Error(detail || `Request failed with status ${response.status}`);
+        }
+
+        return data;
+      }
+
+      async function registerUser(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+          email: formData.get("email").trim().toLowerCase(),
+          password: formData.get("password"),
+          role: formData.get("role"),
+        };
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          const response = await fetch(window.resolveApiUrl("/api/auth/register"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            throw new Error((data && (data.detail || data.message)) || "Registration failed");
+          }
+
+          form.reset();
+          setMessage("Account created. You can now sign in.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function loginUser(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = new URLSearchParams();
+        payload.set("username", formData.get("email").trim().toLowerCase());
+        payload.set("password", formData.get("password"));
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          const response = await fetch(window.resolveApiUrl("/api/auth/login"), {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: payload,
+          });
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            throw new Error((data && (data.detail || data.message)) || "Login failed");
+          }
+
+          state.token = data.access_token;
+          window.localStorage.setItem("recruitproToken", state.token);
+          form.reset();
+          setMessage("Signed in successfully.", "success");
+          await loadWorkspace(false);
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      function handleLogout(showNotice = true) {
+        closeActivityStream("idle");
+        clearLinkedInPolls();
+        state.token = null;
+        state.user = null;
+        state.projects = [];
+        state.positions = [];
+        state.candidates = [];
+        state.linkedinJobs = [];
+        state.activities = [];
+        state.activityKeys = new Set();
+        state.candidateFilters = { projectId: "all", positionId: "all" };
+        window.localStorage.removeItem("recruitproToken");
+        authPanel.classList.remove("hidden");
+        appPanel.classList.add("hidden");
+        projectsList.innerHTML = "";
+        positionsList.innerHTML = "";
+        if (candidateBoard) {
+          candidateBoard.innerHTML = "";
+        }
+        if (candidateFilterProjectSelect) {
+          candidateFilterProjectSelect.innerHTML = "";
+        }
+        if (candidateFilterPositionSelect) {
+          candidateFilterPositionSelect.innerHTML = "";
+        }
+        if (linkedinJobsList) {
+          linkedinJobsList.innerHTML = "";
+        }
+        if (activityFeedList) {
+          activityFeedList.innerHTML = "";
+        }
+        if (activityEmpty) {
+          activityEmpty.classList.remove("hidden");
+          activityEmpty.textContent = "Connect to start seeing activity.";
+        }
+        renderStats();
+        refreshProjectOptions();
+        renderActivityFeed();
+        if (showNotice) {
+          setMessage("You have been signed out.", "info");
+        } else {
+          setMessage("", "info");
+        }
+      }
+
+      function renderStats() {
+        statProjects.textContent = state.projects.length;
+        statPositions.textContent = state.positions.length;
+        statOpenPositions.textContent = state.positions.filter((item) => item.status === "open").length;
+        statCandidates.textContent = state.candidates.length;
+      }
+
+      function renderProjects() {
+        projectsList.innerHTML = "";
+        if (state.projects.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "No projects yet. Create one to get started.";
+          projectsList.appendChild(empty);
+          return;
+        }
+
+        state.projects.forEach((project) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = project.name;
+          item.appendChild(title);
+
+          const subtitle = document.createElement("p");
+          subtitle.className = "muted";
+          const client = project.client ? `Client: ${project.client}` : "No client assigned";
+          subtitle.textContent = `${client} • Status: ${project.status}`;
+          item.appendChild(subtitle);
+
+          if (project.summary) {
+            const summary = document.createElement("p");
+            summary.textContent = project.summary;
+            item.appendChild(summary);
+          }
+
+          const tags = [];
+          if (project.tags && project.tags.length) {
+            tags.push(`Tags: ${project.tags.join(", ")}`);
+          }
+          if (project.team_members && project.team_members.length) {
+            tags.push(`Team: ${project.team_members.join(", ")}`);
+          }
+          if (tags.length) {
+            const meta = document.createElement("p");
+            meta.className = "muted";
+            meta.textContent = tags.join(" • ");
+            item.appendChild(meta);
+          }
+
+          const hires = document.createElement("p");
+          hires.className = "muted";
+          const target = project.target_hires ?? 0;
+          hires.textContent = `Hires: ${project.hires_count ?? 0} / ${target}`;
+          item.appendChild(hires);
+
+          projectsList.appendChild(item);
+        });
+      }
+
+      function projectLookup(projectId) {
+        return state.projects.find((project) => project.project_id === projectId);
+      }
+
+      function positionLookup(positionId) {
+        return state.positions.find((position) => position.position_id === positionId);
+      }
+
+      function renderPositions() {
+        positionsList.innerHTML = "";
+        if (state.positions.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = "No positions yet. Link a role to a project to begin tracking.";
+          positionsList.appendChild(empty);
+          return;
+        }
+
+        state.positions.forEach((position) => {
+          const item = document.createElement("li");
+          item.className = "item-card";
+
+          const title = document.createElement("h4");
+          title.textContent = position.title;
+          item.appendChild(title);
+
+          const project = projectLookup(position.project_id);
+          const details = document.createElement("p");
+          details.className = "muted";
+          const projectName = project ? project.name : "Unassigned";
+          details.textContent = `${projectName} • Status: ${position.status}`;
+          item.appendChild(details);
+
+          if (position.location) {
+            const location = document.createElement("p");
+            location.textContent = `Location: ${position.location}`;
+            item.appendChild(location);
+          }
+
+          const openings = document.createElement("p");
+          openings.className = "muted";
+          openings.textContent = `Openings: ${position.openings ?? 0} • Applicants: ${position.applicants_count ?? 0}`;
+          item.appendChild(openings);
+
+          positionsList.appendChild(item);
+        });
+      }
+
+      function getStatusLabel(statusKey) {
+        const entry = KANBAN_STATUSES.find((item) => item.key === statusKey);
+        return entry ? entry.label : statusKey;
+      }
+
+      function escapeSelector(value) {
+        if (typeof CSS !== "undefined" && CSS.escape) {
+          return CSS.escape(value);
+        }
+        return value.replace(/([\0-\x1f\x7f-\x9f\s!"#$%&'()*+,./:;<=>?@\[\]^`{|}~])/g, "\\$1");
+      }
+
+      function getFilteredCandidates() {
+        const projectFilter = state.candidateFilters.projectId || "all";
+        const positionFilter = state.candidateFilters.positionId || "all";
+        return state.candidates.filter((candidate) => {
+          const candidateProjectId = candidate.project_id || "";
+          const candidatePositionId = candidate.position_id || "";
+
+          if (projectFilter === "unassigned" && candidateProjectId) {
+            return false;
+          }
+          if (projectFilter !== "all" && projectFilter !== "unassigned" && candidateProjectId !== projectFilter) {
+            return false;
+          }
+
+          if (positionFilter === "unassigned" && candidatePositionId) {
+            return false;
+          }
+          if (positionFilter !== "all" && positionFilter !== "unassigned" && candidatePositionId !== positionFilter) {
+            return false;
+          }
+
+          return true;
+        });
+      }
+
+      function createCandidateCard(candidate) {
+        const card = document.createElement("article");
+        card.className = "kanban-card";
+        card.draggable = true;
+        card.dataset.candidateId = candidate.candidate_id;
+        const statusKey = candidate.status && KNOWN_STATUS_SET.has(candidate.status) ? candidate.status : "new";
+        card.dataset.status = statusKey;
+
+        card.addEventListener("dragstart", (event) => {
+          draggingCandidateId = candidate.candidate_id;
+          draggingCandidateStatus = statusKey;
+          card.classList.add("is-dragging");
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", candidate.candidate_id);
+          }
+        });
+
+        card.addEventListener("dragend", () => {
+          draggingCandidateId = null;
+          draggingCandidateStatus = null;
+          card.classList.remove("is-dragging");
+        });
+
+        const title = document.createElement("h4");
+        title.className = "kanban-card-title";
+        title.textContent = candidate.name || "Unnamed candidate";
+        card.appendChild(title);
+
+        const meta = document.createElement("div");
+        meta.className = "kanban-card-meta";
+        const position = positionLookup(candidate.position_id);
+        const project = projectLookup(candidate.project_id);
+
+        const emailLine = document.createElement("span");
+        emailLine.textContent = candidate.email ? `Email: ${candidate.email}` : "Email: —";
+        meta.appendChild(emailLine);
+
+        const positionLine = document.createElement("span");
+        positionLine.textContent = position ? `Position: ${position.title}` : "Position: Unassigned";
+        meta.appendChild(positionLine);
+
+        const projectLine = document.createElement("span");
+        projectLine.textContent = project ? `Project: ${project.name}` : "Project: Unassigned";
+        meta.appendChild(projectLine);
+
+        const sourceLine = document.createElement("span");
+        sourceLine.textContent = candidate.source ? `Source: ${candidate.source}` : "Source: —";
+        meta.appendChild(sourceLine);
+
+        card.appendChild(meta);
+
+        const ratingLine = document.createElement("p");
+        ratingLine.className = "kanban-card-detail";
+        ratingLine.textContent = `Rating: ${candidate.rating ?? "—"}`;
+        card.appendChild(ratingLine);
+
+        const tagsLabel = document.createElement("p");
+        tagsLabel.className = "kanban-card-detail";
+        tagsLabel.textContent = "Tags:";
+        card.appendChild(tagsLabel);
+
+        const tagsWrap = document.createElement("div");
+        tagsWrap.className = "kanban-card-tags";
+        const tags = Array.isArray(candidate.tags) ? candidate.tags.filter(Boolean) : [];
+        if (tags.length === 0) {
+          const placeholderTag = document.createElement("span");
+          placeholderTag.className = "kanban-tag";
+          placeholderTag.style.opacity = "0.6";
+          placeholderTag.textContent = "No tags";
+          tagsWrap.appendChild(placeholderTag);
+        } else {
+          tags.slice(0, 6).forEach((tag) => {
+            const tagEl = document.createElement("span");
+            tagEl.className = "kanban-tag";
+            tagEl.textContent = tag;
+            tagsWrap.appendChild(tagEl);
+          });
+        }
+        card.appendChild(tagsWrap);
+
+        const link = document.createElement("a");
+        link.className = "kanban-card-link";
+        link.textContent = "Open profile";
+        link.href = `/candidate-profile?candidate_id=${encodeURIComponent(candidate.candidate_id)}${
+          state.token ? `&token=${encodeURIComponent(state.token)}` : ""
+        }`;
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        card.appendChild(link);
+
+        return card;
+      }
+
+      function renderCandidates() {
+        if (!candidateBoard) {
+          return;
+        }
+
+        const filteredCandidates = getFilteredCandidates();
+        const grouped = new Map(KANBAN_STATUSES.map((status) => [status.key, []]));
+        filteredCandidates.forEach((candidate) => {
+          const statusKey = candidate.status && KNOWN_STATUS_SET.has(candidate.status) ? candidate.status : "new";
+          grouped.get(statusKey).push(candidate);
+        });
+
+        candidateBoard.innerHTML = "";
+
+        KANBAN_STATUSES.forEach((status) => {
+          const column = document.createElement("section");
+          column.className = "kanban-column";
+          column.dataset.status = status.key;
+          column.style.setProperty("--column-accent", status.color);
+
+          column.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            column.classList.add("is-over");
+            if (event.dataTransfer) {
+              event.dataTransfer.dropEffect = "move";
+            }
+          });
+
+          column.addEventListener("dragenter", (event) => {
+            event.preventDefault();
+            column.classList.add("is-over");
+          });
+
+          column.addEventListener("dragleave", (event) => {
+            if (!column.contains(event.relatedTarget)) {
+              column.classList.remove("is-over");
+            }
+          });
+
+          column.addEventListener("drop", (event) => {
+            event.preventDefault();
+            column.classList.remove("is-over");
+            if (!draggingCandidateId) {
+              return;
+            }
+            const candidateId = draggingCandidateId;
+            const previousStatus = draggingCandidateStatus;
+            draggingCandidateId = null;
+            draggingCandidateStatus = null;
+            if (previousStatus === status.key) {
+              renderCandidates();
+              return;
+            }
+            moveCandidateToStatus(candidateId, status.key, previousStatus);
+          });
+
+          const header = document.createElement("div");
+          header.className = "kanban-column-header";
+
+          const title = document.createElement("span");
+          title.className = "kanban-column-title";
+          title.textContent = status.label;
+          header.appendChild(title);
+
+          const count = document.createElement("span");
+          count.className = "kanban-column-count";
+          count.textContent = grouped.get(status.key).length.toString();
+          header.appendChild(count);
+
+          const body = document.createElement("div");
+          body.className = "kanban-column-body";
+
+          const candidatesForColumn = grouped.get(status.key);
+          if (candidatesForColumn.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "kanban-empty";
+            empty.textContent = "No candidates";
+            body.appendChild(empty);
+          } else {
+            candidatesForColumn
+              .slice()
+              .sort((a, b) => {
+                const ratingA = a.rating ?? -Infinity;
+                const ratingB = b.rating ?? -Infinity;
+                if (ratingA === ratingB) {
+                  const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                  const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                  return dateB - dateA;
+                }
+                return ratingB - ratingA;
+              })
+              .forEach((candidate) => {
+                const card = createCandidateCard(candidate);
+                body.appendChild(card);
+              });
+          }
+
+          column.appendChild(header);
+          column.appendChild(body);
+          candidateBoard.appendChild(column);
+        });
+      }
+
+      function highlightCandidateCard(candidateId) {
+        if (!candidateId || !candidateBoard) {
+          return;
+        }
+        window.requestAnimationFrame(() => {
+          const selector = `.kanban-card[data-candidate-id="${escapeSelector(candidateId)}"]`;
+          const card = candidateBoard.querySelector(selector);
+          if (!card) {
+            return;
+          }
+          card.classList.add("kanban-card--updated");
+          window.setTimeout(() => {
+            card.classList.remove("kanban-card--updated");
+          }, 600);
+        });
+      }
+
+      async function moveCandidateToStatus(candidateId, nextStatus, previousStatus = null) {
+        if (!candidateId || !KNOWN_STATUS_SET.has(nextStatus)) {
+          return;
+        }
+        const index = state.candidates.findIndex((candidate) => candidate.candidate_id === candidateId);
+        if (index === -1) {
+          return;
+        }
+        const currentCandidate = state.candidates[index];
+        const originalStatus = previousStatus ?? currentCandidate.status;
+        if (originalStatus === nextStatus) {
+          return;
+        }
+
+        state.candidates[index] = { ...currentCandidate, status: nextStatus };
+        renderCandidates();
+
+        try {
+          const updated = await apiFetch(`/api/candidates/${encodeURIComponent(candidateId)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: nextStatus }),
+          });
+          state.candidates[index] = { ...state.candidates[index], ...updated };
+          renderStats();
+          renderCandidates();
+          highlightCandidateCard(candidateId);
+          setMessage(`Candidate moved to ${getStatusLabel(nextStatus)} stage.`, "success");
+        } catch (error) {
+          state.candidates[index] = currentCandidate;
+          renderCandidates();
+          setMessage(error.message, "error");
+        }
+      }
+
+      function refreshCandidateFilterProjectOptions() {
+        if (!candidateFilterProjectSelect) {
+          return false;
+        }
+        const currentValue = state.candidateFilters.projectId || "all";
+        const options = [
+          { value: "all", label: "All projects" },
+          { value: "unassigned", label: "Unassigned" },
+        ];
+        state.projects.forEach((project) => {
+          options.push({ value: project.project_id, label: project.name });
+        });
+
+        candidateFilterProjectSelect.innerHTML = "";
+        options.forEach((option) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = option.value;
+          optionEl.textContent = option.label;
+          candidateFilterProjectSelect.appendChild(optionEl);
+        });
+
+        const hasCurrent = options.some((option) => option.value === currentValue);
+        const nextValue = hasCurrent ? currentValue : "all";
+        state.candidateFilters.projectId = nextValue;
+        candidateFilterProjectSelect.value = nextValue;
+        return nextValue !== currentValue;
+      }
+
+      function refreshCandidateFilterPositionOptions() {
+        if (!candidateFilterPositionSelect) {
+          return false;
+        }
+        const projectFilter = state.candidateFilters.projectId || "all";
+        const currentValue = state.candidateFilters.positionId || "all";
+
+        const baseOptions = [
+          { value: "all", label: "All positions" },
+          { value: "unassigned", label: "Unassigned" },
+        ];
+        const relevantPositions = projectFilter === "all"
+          ? state.positions
+          : state.positions.filter((position) => position.project_id === projectFilter);
+
+        candidateFilterPositionSelect.innerHTML = "";
+        baseOptions.forEach((option) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = option.value;
+          optionEl.textContent = option.label;
+          candidateFilterPositionSelect.appendChild(optionEl);
+        });
+
+        relevantPositions.forEach((position) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = position.position_id;
+          optionEl.textContent = position.title;
+          candidateFilterPositionSelect.appendChild(optionEl);
+        });
+
+        const validValues = new Set([
+          ...baseOptions.map((option) => option.value),
+          ...relevantPositions.map((position) => position.position_id),
+        ]);
+        const nextValue = validValues.has(currentValue) ? currentValue : "all";
+        state.candidateFilters.positionId = nextValue;
+        candidateFilterPositionSelect.value = nextValue;
+        candidateFilterPositionSelect.disabled = relevantPositions.length === 0 && projectFilter !== "unassigned";
+        return nextValue !== currentValue;
+      }
+
+      function refreshCandidateFilterOptions() {
+        const projectChanged = refreshCandidateFilterProjectOptions();
+        const positionChanged = refreshCandidateFilterPositionOptions();
+        if (projectChanged || positionChanged) {
+          renderCandidates();
+        }
+      }
+
+      function refreshProjectOptions() {
+        const selects = [
+          { element: positionProjectSelect, placeholder: "Select a project" },
+          { element: candidateProjectSelect, placeholder: "No project" },
+          {
+            element: documentProjectSelect,
+            placeholder: state.projects.length ? "Choose a project" : "No projects available",
+          },
+          {
+            element: linkedinProjectSelect,
+            placeholder: state.projects.length ? "Choose a project" : "No projects available",
+          },
+        ];
+        selects.forEach(({ element, placeholder }) => {
+          if (!element) return;
+          const current = element.value;
+          element.innerHTML = "";
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = placeholder;
+          element.appendChild(option);
+          state.projects.forEach((project) => {
+            const projectOption = document.createElement("option");
+            projectOption.value = project.project_id;
+            projectOption.textContent = project.name;
+            element.appendChild(projectOption);
+          });
+          if (current && state.projects.some((project) => project.project_id === current)) {
+            element.value = current;
+          }
+        });
+
+        if (documentProjectSelect) {
+          documentProjectSelect.disabled = state.projects.length === 0;
+        }
+        if (documentUploadForm) {
+          const submitButton = documentUploadForm.querySelector("button[type=submit]");
+          if (submitButton) {
+            submitButton.disabled = state.projects.length === 0;
+          }
+        }
+
+        if (linkedinProjectSelect) {
+          linkedinProjectSelect.disabled = state.projects.length === 0;
+        }
+        if (linkedinForm) {
+          const submitButton = linkedinForm.querySelector("button[type=submit]");
+          if (submitButton) {
+            submitButton.disabled = state.projects.length === 0;
+          }
+        }
+
+        refreshCandidatePositionOptions();
+        refreshCandidateFilterOptions();
+      }
+
+      function refreshCandidatePositionOptions() {
+        const selectedProjectId = candidateProjectSelect.value;
+        const relevantPositions = selectedProjectId
+          ? state.positions.filter((position) => position.project_id === selectedProjectId)
+          : state.positions;
+
+        const current = candidatePositionSelect.value;
+        candidatePositionSelect.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = relevantPositions.length ? "No position" : "No positions available";
+        candidatePositionSelect.appendChild(placeholder);
+
+        relevantPositions.forEach((position) => {
+          const option = document.createElement("option");
+          option.value = position.position_id;
+          option.textContent = `${position.title} (${projectLookup(position.project_id)?.name || "Unassigned"})`;
+          candidatePositionSelect.appendChild(option);
+        });
+
+        if (current && relevantPositions.some((position) => position.position_id === current)) {
+          candidatePositionSelect.value = current;
+        }
+      }
+
+      function renderWorkspace() {
+        if (!state.user) {
+          workspaceUser.textContent = "Signed in as —";
+          workspaceRole.textContent = "";
+          workspaceRole.classList.add("hidden");
+        } else {
+          workspaceUser.textContent = `Signed in as ${state.user.name} (${state.user.email})`;
+          workspaceRole.textContent = state.user.role === "admin" ? "Admin" : "Recruiter";
+          workspaceRole.classList.remove("hidden");
+        }
+
+        renderStats();
+        renderProjects();
+        renderPositions();
+        renderCandidates();
+        renderLinkedInJobs();
+        renderActivityFeed();
+        refreshProjectOptions();
+      }
+
+      async function loadWorkspace(showNotice = false) {
+        if (!state.token) {
+          handleLogout(false);
+          return;
+        }
+
+        try {
+          const [user, projects, positions, candidates, activities] = await Promise.all([
+            apiFetch("/api/user"),
+            apiFetch("/api/projects"),
+            apiFetch("/api/positions"),
+            apiFetch("/api/candidates"),
+            apiFetch("/api/activity"),
+          ]);
+
+          state.user = user;
+          state.projects = Array.isArray(projects) ? projects : [];
+          state.positions = Array.isArray(positions) ? positions : [];
+          state.candidates = Array.isArray(candidates) ? candidates : [];
+          replaceActivities(Array.isArray(activities) ? activities : []);
+
+          authPanel.classList.add("hidden");
+          appPanel.classList.remove("hidden");
+          renderWorkspace();
+          ensureActivityStream();
+          if (showNotice) {
+            setMessage("Workspace loaded.", "success");
+          }
+        } catch (error) {
+          setMessage(error.message, "error");
+          if (state.token) {
+            setActivityStatus("error", "Unable to load activity feed");
+          }
+        }
+      }
+
+      async function uploadProjectDocument(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        if (!documentProjectSelect || !documentFileInput) {
+          setMessage("Document upload form is unavailable.", "error");
+          return;
+        }
+
+        const projectId = documentProjectSelect.value;
+        const file = documentFileInput.files && documentFileInput.files[0];
+
+        if (!projectId) {
+          setMessage("Select a project before uploading a document.", "error");
+          return;
+        }
+
+        if (!file) {
+          setMessage("Choose a file to upload.", "error");
+          return;
+        }
+
+        const submitButton = documentUploadForm ? documentUploadForm.querySelector("button[type=submit]") : null;
+
+        try {
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("filename", file.name);
+          formData.append("mime_type", file.type || "application/octet-stream");
+          formData.append("scope", "project");
+          formData.append("scope_id", projectId);
+
+          await apiFetch("/api/documents/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (documentUploadForm) {
+            documentUploadForm.reset();
+          }
+          documentProjectSelect.value = projectId;
+          setMessage(`Uploaded ${file.name} for the project.`, "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = state.projects.length === 0;
+          }
+        }
+      }
+
+      async function startLinkedInXray(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        if (!linkedinForm) {
+          setMessage("LinkedIn search form is unavailable.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const projectId = formData.get("project_id");
+        const searchQuery = (formData.get("search_query") || "").toString().trim();
+
+        if (!projectId) {
+          setMessage("Select a project before starting a LinkedIn search.", "error");
+          return;
+        }
+
+        if (!searchQuery) {
+          setMessage("Enter a search query for LinkedIn X-Ray.", "error");
+          return;
+        }
+
+        const payload = { project_id: projectId, search_query: searchQuery };
+        const locationsRaw = (formData.get("locations") || "").toString().trim();
+        if (locationsRaw) {
+          payload.locations = toList(locationsRaw);
+        }
+        const titlesRaw = (formData.get("titles") || "").toString().trim();
+        if (titlesRaw) {
+          payload.titles = toList(titlesRaw);
+        }
+        const includeRaw = (formData.get("must_include") || "").toString().trim();
+        if (includeRaw) {
+          payload.must_include = toLines(includeRaw);
+        }
+        const excludeRaw = (formData.get("must_exclude") || "").toString().trim();
+        if (excludeRaw) {
+          payload.must_exclude = toLines(excludeRaw);
+        }
+        const limitRaw = (formData.get("result_limit") || "").toString().trim();
+        if (limitRaw) {
+          const limitNumber = Number.parseInt(limitRaw, 10);
+          if (!Number.isNaN(limitNumber)) {
+            payload.result_limit = limitNumber;
+          }
+        }
+
+        const submitButton = form.querySelector("button[type=submit]");
+
+        try {
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          const job = await apiFetch("/api/sourcing/linkedin-xray/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (job && job.job_id) {
+            upsertLinkedInJob({
+              job_id: job.job_id,
+              status: job.status,
+              search_query: searchQuery,
+              project_id: projectId,
+              locations: payload.locations,
+              titles: payload.titles,
+              must_include: payload.must_include,
+              must_exclude: payload.must_exclude,
+              result_limit: payload.result_limit,
+              updated_at: new Date().toISOString(),
+            });
+            renderLinkedInJobs();
+            scheduleLinkedInJobPoll(job.job_id, true);
+            setMessage(`LinkedIn X-Ray job ${job.job_id} started.`, "success");
+          } else {
+            setMessage("LinkedIn X-Ray search started.", "success");
+          }
+
+          const previousProject = projectId;
+          form.reset();
+          if (linkedinProjectSelect && previousProject) {
+            linkedinProjectSelect.value = previousProject;
+          }
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = state.projects.length === 0;
+          }
+        }
+      }
+
+      async function createProject(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+        };
+        const client = formData.get("client").trim();
+        const location = formData.get("location_region").trim();
+        const summary = formData.get("summary").trim();
+        const tagsValue = formData.get("tags").trim();
+        const teamMembersValue = formData.get("team_members").trim();
+        const target = formData.get("target_hires").trim();
+
+        if (client) payload.client = client;
+        if (location) payload.location_region = location;
+        if (summary) payload.summary = summary;
+        if (tagsValue) payload.tags = toList(tagsValue);
+        if (teamMembersValue) payload.team_members = toList(teamMembersValue);
+        if (target) {
+          const targetNumber = Number.parseInt(target, 10);
+          if (!Number.isNaN(targetNumber)) {
+            payload.target_hires = targetNumber;
+          }
+        }
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/projects", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          await loadWorkspace(false);
+          setMessage("Project created successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function createPosition(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          project_id: formData.get("project_id"),
+          title: formData.get("title").trim(),
+        };
+        const department = formData.get("department").trim();
+        const location = formData.get("location").trim();
+        const status = formData.get("status");
+        const openings = formData.get("openings").trim();
+        const responsibilities = formData.get("responsibilities").trim();
+        const requirements = formData.get("requirements").trim();
+
+        if (!payload.project_id) {
+          setMessage("Select a project before creating a position.", "error");
+          return;
+        }
+
+        if (department) payload.department = department;
+        if (location) payload.location = location;
+        if (status) payload.status = status;
+        if (openings) {
+          const openingsNumber = Number.parseInt(openings, 10);
+          if (!Number.isNaN(openingsNumber)) {
+            payload.openings = openingsNumber;
+          }
+        }
+        if (responsibilities) payload.responsibilities = toLines(responsibilities);
+        if (requirements) payload.requirements = toLines(requirements);
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/positions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          await loadWorkspace(false);
+          setMessage("Position created successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      async function createCandidate(event) {
+        event.preventDefault();
+        if (!state.token) {
+          setMessage("Please sign in first.", "error");
+          return;
+        }
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get("name").trim(),
+          source: formData.get("source").trim(),
+          status: formData.get("status"),
+        };
+        const email = formData.get("email").trim();
+        const projectId = formData.get("project_id");
+        const positionId = formData.get("position_id");
+
+        if (email) payload.email = email;
+        if (projectId) payload.project_id = projectId;
+        if (positionId) payload.position_id = positionId;
+
+        try {
+          form.querySelector("button[type=submit]").disabled = true;
+          await apiFetch("/api/candidates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          form.reset();
+          refreshCandidatePositionOptions();
+          await loadWorkspace(false);
+          setMessage("Candidate added successfully.", "success");
+        } catch (error) {
+          setMessage(error.message, "error");
+        } finally {
+          form.querySelector("button[type=submit]").disabled = false;
+        }
+      }
+
+      refreshCandidateFilterOptions();
+
+      document.getElementById("register-form").addEventListener("submit", registerUser);
+      document.getElementById("login-form").addEventListener("submit", loginUser);
+      document.getElementById("project-form").addEventListener("submit", createProject);
+      if (documentUploadForm) {
+        documentUploadForm.addEventListener("submit", uploadProjectDocument);
+      }
+      if (linkedinForm) {
+        linkedinForm.addEventListener("submit", startLinkedInXray);
+      }
+      document.getElementById("position-form").addEventListener("submit", createPosition);
+      document.getElementById("candidate-form").addEventListener("submit", createCandidate);
+      candidateProjectSelect.addEventListener("change", refreshCandidatePositionOptions);
+      if (candidateFilterProjectSelect) {
+        candidateFilterProjectSelect.addEventListener("change", (event) => {
+          state.candidateFilters.projectId = event.target.value;
+          state.candidateFilters.positionId = "all";
+          refreshCandidateFilterPositionOptions();
+          renderCandidates();
+        });
+      }
+      if (candidateFilterPositionSelect) {
+        candidateFilterPositionSelect.addEventListener("change", (event) => {
+          state.candidateFilters.positionId = event.target.value;
+          renderCandidates();
+        });
+      }
+      refreshButton.addEventListener("click", () => {
+        if (!state.token) {
+          setMessage("Sign in to refresh workspace data.", "error");
+          return;
+        }
+        loadWorkspace(true);
+      });
+      logoutButton.addEventListener("click", () => handleLogout(true));
+      window.addEventListener("beforeunload", () => {
+        closeActivityStream();
+        clearLinkedInPolls();
+      });
+
+      renderActivityFeed();
+
+      if (state.token) {
+        loadWorkspace(false);
+      }
+    </script>
+  </body>
+</html>

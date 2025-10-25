@@ -1,0 +1,66 @@
+{
+  "name": "recruitpro-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron desktop shell for the RecruitPro platform",
+  "main": "src/main.js",
+  "author": "RecruitPro Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
+    "lint": "echo 'No lint step configured'",
+    "package": "electron-builder --dir",
+    "make": "electron-builder",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^29.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.recruitpro.desktop",
+    "productName": "RecruitPro Desktop",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "scripts/**/*",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "backend/app"
+      },
+      {
+        "from": "../templates",
+        "to": "backend/templates"
+      },
+      {
+        "from": "../pyproject.toml",
+        "to": "backend/pyproject.toml"
+      },
+      {
+        "from": "../README.md",
+        "to": "backend/README.md"
+      }
+    ],
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.business"
+    },
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Office"
+    }
+  }
+}

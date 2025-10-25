@@ -1,7 +1,7 @@
 """Admin endpoints."""
 
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -25,35 +25,55 @@ from ..services.advanced_ai_features import (
     set_feature_flag,
 )
 from ..services.integrations import list_integration_status
+from ..services.migrations import apply_structured_json_migration
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["admin"])
 
 
 def require_admin(user: User) -> None:
-    if user.role != "admin":
+    if user.role not in {"admin", "super_admin"}:
         raise HTTPException(status_code=403, detail="Admin privileges required")
 
 
 @router.post("/admin/migrate-from-json")
 def migrate_from_json(
-    payload: Dict[str, int],
+    payload: Dict[str, object],
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> Dict[str, str]:
+) -> Dict[str, object]:
     require_admin(current_user)
+
+    summary: Optional[Dict[str, object]] = None
+    data = payload.get("data")
+    if isinstance(data, dict):
+        try:
+            summary = apply_structured_json_migration(db, data, current_user=current_user)
+        except ValueError as error:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+
+    items_total = int(summary["items_total"]) if summary else int(payload.get("items_total", 0) or 0)
+    items_success = int(summary["items_success"]) if summary else int(payload.get("items_success", 0) or 0)
+    items_failed = int(summary["items_failed"]) if summary else int(payload.get("items_failed", 0) or 0)
+    errors = summary.get("errors") if summary else payload.get("errors")
+
     log = AdminMigrationLog(
         migration_id=generate_id(),
         user_id=current_user.user_id,
-        source_name=payload.get("source_name", "json"),
-        items_total=payload.get("items_total", 0),
-        items_success=payload.get("items_success", 0),
-        items_failed=payload.get("items_failed", 0),
-        error_json=payload.get("errors"),
+        source_name=str(payload.get("source_name", "json")),
+        items_total=items_total,
+        items_success=items_success,
+        items_failed=items_failed,
+        error_json=errors,
         created_at=datetime.utcnow(),
     )
     db.add(log)
-    return {"status": "completed", "migration_id": log.migration_id}
+    db.flush()
+
+    response: Dict[str, object] = {"status": "completed", "migration_id": log.migration_id}
+    if summary:
+        response["summary"] = summary
+    return response
 
 
 @router.get("/admin/advanced/features", response_model=List[FeatureToggleRead])

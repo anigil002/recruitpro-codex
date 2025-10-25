@@ -252,6 +252,94 @@
                 </button>
               </div>
             </section>
+            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+              Database Administration
+            </h2>
+            <section class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+              <div class="flex flex-col gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
+                    Local SQLite Maintenance
+                  </h3>
+                  <p
+                    class="text-xs font-medium text-slate-500 dark:text-slate-400"
+                    id="database-admin-auth-status"
+                  ></p>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                  Create secure backups, restore previous snapshots, and import legacy JSON exports directly from the desktop console.
+                </p>
+              </div>
+              <div class="grid gap-5 md:grid-cols-2">
+                <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                  <div>
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">Create Backup</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Generate a timestamped copy of the local SQLite database before major changes or upgrades.
+                    </p>
+                  </div>
+                  <button
+                    class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:opacity-50"
+                    id="create-backup-button"
+                    type="button"
+                  >
+                    Create Backup
+                  </button>
+                  <p class="text-xs font-medium text-slate-500 dark:text-slate-400" id="database-backup-status"></p>
+                </div>
+                <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                  <div>
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">Restore Backup</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Select a backup file to replace the active database. The backend restarts automatically after a successful restore.
+                    </p>
+                  </div>
+                  <button
+                    class="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-100 focus:outline-none dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700 disabled:opacity-50"
+                    id="restore-backup-button"
+                    type="button"
+                  >
+                    Restore Backup
+                  </button>
+                  <p class="text-xs font-medium text-slate-500 dark:text-slate-400" id="database-restore-status"></p>
+                </div>
+                <div class="md:col-span-2 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                  <div>
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white">JSON Migration</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Import structured JSON exports of projects, positions, candidates, and documents. Existing records are updated automatically.
+                    </p>
+                  </div>
+                  <input
+                    accept=".json,application/json"
+                    class="hidden"
+                    id="json-migration-input"
+                    type="file"
+                  />
+                  <div class="flex flex-wrap items-center gap-3">
+                    <button
+                      class="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-100 focus:outline-none dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700 disabled:opacity-50"
+                      id="choose-migration-file"
+                      type="button"
+                    >
+                      Select JSON File
+                    </button>
+                    <span class="text-sm text-slate-500 dark:text-slate-400" id="json-migration-file-label">No file selected</span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <button
+                      class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:opacity-50"
+                      id="run-migration-button"
+                      type="button"
+                      disabled
+                    >
+                      Import Data
+                    </button>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400" id="json-migration-status"></p>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
           <footer class="mt-10 flex items-center justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-800">
             <button
@@ -272,23 +360,340 @@
       </main>
     </div>
     <script>
-      const toggleButtons = document.querySelectorAll('.toggle-visibility');
-      toggleButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          const targetId = button.getAttribute('data-target');
-          const input = document.getElementById(targetId);
-          if (!input) {
+        const toggleButtons = document.querySelectorAll('.toggle-visibility');
+        toggleButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) {
+              return;
+            }
+            if (input.type === 'password') {
+              input.type = 'text';
+              button.querySelector('.material-symbols-outlined').textContent = 'visibility_off';
+            } else {
+              input.type = 'password';
+              button.querySelector('.material-symbols-outlined').textContent = 'visibility';
+            }
+          });
+        });
+
+        const tonePalette = {
+          success: '#10B981',
+          error: '#EF4444',
+          info: '#2563EB',
+          muted: '',
+        };
+
+        const setStatusMessage = (element, message, tone = 'muted') => {
+          if (!element) {
             return;
           }
-          if (input.type === 'password') {
-            input.type = 'text';
-            button.querySelector('.material-symbols-outlined').textContent = 'visibility_off';
-          } else {
-            input.type = 'password';
-            button.querySelector('.material-symbols-outlined').textContent = 'visibility';
+          element.textContent = message || '';
+          element.style.color = tonePalette[tone] ?? '';
+        };
+
+        const state = {
+          backendUrl: window.backendBaseUrl || '',
+          loadingMigration: false,
+        };
+
+        const adminStatusEl = document.getElementById('database-admin-auth-status');
+        const backupStatusEl = document.getElementById('database-backup-status');
+        const restoreStatusEl = document.getElementById('database-restore-status');
+        const migrationStatusEl = document.getElementById('json-migration-status');
+        const migrationFileLabel = document.getElementById('json-migration-file-label');
+        const migrationFileInput = document.getElementById('json-migration-input');
+        const chooseMigrationButton = document.getElementById('choose-migration-file');
+        const runMigrationButton = document.getElementById('run-migration-button');
+        const createBackupButton = document.getElementById('create-backup-button');
+        const restoreBackupButton = document.getElementById('restore-backup-button');
+
+        const ensureBackendUrl = async () => {
+          if (state.backendUrl) {
+            return state.backendUrl;
           }
-        });
-      });
+          if (window.backendBaseUrl) {
+            state.backendUrl = window.backendBaseUrl;
+            return state.backendUrl;
+          }
+          if (window.electronAPI?.getBackendUrl) {
+            try {
+              const url = await window.electronAPI.getBackendUrl();
+              if (url) {
+                state.backendUrl = url;
+                window.backendBaseUrl = url;
+              }
+            } catch (error) {
+              console.warn('Failed to resolve backend URL for admin tools', error);
+            }
+          }
+          return state.backendUrl || '';
+        };
+
+        const resolveApi = (base, path = '') => {
+          if (!path) {
+            return base;
+          }
+          if (path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+          }
+          if (!base) {
+            return path;
+          }
+          if (path.startsWith('/')) {
+            return `${base}${path}`;
+          }
+          return `${base}/${path}`;
+        };
+
+        const authorizedRequest = async (path, options = {}) => {
+          const token = sessionStorage.getItem('recruitproAccessToken');
+          if (!token) {
+            throw new Error('Sign in with an administrator or super administrator account to continue.');
+          }
+
+          const base = await ensureBackendUrl();
+          const url = resolveApi(base, path);
+          const headers = new Headers(options.headers || {});
+          headers.set('Authorization', `Bearer ${token}`);
+
+          const hasBody = Object.prototype.hasOwnProperty.call(options, 'body') && options.body !== null && options.body !== undefined;
+          if (hasBody && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
+          }
+
+          const response = await fetch(url, {
+            ...options,
+            headers,
+          });
+          const rawText = await response.text();
+
+          if (!response.ok) {
+            throw new Error(rawText || `Request failed with status ${response.status}`);
+          }
+
+          if (!rawText) {
+            return null;
+          }
+
+          try {
+            return JSON.parse(rawText);
+          } catch (error) {
+            return rawText;
+          }
+        };
+
+        const refreshMigrationButtonState = () => {
+          if (!runMigrationButton) {
+            return;
+          }
+          const token = sessionStorage.getItem('recruitproAccessToken');
+          const hasFile = Boolean(migrationFileInput?.files?.length);
+          runMigrationButton.disabled = !token || !hasFile || state.loadingMigration;
+        };
+
+        const updateAdminStatus = () => {
+          const token = sessionStorage.getItem('recruitproAccessToken');
+          if (!token) {
+            setStatusMessage(
+              adminStatusEl,
+              'Sign in with an admin or super admin account to unlock database tools.',
+              'info',
+            );
+          } else {
+            setStatusMessage(adminStatusEl, 'Administrator session detected.', 'success');
+          }
+          refreshMigrationButtonState();
+        };
+
+        if (chooseMigrationButton && migrationFileInput) {
+          chooseMigrationButton.addEventListener('click', () => {
+            migrationFileInput.click();
+          });
+        }
+
+        if (migrationFileInput) {
+          migrationFileInput.addEventListener('change', () => {
+            const file = migrationFileInput.files?.[0];
+            if (file && migrationFileLabel) {
+              const sizeKb = (file.size / 1024).toFixed(1);
+              migrationFileLabel.textContent = `${file.name} (${sizeKb} KB)`;
+            } else if (migrationFileLabel) {
+              migrationFileLabel.textContent = 'No file selected';
+            }
+            setStatusMessage(migrationStatusEl, '');
+            refreshMigrationButtonState();
+          });
+        }
+
+        if (runMigrationButton && migrationFileInput) {
+          runMigrationButton.addEventListener('click', async () => {
+            const file = migrationFileInput.files?.[0];
+            if (!file) {
+              setStatusMessage(migrationStatusEl, 'Select a JSON export to import.', 'error');
+              return;
+            }
+
+            try {
+              state.loadingMigration = true;
+              refreshMigrationButtonState();
+              setStatusMessage(migrationStatusEl, 'Importing JSON data…', 'info');
+              const fileText = await file.text();
+              let parsed;
+              try {
+                parsed = JSON.parse(fileText);
+              } catch (error) {
+                throw new Error('The selected file is not valid JSON.');
+              }
+
+              const response = await authorizedRequest('/api/admin/migrate-from-json', {
+                method: 'POST',
+                body: JSON.stringify({
+                  source_name: file.name,
+                  data: parsed,
+                }),
+              });
+
+              if (response?.summary) {
+                const { summary } = response;
+                const parts = [];
+                if (summary.projects) {
+                  parts.push(`Projects ${summary.projects.created ?? 0} created / ${summary.projects.updated ?? 0} updated`);
+                }
+                if (summary.positions) {
+                  parts.push(`Positions ${summary.positions.created ?? 0} created / ${summary.positions.updated ?? 0} updated`);
+                }
+                if (summary.candidates) {
+                  parts.push(`Candidates ${summary.candidates.created ?? 0} created / ${summary.candidates.updated ?? 0} updated`);
+                }
+                if (summary.documents) {
+                  parts.push(`Documents ${summary.documents.created ?? 0} created / ${summary.documents.updated ?? 0} updated`);
+                }
+                const detail = parts.length ? ` ${parts.join(' • ')}` : '';
+                setStatusMessage(migrationStatusEl, `Migration completed.${detail}`, 'success');
+              } else {
+                setStatusMessage(migrationStatusEl, 'Migration completed.', 'success');
+              }
+            } catch (error) {
+              console.error('JSON migration failed', error);
+              setStatusMessage(
+                migrationStatusEl,
+                error instanceof Error ? error.message : 'Unable to import JSON data.',
+                'error',
+              );
+            } finally {
+              state.loadingMigration = false;
+              refreshMigrationButtonState();
+            }
+          });
+        }
+
+        if (!window.electronAPI?.database) {
+          if (createBackupButton) {
+            createBackupButton.disabled = true;
+          }
+          if (restoreBackupButton) {
+            restoreBackupButton.disabled = true;
+          }
+          setStatusMessage(
+            backupStatusEl,
+            'Desktop database bridge unavailable in this environment.',
+            'error',
+          );
+          setStatusMessage(
+            restoreStatusEl,
+            'Desktop database bridge unavailable in this environment.',
+            'error',
+          );
+        } else {
+          if (createBackupButton) {
+            createBackupButton.addEventListener('click', async () => {
+              try {
+                createBackupButton.disabled = true;
+                setStatusMessage(backupStatusEl, 'Creating backup…', 'info');
+                let destination = '';
+                if (window.electronAPI.dialog?.saveFile) {
+                  const defaultName = `recruitpro-backup-${new Date().toISOString().slice(0, 10)}.db`;
+                  const result = await window.electronAPI.dialog.saveFile({
+                    title: 'Save RecruitPro backup',
+                    defaultPath: defaultName,
+                    filters: [{ name: 'SQLite database', extensions: ['db'] }],
+                  });
+                  if (result?.canceled) {
+                    setStatusMessage(backupStatusEl, 'Backup cancelled.', 'muted');
+                    return;
+                  }
+                  destination = result?.filePath || '';
+                }
+                const outcome = await window.electronAPI.database.backup(destination);
+                const destinationPath = outcome?.destination || destination || 'default backup directory';
+                setStatusMessage(
+                  backupStatusEl,
+                  `Backup saved to ${destinationPath}.`,
+                  'success',
+                );
+              } catch (error) {
+                console.error('Database backup failed', error);
+                setStatusMessage(
+                  backupStatusEl,
+                  error instanceof Error ? error.message : 'Backup failed.',
+                  'error',
+                );
+              } finally {
+                createBackupButton.disabled = false;
+              }
+            });
+          }
+
+          if (restoreBackupButton) {
+            restoreBackupButton.addEventListener('click', async () => {
+              try {
+                restoreBackupButton.disabled = true;
+                setStatusMessage(restoreStatusEl, 'Select a backup file to restore…', 'info');
+                let source = '';
+                if (window.electronAPI.dialog?.openFile) {
+                  const result = await window.electronAPI.dialog.openFile({
+                    title: 'Select a RecruitPro backup',
+                    filters: [{ name: 'SQLite database', extensions: ['db'] }],
+                  });
+                  if (result?.canceled || !result?.filePaths?.length) {
+                    setStatusMessage(restoreStatusEl, 'Restore cancelled.', 'muted');
+                    return;
+                  }
+                  source = result.filePaths[0];
+                } else {
+                  const manualPath = window.prompt('Enter the full path to the backup file you want to restore:');
+                  if (!manualPath) {
+                    setStatusMessage(restoreStatusEl, 'Restore cancelled.', 'muted');
+                    return;
+                  }
+                  source = manualPath;
+                }
+
+                const outcome = await window.electronAPI.database.restore(source);
+                const restoredTo = outcome?.restoredTo || 'active database';
+                setStatusMessage(
+                  restoreStatusEl,
+                  `Database restored successfully. Live database: ${restoredTo}.`,
+                  'success',
+                );
+              } catch (error) {
+                console.error('Database restore failed', error);
+                setStatusMessage(
+                  restoreStatusEl,
+                  error instanceof Error ? error.message : 'Restore failed.',
+                  'error',
+                );
+              } finally {
+                restoreBackupButton.disabled = false;
+              }
+            });
+          }
+        }
+
+        updateAdminStatus();
+        window.addEventListener('focus', updateAdminStatus);
     </script>
   </body>
 </html>

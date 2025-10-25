@@ -31,13 +31,4 @@ Latest full validation cycle: **Production readiness pass – Electron v1.0.0 (A
 
 During this pass we confirmed:
 
-- Auto-update checks, release notes, and rollback paths perform as expected across macOS, Windows, and Ubuntu builds.
-- Queue/system diagnostics surface live process metrics and expose retry controls without requiring developer tooling.
-- Candidate, project, admin, and analytics workflows remain in sync with the FastAPI backend, including real-time activity feeds.
-- Offline-first behaviors (cached auth, stored documents, deferred sync) keep the UI responsive when the embedded API is unavailable.
-
-Document new findings or regressions below so the matrix remains an authoritative source of truth for the desktop client.
-
-## Next Steps
-
-The Electron shell now ships the full RecruitPro desktop experience. Ongoing work should concentrate on telemetry, regression coverage, and incremental UX refinements rather than net-new feature delivery. Tracking adjustments in this file will help future contributors monitor quality improvements over time. When a capability requires retesting, append an entry under **Verification scope** with the date, version, and a short note describing the scenario that was exercised.
+The Electron shell now ships the full RecruitPro desktop experience. Ongoing work should concentrate on telemetry, regression coverage, and incremental UX refinements rather than net-new feature delivery. Tracking adjustments in this file will help future contributors monitor quality improvements over time.

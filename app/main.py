@@ -41,6 +41,12 @@ from .models import (
     User,
 )
 from .utils.security import decode_token
+from .services.gemini import gemini
+from .services.integrations import (
+    get_integration_value,
+    list_integration_status,
+    set_integration_credential,
+)
 
 settings = get_settings()
 
@@ -450,9 +456,45 @@ async def candidate_profile_page(
     return templates.TemplateResponse("candidate_profile.html", context)
 
 
-@app.get("/settings", response_class=HTMLResponse)
-async def settings_page(request: Request) -> HTMLResponse:
-    """Render the workspace settings configuration UI."""
+@app.api_route("/settings", methods=["GET", "POST"], response_class=HTMLResponse)
+async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Render and manage the workspace integration settings."""
+
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+    if request.method == "POST":
+        form = await request.form()
+        action = (form.get("form_id") or "").strip().lower()
+        try:
+            if action == "gemini":
+                api_key = (form.get("gemini_api_key") or "").strip()
+                set_integration_credential(db, "gemini_api_key", api_key, user_id="settings_ui")
+                gemini.configure_api_key(get_integration_value("gemini_api_key", session=db) or None)
+                message = "Gemini API credentials updated."
+            elif action == "google":
+                api_key = (form.get("google_api_key") or "").strip()
+                cse_id = (form.get("google_cse_id") or "").strip()
+                set_integration_credential(db, "google_api_key", api_key, user_id="settings_ui")
+                set_integration_credential(db, "google_cse_id", cse_id, user_id="settings_ui")
+                message = "Google Custom Search configuration updated."
+            elif action == "smartrecruiters":
+                email = (form.get("smartrecruiters_email") or "").strip()
+                password = form.get("smartrecruiters_password") or ""
+                set_integration_credential(db, "smartrecruiters_email", email, user_id="settings_ui")
+                set_integration_credential(db, "smartrecruiters_password", password, user_id="settings_ui")
+                message = "SmartRecruiters credentials updated."
+            else:
+                error = "Unknown settings section submitted."
+        except Exception as exc:  # pragma: no cover - defensive guard for unexpected errors
+            error = str(exc)
+
+    snapshot = list_integration_status(db)
+    gemini_status = snapshot.get("gemini_api_key", {})
+    google_key_status = snapshot.get("google_api_key", {})
+    google_cse_status = snapshot.get("google_cse_id", {})
+    smart_email_value = get_integration_value("smartrecruiters_email", session=db)
+    smart_password_status = snapshot.get("smartrecruiters_password", {})
 
     sidebar = {
         "logo_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuC1J7UyLIViqxSyACOj8r849gKCUxlXYhUoJzEPigDkrZrbTnpsbhrACpejUnyYK6Ec_01VMtmnR7HmFzI5uclry4cYgWo9ECs4m1Lrot4i24aa9HaRaQ4P9njXkzBgSX_DBdqPqROdPX9mAun8S9oQQG3xgY4WjAj_EuZANnFsAo00q5hkvrENCWOtcycFa37bqnznIWTyTu8boN53lb4heHut2Zzi4Bd_wKPg-vjsR8mVfVnVhrfdDfihlo7aMo00Ffg1XMG3UX0",
@@ -478,16 +520,23 @@ async def settings_page(request: Request) -> HTMLResponse:
     }
 
     gemini = {
-        "configured": bool(settings.gemini_api_key_value),
-        "value": settings.gemini_api_key_value,
+        "configured": bool(gemini_status.get("configured")),
+        "masked": gemini_status.get("masked", ""),
+        "source": gemini_status.get("source"),
         "learn_more_url": "https://ai.google.dev/gemini-api/docs/api-key",
     }
 
     google = {
-        "configured": bool(settings.google_search_api_key_value and settings.google_custom_search_engine_id),
-        "value": settings.google_search_api_key_value,
-        "search_engine_id": settings.google_custom_search_engine_id or "",
+        "configured": bool(google_key_status.get("configured") and google_cse_status.get("configured")),
+        "masked": google_key_status.get("masked", ""),
+        "search_engine_id": get_integration_value("google_cse_id", session=db),
         "learn_more_url": "https://developers.google.com/custom-search/v1/overview",
+    }
+
+    smartrecruiters = {
+        "configured": bool(smart_email_value and smart_password_status.get("configured")),
+        "email": smart_email_value,
+        "password_masked": smart_password_status.get("masked", ""),
     }
 
     context = {
@@ -495,6 +544,9 @@ async def settings_page(request: Request) -> HTMLResponse:
         "sidebar": sidebar,
         "gemini": gemini,
         "google": google,
+        "smartrecruiters": smartrecruiters,
+        "message": message,
+        "error": error,
     }
 
     return templates.TemplateResponse("settings.html", context)

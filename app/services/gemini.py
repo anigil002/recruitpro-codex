@@ -21,6 +21,8 @@ from statistics import mean
 from typing import Any, Dict, Iterable, List, Optional
 from zipfile import ZipFile
 
+from ..config import get_settings
+
 KEYWORD_SECTORS = {
     "infrastructure": ["bridge", "transport", "rail", "station", "highway"],
     "energy": ["solar", "wind", "power", "grid", "battery"],
@@ -45,6 +47,12 @@ class GeminiService:
     def __init__(self, model: str = DEFAULT_MODEL, temperature: float = 0.15):
         self.model = model
         self.temperature = temperature
+        self.api_key: Optional[str] = None
+
+    def configure_api_key(self, api_key: Optional[str]) -> None:
+        """Update the API key used for live Gemini calls."""
+
+        self.api_key = api_key or None
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -566,3 +574,7 @@ class GeminiService:
 
 
 gemini = GeminiService()
+try:  # pragma: no cover - defensive initialisation
+    gemini.configure_api_key(get_settings().gemini_api_key_value)
+except Exception:
+    pass

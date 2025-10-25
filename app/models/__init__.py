@@ -317,6 +317,15 @@ class AdvancedFeaturesConfig(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+class IntegrationCredential(Base):
+    __tablename__ = "integration_credentials"
+
+    key = Column(String, primary_key=True)
+    value_encrypted = Column(Text, nullable=False)
+    updated_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"))
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
 class EmbeddingIndexRef(Base):
     __tablename__ = "embeddings_index_refs"
 

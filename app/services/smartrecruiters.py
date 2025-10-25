@@ -14,6 +14,7 @@ from ..config import get_settings
 from ..models import Candidate, Position, Project
 from ..utils.security import generate_id
 from .activity import log_activity
+from .integrations import get_integration_value
 
 try:  # pragma: no cover - optional heavy dependency
     from playwright.sync_api import (  # type: ignore
@@ -514,9 +515,9 @@ class SmartRecruitersImporter:
 def run_smartrecruiters_bulk(session: Session, request: Dict[str, object]) -> Dict[str, object]:
     """Execute a SmartRecruiters bulk import request."""
 
+    email = get_integration_value("smartrecruiters_email", session=session)
+    password = get_integration_value("smartrecruiters_password", session=session)
     settings = get_settings()
-    email = settings.smartrecruiters_email
-    password = settings.smartrecruiters_password_value
     if not email or not password:
         raise SmartRecruitersConfigError("SmartRecruiters credentials are not configured")
 

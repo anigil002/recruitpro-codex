@@ -34,13 +34,15 @@ router = APIRouter(prefix="/api", tags=["candidates"])
 def _ensure_candidate_access(candidate: Candidate, current_user, db: Session) -> None:
     """Ensure the current user can manage the given candidate."""
 
+    elevated_roles = {"admin", "super_admin"}
+
     if candidate.project_id:
         project = db.get(Project, candidate.project_id)
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
-        if project.created_by != current_user.user_id:
+        if project.created_by != current_user.user_id and current_user.role not in elevated_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
-    elif current_user.role not in {"admin", "recruiter"}:
+    elif current_user.role not in elevated_roles.union({"recruiter"}):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
 

@@ -30,6 +30,7 @@ class HealthChecker extends EventEmitter {
     this._startupPromise = undefined;
     this._stopped = true;
     this._readyNotified = false;
+    this._lastFailureFingerprint = undefined;
   }
 
   async start() {
@@ -64,6 +65,7 @@ class HealthChecker extends EventEmitter {
     this._startupPromise = undefined;
     this._lastStatus = undefined;
     this._readyNotified = false;
+    this._lastFailureFingerprint = undefined;
   }
 
   async check() {
@@ -85,17 +87,21 @@ class HealthChecker extends EventEmitter {
           (response) => {
             const success = response.statusCode && response.statusCode < 500;
             response.resume();
+            if (success) {
+              this._lastFailureFingerprint = undefined;
+            }
             resolve(success);
           }
         );
 
         request.on('timeout', () => {
           request.destroy(new Error('Health check timed out'));
+          this._logTransientFailure('timeout', 'Health check timed out');
           resolve(false);
         });
 
         request.on('error', (error) => {
-          this.logger.debug?.('Health check error', error);
+          this._logTransientFailure(error.code ?? 'error', error.message ?? 'Unknown error');
           resolve(false);
         });
       });
@@ -143,6 +149,28 @@ class HealthChecker extends EventEmitter {
     }
 
     return false;
+  }
+
+  _logTransientFailure(code, message) {
+    const fingerprint = `${code}:${message}`;
+    if (this._lastFailureFingerprint === fingerprint) {
+      return;
+    }
+
+    this._lastFailureFingerprint = fingerprint;
+
+    const isExpectedTransient =
+      code === 'ECONNREFUSED' ||
+      code === 'ECONNRESET' ||
+      code === 'EHOSTUNREACH' ||
+      code === 'ENETUNREACH' ||
+      code === 'timeout';
+
+    if (isExpectedTransient) {
+      this.logger.debug?.('Health check connection not yet available', { code, message });
+    } else {
+      this.logger.warn?.('Health check encountered unexpected error', { code, message });
+    }
   }
 }
 

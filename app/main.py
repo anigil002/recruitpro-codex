@@ -530,21 +530,21 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
         ],
     }
 
-    gemini = {
+    gemini_card = {
         "configured": bool(gemini_status.get("configured")),
         "masked": gemini_status.get("masked", ""),
         "source": gemini_status.get("source"),
         "learn_more_url": "https://ai.google.dev/gemini-api/docs/api-key",
     }
 
-    google = {
+    google_card = {
         "configured": bool(google_key_status.get("configured") and google_cse_status.get("configured")),
         "masked": google_key_status.get("masked", ""),
         "search_engine_id": get_integration_value("google_cse_id", session=db),
         "learn_more_url": "https://developers.google.com/custom-search/v1/overview",
     }
 
-    smartrecruiters = {
+    smartrecruiters_card = {
         "configured": bool(smart_email_value and smart_password_status.get("configured")),
         "email": smart_email_value,
         "password_masked": smart_password_status.get("masked", ""),
@@ -553,9 +553,9 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
     context = {
         "request": request,
         "sidebar": sidebar,
-        "gemini": gemini,
-        "google": google,
-        "smartrecruiters": smartrecruiters,
+        "gemini": gemini_card,
+        "google": google_card,
+        "smartrecruiters": smartrecruiters_card,
         "message": message,
         "error": error,
     }

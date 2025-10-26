@@ -19,6 +19,7 @@ from ..schemas import (
     ProjectUpdate,
 )
 from ..services.activity import log_activity
+from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -69,7 +70,10 @@ def list_projects(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> List[ProjectRead]:
-    projects = db.query(Project).filter(Project.created_by == current_user.user_id).all()
+    query = db.query(Project)
+    if not can_manage_workspace(current_user):
+        query = query.filter(Project.created_by == current_user.user_id)
+    projects = query.all()
     return [project_to_read(p) for p in projects]
 
 
@@ -110,9 +114,7 @@ def create_project(
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)
 def get_project(project_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> ProjectRead:
-    project = db.get(Project, project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    project = ensure_project_access(db.get(Project, project_id), current_user)
     return project_to_read(project)
 
 
@@ -123,9 +125,7 @@ def update_project(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> ProjectRead:
-    project = db.get(Project, project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    project = ensure_project_access(db.get(Project, project_id), current_user)
 
     for field, value in payload.dict(exclude_unset=True).items():
         if field in {"tags", "team_members"}:
@@ -141,9 +141,7 @@ def update_project(
 
 @router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(project_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> None:
-    project = db.get(Project, project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    project = ensure_project_access(db.get(Project, project_id), current_user)
     db.delete(project)
     log_activity(
         db,
@@ -170,8 +168,10 @@ def bulk_project_lifecycle(
 
     for item in payload.updates:
         project = db.get(Project, item.project_id)
-        if not project or project.created_by != current_user.user_id:
-            errors.append({"project_id": item.project_id, "error": "Project not found"})
+        try:
+            project = ensure_project_access(project, current_user)
+        except HTTPException as exc:  # pragma: no cover - defensive branch
+            errors.append({"project_id": item.project_id, "error": exc.detail})
             continue
 
         changed = False
@@ -221,12 +221,10 @@ def bulk_project_lifecycle(
 
 @router.get("/positions", response_model=List[PositionRead])
 def list_positions(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[PositionRead]:
-    positions = (
-        db.query(Position)
-        .join(Project)
-        .filter(Project.created_by == current_user.user_id)
-        .all()
-    )
+    query = db.query(Position)
+    if not can_manage_workspace(current_user):
+        query = query.join(Project).filter(Project.created_by == current_user.user_id)
+    positions = query.all()
     return [position_to_read(pos) for pos in positions]
 
 
@@ -236,9 +234,7 @@ def create_position(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> PositionRead:
-    project = db.get(Project, payload.project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    project = ensure_project_access(db.get(Project, payload.project_id), current_user)
 
     position = Position(
         position_id=generate_id(),
@@ -278,8 +274,7 @@ def get_position(
     if not position:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
     project = db.get(Project, position.project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+    ensure_project_access(project, current_user)
     return position_to_read(position)
 
 
@@ -294,8 +289,7 @@ def update_position(
     if not position:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
     project = db.get(Project, position.project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+    ensure_project_access(project, current_user)
 
     for field, value in payload.dict(exclude_unset=True).items():
         if field == "openings" and value is None:
@@ -317,8 +311,7 @@ def delete_position(
     if not position:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
     project = db.get(Project, position.project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+    ensure_project_access(project, current_user)
 
     db.delete(position)
     log_activity(

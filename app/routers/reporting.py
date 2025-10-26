@@ -20,6 +20,7 @@ from ..models import (
     ProjectDocument,
     ProjectMarketResearch,
 )
+from ..utils.permissions import can_manage_workspace
 
 router = APIRouter(prefix="/api", tags=["reporting"])
 
@@ -31,57 +32,57 @@ def reporting_overview(
 ) -> Dict[str, object]:
     """Return a consolidated analytics payload for the renderer."""
 
-    project_query = db.query(Project).filter(Project.created_by == current_user.user_id)
+    project_query = db.query(Project)
+    if not can_manage_workspace(current_user):
+        project_query = project_query.filter(Project.created_by == current_user.user_id)
     projects = project_query.all()
     project_counts = Counter((project.status or "unspecified").lower() for project in projects)
 
-    position_query = (
-        db.query(Position)
-        .join(Project)
-        .filter(Project.created_by == current_user.user_id)
-    )
+    position_query = db.query(Position).join(Project)
+    if not can_manage_workspace(current_user):
+        position_query = position_query.filter(Project.created_by == current_user.user_id)
     positions = position_query.all()
     position_counts = Counter((position.status or "unspecified").lower() for position in positions)
 
-    candidate_query = (
-        db.query(Candidate)
-        .join(Project, Project.project_id == Candidate.project_id, isouter=True)
-        .filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
-    )
+    candidate_query = db.query(Candidate).join(Project, Project.project_id == Candidate.project_id, isouter=True)
+    if not can_manage_workspace(current_user):
+        candidate_query = candidate_query.filter(
+            (Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None))
+        )
     candidates = candidate_query.all()
     candidate_counts = Counter((candidate.status or "unspecified").lower() for candidate in candidates)
 
-    interviews = (
-        db.query(Interview)
-        .join(Project)
-        .filter(Project.created_by == current_user.user_id)
-        .all()
-    )
+    interview_query = db.query(Interview).join(Project)
+    if not can_manage_workspace(current_user):
+        interview_query = interview_query.filter(Project.created_by == current_user.user_id)
+    interviews = interview_query.all()
     now = datetime.utcnow()
     upcoming_interviews = [item for item in interviews if item.scheduled_at and item.scheduled_at >= now]
 
-    documents_total = (
-        db.query(ProjectDocument)
-        .join(Project, Project.project_id == ProjectDocument.project_id, isouter=True)
-        .filter((Project.created_by == current_user.user_id) | (ProjectDocument.project_id.is_(None)))
-        .count()
-    )
+    document_query = db.query(ProjectDocument).join(Project, Project.project_id == ProjectDocument.project_id, isouter=True)
+    if not can_manage_workspace(current_user):
+        document_query = document_query.filter(
+            (Project.created_by == current_user.user_id) | (ProjectDocument.project_id.is_(None))
+        )
+    documents_total = document_query.count()
 
-    ai_jobs = (
-        db.query(AIJob)
-        .join(Project, AIJob.project_id == Project.project_id, isouter=True)
-        .filter((AIJob.project_id.is_(None)) | (Project.created_by == current_user.user_id))
-        .order_by(AIJob.created_at.desc())
-        .limit(10)
-        .all()
-    )
+    ai_job_query = db.query(AIJob).join(Project, AIJob.project_id == Project.project_id, isouter=True)
+    if not can_manage_workspace(current_user):
+        ai_job_query = ai_job_query.filter(
+            (AIJob.project_id.is_(None)) | (Project.created_by == current_user.user_id)
+        )
+    ai_jobs = ai_job_query.order_by(AIJob.created_at.desc()).limit(10).all()
     ai_summary = Counter((job.job_type or "unknown") for job in ai_jobs)
 
+    research_query = db.query(ProjectMarketResearch).join(Project)
+    if not can_manage_workspace(current_user):
+        research_query = research_query.filter(Project.created_by == current_user.user_id)
     research_rows = (
-        db.query(ProjectMarketResearch)
-        .join(Project)
-        .filter(Project.created_by == current_user.user_id)
-        .order_by(ProjectMarketResearch.completed_at.desc().nullslast(), ProjectMarketResearch.started_at.desc())
+        research_query
+        .order_by(
+            ProjectMarketResearch.completed_at.desc().nullslast(),
+            ProjectMarketResearch.started_at.desc(),
+        )
         .limit(5)
         .all()
     )
@@ -101,13 +102,10 @@ def reporting_overview(
             }
         )
 
-    recent_activity = (
-        db.query(ActivityFeed)
-        .filter(ActivityFeed.actor_id == current_user.user_id)
-        .order_by(ActivityFeed.created_at.desc())
-        .limit(100)
-        .all()
-    )
+    activity_query = db.query(ActivityFeed)
+    if not can_manage_workspace(current_user):
+        activity_query = activity_query.filter(ActivityFeed.actor_id == current_user.user_id)
+    recent_activity = activity_query.order_by(ActivityFeed.created_at.desc()).limit(100).all()
     activity_counter = Counter((item.event_type or "activity").lower() for item in recent_activity)
 
     window_start = now - timedelta(days=30)

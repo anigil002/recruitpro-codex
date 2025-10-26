@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..deps import get_current_user, get_db
 from ..models import Candidate, Interview, Position, Project
 from ..services.activity import log_activity
+from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["interviews"])
@@ -16,13 +17,10 @@ router = APIRouter(prefix="/api", tags=["interviews"])
 
 @router.get("/interviews")
 def list_interviews(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[dict]:
-    interviews = (
-        db.query(Interview)
-        .join(Position)
-        .join(Project)
-        .filter(Project.created_by == current_user.user_id)
-        .all()
-    )
+    query = db.query(Interview).join(Position).join(Project)
+    if not can_manage_workspace(current_user):
+        query = query.filter(Project.created_by == current_user.user_id)
+    interviews = query.all()
     return [
         {
             "interview_id": interview.interview_id,
@@ -49,6 +47,9 @@ def schedule_interview(
     position = db.get(Position, payload.get("position_id"))
     if not candidate or not position:
         raise HTTPException(status_code=404, detail="Candidate or position not found")
+    if candidate.project_id:
+        ensure_project_access(db.get(Project, candidate.project_id), current_user)
+    ensure_project_access(db.get(Project, position.project_id), current_user)
 
     interview = Interview(
         interview_id=generate_id(),
@@ -85,6 +86,7 @@ def update_interview(
     interview = db.get(Interview, interview_id)
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
+    ensure_project_access(db.get(Project, interview.project_id), current_user)
 
     for field in ["scheduled_at", "location", "mode", "notes", "feedback"]:
         if field in payload:

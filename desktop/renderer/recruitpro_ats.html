@@ -7,21 +7,22 @@
     <script defer src="./scripts/init-backend.js"></script>
     <style>
       :root {
-        color-scheme: dark light;
+        color-scheme: dark;
         font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --bg: linear-gradient(160deg, #020617 0%, #0f172a 45%, #111827 100%);
-        --surface: rgba(15, 23, 42, 0.9);
-        --surface-soft: rgba(15, 23, 42, 0.65);
-        --border: rgba(148, 163, 184, 0.15);
-        --border-strong: rgba(148, 163, 184, 0.35);
+        --bg: radial-gradient(circle at 20% 20%, #0b1120 0%, #020617 55%, #010512 100%);
+        --surface: rgba(13, 23, 42, 0.85);
+        --surface-soft: rgba(15, 23, 42, 0.55);
+        --surface-solid: #111827;
+        --border: rgba(148, 163, 184, 0.18);
+        --border-strong: rgba(148, 163, 184, 0.3);
+        --shadow: 0 32px 120px -50px rgba(15, 118, 255, 0.6);
         --text: #e2e8f0;
         --text-muted: #94a3b8;
-        --accent: #3b82f6;
-        --accent-soft: rgba(59, 130, 246, 0.12);
-        --accent-strong: rgba(59, 130, 246, 0.4);
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+        --accent: #38bdf8;
+        --accent-strong: #3b82f6;
+        --success: #22d3ee;
+        --warning: #fbbf24;
+        --danger: #f87171;
         background-color: #020617;
       }
 
@@ -36,8 +37,8 @@
         color: var(--text);
         display: flex;
         justify-content: center;
-        align-items: stretch;
-        padding: 32px 20px;
+        align-items: center;
+        padding: 32px 24px;
       }
 
       a {
@@ -64,7 +65,7 @@
       }
 
       .app-shell {
-        width: min(1400px, 100%);
+        width: min(1500px, 100%);
         display: flex;
         flex-direction: column;
         gap: 32px;
@@ -73,9 +74,9 @@
       .glass-card {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 18px;
-        box-shadow: 0 35px 65px -40px rgba(15, 118, 255, 0.65);
-        backdrop-filter: blur(14px);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
       }
 
       /* Login screen */
@@ -218,8 +219,8 @@
 
       .app-layout[data-state="visible"] {
         display: grid;
-        grid-template-columns: 270px minmax(0, 1fr);
-        gap: 24px;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 28px;
       }
 
       .sidebar {
@@ -229,25 +230,28 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        padding: 28px 24px;
+        padding: 32px 26px;
         gap: 32px;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.35));
+        border: 1px solid var(--border);
+        box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.12);
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         font-weight: 700;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.04em;
       }
 
       .brand span:first-child {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         display: grid;
         place-items: center;
-        border-radius: 12px;
-        background: var(--accent);
+        border-radius: 14px;
+        background: linear-gradient(140deg, var(--accent-strong), #22d3ee);
         color: #0b1220;
         font-weight: 700;
       }
@@ -255,22 +259,22 @@
       .nav {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
 
       .nav-button {
         border: none;
         background: transparent;
         color: var(--text-muted);
-        padding: 12px 14px;
-        border-radius: 12px;
+        padding: 12px 16px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         gap: 12px;
         justify-content: flex-start;
         cursor: pointer;
         font-weight: 500;
-        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       }
 
       .nav-button::before {
@@ -279,22 +283,24 @@
         height: 8px;
         border-radius: 999px;
         background: var(--border);
-        transition: background 0.2s ease;
+        transition: background 0.2s ease, transform 0.2s ease;
       }
 
       .nav-button:hover {
-        background: rgba(59, 130, 246, 0.16);
+        background: rgba(59, 130, 246, 0.18);
         color: var(--text);
       }
 
       .nav-button.is-active {
-        background: rgba(59, 130, 246, 0.25);
+        background: rgba(56, 189, 248, 0.24);
         color: var(--text);
         transform: translateX(4px);
+        box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.35);
       }
 
       .nav-button.is-active::before {
         background: var(--accent);
+        transform: scale(1.4);
       }
 
       .sidebar-footer {
@@ -322,10 +328,12 @@
       }
 
       .content-surface {
-        padding: 28px;
+        padding: 32px;
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 28px;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.65));
+        border: 1px solid var(--border);
       }
 
       .topbar {
@@ -333,37 +341,201 @@
         flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
       }
 
       .topbar h1 {
-        font-size: 1.6rem;
-        font-weight: 600;
+        font-size: 1.75rem;
+        font-weight: 700;
       }
 
       .topbar-actions {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
       }
 
       .search-input {
-        padding: 10px 16px;
+        padding: 10px 18px;
         border-radius: 999px;
         border: 1px solid var(--border);
         background: rgba(2, 6, 23, 0.55);
         color: var(--text);
-        min-width: 220px;
+        min-width: 240px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       }
 
       .chip {
-        padding: 6px 12px;
+        padding: 6px 14px;
         border-radius: 999px;
-        background: rgba(59, 130, 246, 0.14);
-        border: 1px solid rgba(59, 130, 246, 0.45);
+        background: rgba(56, 189, 248, 0.16);
+        border: 1px solid rgba(56, 189, 248, 0.35);
         color: var(--text);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 600;
+      }
+
+      .dashboard-hero {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .dashboard-hero h2 {
+        font-size: 1.5rem;
+        margin-bottom: 6px;
+      }
+
+      .dashboard-hero p {
+        color: var(--text-muted);
+      }
+
+      .metric-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .metric-card {
+        position: relative;
+        padding: 22px;
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.65));
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .metric-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+      }
+
+      .metric-card span {
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+      }
+
+      .metric-card strong {
+        font-size: 2.2rem;
+      }
+
+      .metric-card footer {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(34, 211, 238, 0.15);
+        color: var(--success);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      }
+
+      .dashboard-main,
+      .dashboard-side {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .pipeline-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .pipeline-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .pipeline-item strong {
+        font-size: 1.05rem;
+      }
+
+      .progress-track {
+        flex: 1;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.16);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-fill {
+        position: absolute;
+        inset: 0;
+        transform-origin: left center;
+        background: linear-gradient(90deg, var(--accent-strong), #22d3ee);
+      }
+
+      .pipeline-item span:last-child {
+        min-width: 36px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+      }
+
+      .dashboard-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .dashboard-list li {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.45);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .dashboard-list li strong {
+        font-size: 0.95rem;
+      }
+
+      .dashboard-list li span {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .dashboard-list li.empty-state {
+        background: transparent;
+        border: none;
+        padding: 0;
       }
 
       .view {
@@ -781,64 +953,138 @@
             </div>
             <div class="topbar-actions">
               <input class="search-input" type="search" placeholder="Search projects, candidates, positions…" aria-label="Search" />
-              <div class="chip">Today <span id="todayDate"></span></div>
             </div>
           </header>
 
           <section class="view" data-view="dashboard" data-state="active">
-            <div class="grid three">
-              <article class="stat-card">
-                <span class="label">Active projects</span>
+            <div class="dashboard-hero">
+              <div>
+                <h2>Dashboard</h2>
+                <p>Welcome back, <span id="dashboardUserName">there</span>. Track hiring health at a glance.</p>
+              </div>
+              <div class="topbar-actions">
+                <button class="primary-btn" type="button" id="newProjectButton">New Project</button>
+                <div class="chip">Today <span id="todayDate"></span></div>
+              </div>
+            </div>
+
+            <div class="metric-grid">
+              <article class="metric-card">
+                <span>Active jobs</span>
                 <strong id="dashboardProjectsCount">0</strong>
-                <footer id="dashboardProjectsMeta">No projects yet</footer>
+                <footer>
+                  <span class="trend" id="dashboardProjectsTrend">+0%</span>
+                  <span id="dashboardProjectsMeta">No projects yet</span>
+                </footer>
               </article>
-              <article class="stat-card">
-                <span class="label">Candidates in pipeline</span>
+              <article class="metric-card">
+                <span>New candidates</span>
                 <strong id="dashboardCandidatesCount">0</strong>
-                <footer id="dashboardCandidatesMeta">No candidates yet</footer>
+                <footer>
+                  <span class="trend" id="dashboardCandidatesTrend">+0</span>
+                  <span id="dashboardCandidatesMeta">No candidates yet</span>
+                </footer>
               </article>
-              <article class="stat-card">
-                <span class="label">Interviews scheduled</span>
+              <article class="metric-card">
+                <span>Interviews scheduled</span>
                 <strong id="dashboardInterviewsCount">0</strong>
-                <footer id="dashboardInterviewsMeta">No interviews scheduled</footer>
+                <footer>
+                  <span class="trend" id="dashboardInterviewsTrend">+0</span>
+                  <span id="dashboardInterviewsMeta">No interviews scheduled</span>
+                </footer>
+              </article>
+              <article class="metric-card">
+                <span>Offers extended</span>
+                <strong id="dashboardOffersCount">0</strong>
+                <footer>
+                  <span class="trend" id="dashboardOffersTrend">+0</span>
+                  <span id="dashboardOffersMeta">No offers yet</span>
+                </footer>
               </article>
             </div>
 
-            <article class="panel">
-              <header>
-                <h3>Insights</h3>
-                <span>Live data sourced from your RecruitPro workspace</span>
-              </header>
-              <div id="dashboardFeatured" class="featured-card">
-                <h4>No candidates spotlighted yet</h4>
-                <p>Add candidates to highlight profiles that need your attention.</p>
-              </div>
-              <div>
-                <strong>Next best actions</strong>
-                <ul
-                  id="dashboardSuggestions"
-                  style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px"
-                >
-                  <li class="empty-state">Sign in to load workspace suggestions.</li>
-                </ul>
-              </div>
-            </article>
-
-            <article class="panel">
-              <header>
-                <h3>Recent activity</h3>
-                <span id="activityUpdatedAt">Waiting for updates…</span>
-              </header>
-              <ul class="timeline" id="recentActivity">
-                <li class="timeline-item empty">
-                  <div>
-                    <strong>No activity recorded</strong>
-                    <span>Updates will appear once RecruitPro logs new events.</span>
+            <div class="dashboard-grid">
+              <div class="dashboard-main">
+                <article class="panel">
+                  <header>
+                    <h3>My Active Projects</h3>
+                    <span>Priority roles moving through the pipeline</span>
+                  </header>
+                  <div class="panel" style="background: rgba(15, 23, 42, 0.45); gap: 0">
+                    <table class="table" aria-label="Active projects overview">
+                      <thead>
+                        <tr>
+                          <th>Project</th>
+                          <th>Department</th>
+                          <th>Status</th>
+                          <th>Hires</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashboardProjectsTableBody">
+                        <tr>
+                          <td colspan="4" class="table-empty">Create a project to get started.</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                  <span></span>
-                </li>
-              </ul>
-            </article>
+                </article>
+
+                <article class="panel">
+                  <header>
+                    <h3>Candidate pipeline funnel</h3>
+                    <span>Volume and velocity across hiring stages</span>
+                  </header>
+                  <div class="pipeline-list" id="dashboardPipelineList">
+                    <div class="empty-state">Add candidates to populate your funnel.</div>
+                  </div>
+                </article>
+              </div>
+
+              <aside class="dashboard-side">
+                <article class="panel">
+                  <header>
+                    <h3>Recent activity</h3>
+                    <span id="activityUpdatedAt">Waiting for updates…</span>
+                  </header>
+                  <ul class="timeline" id="recentActivity">
+                    <li class="timeline-item empty">
+                      <div>
+                        <strong>No activity recorded</strong>
+                        <span>Updates will appear once RecruitPro logs new events.</span>
+                      </div>
+                      <span></span>
+                    </li>
+                  </ul>
+                </article>
+
+                <article class="panel">
+                  <header>
+                    <h3>Upcoming tasks</h3>
+                    <span>Keep the team aligned on next steps</span>
+                  </header>
+                  <ul class="dashboard-list" id="dashboardUpcomingList">
+                    <li class="empty-state">Suggestions will appear once data loads.</li>
+                  </ul>
+                </article>
+
+                <article class="panel">
+                  <header>
+                    <h3>AI insights</h3>
+                    <span>Highlights tailored to your pipeline</span>
+                  </header>
+                  <div id="dashboardFeatured" class="featured-card">
+                    <h4>No candidates spotlighted yet</h4>
+                    <p>Add candidates to highlight profiles that need your attention.</p>
+                  </div>
+                  <div>
+                    <strong>Next best actions</strong>
+                    <ul id="dashboardSuggestions" class="dashboard-list">
+                      <li class="empty-state">Sign in to load workspace suggestions.</li>
+                    </ul>
+                  </div>
+                </article>
+              </aside>
+            </div>
           </section>
 
           <section class="view" data-view="projects">
@@ -1663,16 +1909,27 @@
       const backendStatus = document.getElementById('backendStatus');
       const todayDate = document.getElementById('todayDate');
       const activityUpdatedAt = document.getElementById('activityUpdatedAt');
+      const newProjectButton = document.getElementById('newProjectButton');
 
       const elements = {
+        dashboardUserName: document.getElementById('dashboardUserName'),
         dashboardProjectsCount: document.getElementById('dashboardProjectsCount'),
         dashboardProjectsMeta: document.getElementById('dashboardProjectsMeta'),
+        dashboardProjectsTrend: document.getElementById('dashboardProjectsTrend'),
         dashboardCandidatesCount: document.getElementById('dashboardCandidatesCount'),
         dashboardCandidatesMeta: document.getElementById('dashboardCandidatesMeta'),
+        dashboardCandidatesTrend: document.getElementById('dashboardCandidatesTrend'),
         dashboardInterviewsCount: document.getElementById('dashboardInterviewsCount'),
         dashboardInterviewsMeta: document.getElementById('dashboardInterviewsMeta'),
+        dashboardInterviewsTrend: document.getElementById('dashboardInterviewsTrend'),
+        dashboardOffersCount: document.getElementById('dashboardOffersCount'),
+        dashboardOffersMeta: document.getElementById('dashboardOffersMeta'),
+        dashboardOffersTrend: document.getElementById('dashboardOffersTrend'),
         dashboardFeatured: document.getElementById('dashboardFeatured'),
         dashboardSuggestions: document.getElementById('dashboardSuggestions'),
+        dashboardProjectsTableBody: document.getElementById('dashboardProjectsTableBody'),
+        dashboardPipelineList: document.getElementById('dashboardPipelineList'),
+        dashboardUpcomingList: document.getElementById('dashboardUpcomingList'),
         recentActivity: document.getElementById('recentActivity'),
         projectsOnTrackCount: document.getElementById('projectsOnTrackCount'),
         projectsOnTrackMeta: document.getElementById('projectsOnTrackMeta'),
@@ -1907,14 +2164,47 @@
       const resetDynamicContent = () => {
         elements.dashboardProjectsCount.textContent = '0';
         elements.dashboardProjectsMeta.textContent = 'No projects yet';
+        if (elements.dashboardProjectsTrend) {
+          elements.dashboardProjectsTrend.textContent = '+0';
+        }
+        if (elements.dashboardUserName) {
+          elements.dashboardUserName.textContent = 'there';
+        }
         elements.dashboardCandidatesCount.textContent = '0';
         elements.dashboardCandidatesMeta.textContent = 'No candidates yet';
+        if (elements.dashboardCandidatesTrend) {
+          elements.dashboardCandidatesTrend.textContent = '+0';
+        }
         elements.dashboardInterviewsCount.textContent = '0';
         elements.dashboardInterviewsMeta.textContent = 'No interviews scheduled';
+        if (elements.dashboardInterviewsTrend) {
+          elements.dashboardInterviewsTrend.textContent = '+0';
+        }
+        if (elements.dashboardOffersCount) {
+          elements.dashboardOffersCount.textContent = '0';
+        }
+        if (elements.dashboardOffersMeta) {
+          elements.dashboardOffersMeta.textContent = 'No offers yet';
+        }
+        if (elements.dashboardOffersTrend) {
+          elements.dashboardOffersTrend.textContent = '+0';
+        }
         elements.dashboardFeatured.innerHTML =
           '<h4>No candidates spotlighted yet</h4><p>Add candidates to highlight profiles that need your attention.</p>';
         elements.dashboardSuggestions.innerHTML =
           '<li class="empty-state">Sign in to load workspace suggestions.</li>';
+        if (elements.dashboardProjectsTableBody) {
+          elements.dashboardProjectsTableBody.innerHTML =
+            '<tr><td colspan="4" class="table-empty">Create a project to get started.</td></tr>';
+        }
+        if (elements.dashboardPipelineList) {
+          elements.dashboardPipelineList.innerHTML =
+            '<div class="empty-state">Add candidates to populate your funnel.</div>';
+        }
+        if (elements.dashboardUpcomingList) {
+          elements.dashboardUpcomingList.innerHTML =
+            '<li class="empty-state">Suggestions will appear once data loads.</li>';
+        }
         elements.recentActivity.innerHTML =
           '<li class="timeline-item empty"><div><strong>No activity recorded</strong><span>Updates will appear once RecruitPro logs new events.</span></div><span></span></li>';
         activityUpdatedAt.textContent = 'Waiting for updates…';
@@ -2194,10 +2484,20 @@
           return true;
         });
 
+        if (elements.dashboardUserName) {
+          const friendlyName = (state.user?.name || state.user?.email || 'there').split(' ')[0];
+          elements.dashboardUserName.textContent = friendlyName || 'there';
+        }
+
         elements.dashboardProjectsCount.textContent = formatNumber(projectList.length);
         elements.dashboardProjectsMeta.textContent = projectList.length
           ? `${formatNumber(onTrackProjects.length)} active of ${formatNumber(projectList.length)} tracked`
           : 'No projects yet';
+        if (elements.dashboardProjectsTrend) {
+          elements.dashboardProjectsTrend.textContent = projectList.length
+            ? `+${formatNumber(onTrackProjects.length)}`
+            : '+0';
+        }
 
         const pipeline = stats?.pipeline || {};
         const totalCandidates = pipeline.total ?? candidateList.length ?? 0;
@@ -2206,6 +2506,11 @@
           totalCandidates > 0
             ? `Sourcing ${formatNumber(pipeline.sourcing || 0)} • Screening ${formatNumber(pipeline.screening || 0)}`
             : 'No candidates yet';
+        if (elements.dashboardCandidatesTrend) {
+          elements.dashboardCandidatesTrend.textContent = totalCandidates
+            ? `+${formatNumber(totalCandidates)}`
+            : '+0';
+        }
 
         const interviewsCount = pipeline.interviews ?? interviewList.length ?? 0;
         elements.dashboardInterviewsCount.textContent = formatNumber(interviewsCount);
@@ -2213,6 +2518,91 @@
           interviewsCount > 0 || (pipeline.offers ?? 0) > 0
             ? `Offers ${formatNumber(pipeline.offers || 0)} • Sourcing ${formatNumber(pipeline.sourcing || 0)}`
             : 'No interviews scheduled';
+        if (elements.dashboardInterviewsTrend) {
+          elements.dashboardInterviewsTrend.textContent = interviewsCount
+            ? `+${formatNumber(interviewsCount)}`
+            : '+0';
+        }
+
+        const offersCount = pipeline.offers ?? 0;
+        if (elements.dashboardOffersCount) {
+          elements.dashboardOffersCount.textContent = formatNumber(offersCount);
+        }
+        if (elements.dashboardOffersMeta) {
+          elements.dashboardOffersMeta.textContent = offersCount > 0 ? 'Offers tracking in progress' : 'No offers yet';
+        }
+        if (elements.dashboardOffersTrend) {
+          elements.dashboardOffersTrend.textContent = offersCount ? `+${formatNumber(offersCount)}` : '+0';
+        }
+
+        if (elements.dashboardProjectsTableBody) {
+          const dashboardRows = projectList
+            .slice()
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 5);
+          const tbody = elements.dashboardProjectsTableBody;
+          tbody.innerHTML = '';
+          if (dashboardRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Create a project to get started.</td></tr>';
+          } else {
+            dashboardRows.forEach((project) => {
+              const tr = document.createElement('tr');
+              const nameCell = document.createElement('td');
+              nameCell.textContent = project.name || 'Untitled project';
+              const departmentCell = document.createElement('td');
+              departmentCell.textContent = project.department || project.client || '—';
+              const statusCell = document.createElement('td');
+              statusCell.appendChild(createBadge(project.status));
+              const hiresCell = document.createElement('td');
+              const hired = formatNumber(project.hires_count || 0);
+              const target = formatNumber(project.target_hires || 0);
+              hiresCell.textContent = `${hired}/${target}`;
+              tr.appendChild(nameCell);
+              tr.appendChild(departmentCell);
+              tr.appendChild(statusCell);
+              tr.appendChild(hiresCell);
+              tbody.appendChild(tr);
+            });
+          }
+        }
+
+        if (elements.dashboardPipelineList) {
+          const pipelineListEl = elements.dashboardPipelineList;
+          pipelineListEl.innerHTML = '';
+          const stageConfig = [
+            { key: 'sourcing', label: 'Sourced' },
+            { key: 'screening', label: 'Screening' },
+            { key: 'interviews', label: 'Interviews' },
+            { key: 'offers', label: 'Offers' }
+          ];
+          let hasData = false;
+          stageConfig.forEach((stage) => {
+            const value = pipeline[stage.key] ?? 0;
+            const width = totalCandidates > 0 ? Math.max(4, (value / totalCandidates) * 100) : value > 0 ? 40 : 0;
+            if (value > 0) {
+              hasData = true;
+            }
+            const item = document.createElement('div');
+            item.className = 'pipeline-item';
+            const label = document.createElement('strong');
+            label.textContent = stage.label;
+            const track = document.createElement('div');
+            track.className = 'progress-track';
+            const fill = document.createElement('div');
+            fill.className = 'progress-fill';
+            fill.style.transform = `scaleX(${Math.min(100, width) / 100})`;
+            track.appendChild(fill);
+            const count = document.createElement('span');
+            count.textContent = formatNumber(value);
+            item.appendChild(label);
+            item.appendChild(track);
+            item.appendChild(count);
+            pipelineListEl.appendChild(item);
+          });
+          if (!hasData) {
+            pipelineListEl.innerHTML = '<div class="empty-state">Add candidates to populate your funnel.</div>';
+          }
+        }
 
         const featuredContainer = elements.dashboardFeatured;
         featuredContainer.innerHTML = '';
@@ -2243,17 +2633,45 @@
         const suggestions = Array.isArray(stats?.suggestions) ? stats.suggestions.filter(Boolean) : [];
         const suggestionsList = elements.dashboardSuggestions;
         suggestionsList.innerHTML = '';
+        const upcomingList = elements.dashboardUpcomingList;
+        if (upcomingList) {
+          upcomingList.innerHTML = '';
+        }
         if (suggestions.length === 0) {
           const li = document.createElement('li');
           li.className = 'empty-state';
           li.textContent = 'No suggestions available yet. Engage with your workspace to surface guidance.';
           suggestionsList.appendChild(li);
+          if (upcomingList) {
+            const task = document.createElement('li');
+            task.className = 'empty-state';
+            task.textContent = 'Suggestions will appear once data loads.';
+            upcomingList.appendChild(task);
+          }
         } else {
-          suggestions.forEach((text) => {
-            const li = document.createElement('li');
-            li.textContent = text;
-            suggestionsList.appendChild(li);
+          suggestions.forEach((text, index) => {
+            const suggestionItem = document.createElement('li');
+            const title = document.createElement('strong');
+            title.textContent = text;
+            suggestionItem.appendChild(title);
+            suggestionsList.appendChild(suggestionItem);
+            if (upcomingList && index < 3) {
+              const taskItem = document.createElement('li');
+              const taskTitle = document.createElement('strong');
+              taskTitle.textContent = text;
+              const taskMeta = document.createElement('span');
+              taskMeta.textContent = 'Queued for follow-up';
+              taskItem.appendChild(taskTitle);
+              taskItem.appendChild(taskMeta);
+              upcomingList.appendChild(taskItem);
+            }
           });
+          if (upcomingList && upcomingList.childElementCount === 0) {
+            const fallback = document.createElement('li');
+            fallback.className = 'empty-state';
+            fallback.textContent = 'No upcoming tasks at the moment.';
+            upcomingList.appendChild(fallback);
+          }
         }
 
         const activityList = elements.recentActivity;
@@ -3959,6 +4377,12 @@
           activateView(button.dataset.viewTarget);
         });
       });
+
+      if (newProjectButton) {
+        newProjectButton.addEventListener('click', () => {
+          activateView('projects');
+        });
+      }
 
       resetDynamicContent();
       registerAutoUpdaterListeners();

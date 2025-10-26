@@ -10,6 +10,7 @@ from ..models import AIJob, Position, Project, SourcingJob, SourcingResult
 from ..schemas import SmartRecruitersBulkRequest, SourcingJobStatusResponse
 from ..services.ai import start_linkedin_xray, start_smartrecruiters_bulk
 from ..services.activity import log_activity
+from ..utils.permissions import can_manage_workspace, ensure_project_access
 
 router = APIRouter(prefix="/api", tags=["sourcing"])
 
@@ -23,9 +24,10 @@ def sourcing_overview(
     job_query = (
         db.query(SourcingJob)
         .join(Project, SourcingJob.project_id == Project.project_id)
-        .filter(Project.created_by == current_user.user_id)
         .order_by(SourcingJob.created_at.desc())
     )
+    if not can_manage_workspace(current_user):
+        job_query = job_query.filter(Project.created_by == current_user.user_id)
     if project_id:
         job_query = job_query.filter(SourcingJob.project_id == project_id)
     jobs = job_query.all()
@@ -63,9 +65,10 @@ def sourcing_overview(
         db.query(SourcingResult)
         .join(SourcingJob, SourcingResult.sourcing_job_id == SourcingJob.sourcing_job_id)
         .join(Project, SourcingJob.project_id == Project.project_id)
-        .filter(Project.created_by == current_user.user_id)
         .order_by(SourcingResult.created_at.desc())
     )
+    if not can_manage_workspace(current_user):
+        result_query = result_query.filter(Project.created_by == current_user.user_id)
     if project_id:
         result_query = result_query.filter(SourcingJob.project_id == project_id)
     results = result_query.limit(12).all()
@@ -104,6 +107,7 @@ def start_linkedin_xray_endpoint(
 ) -> Dict[str, Any]:
     if "project_id" not in payload:
         raise HTTPException(status_code=400, detail="project_id required")
+    ensure_project_access(db.get(Project, payload["project_id"]), current_user)
     job = start_linkedin_xray(db, payload, current_user.user_id)
     log_activity(
         db,
@@ -124,6 +128,7 @@ def sourcing_job_status(
 ) -> SourcingJobStatusResponse:
     job = db.get(SourcingJob, job_id)
     if job:
+        ensure_project_access(db.get(Project, job.project_id), current_user)
         results = (
             db.query(SourcingResult)
             .filter(SourcingResult.sourcing_job_id == job.sourcing_job_id)
@@ -149,6 +154,8 @@ def sourcing_job_status(
         )
     ai_job = db.get(AIJob, job_id)
     if ai_job:
+        if ai_job.project_id:
+            ensure_project_access(db.get(Project, ai_job.project_id), current_user)
         return SourcingJobStatusResponse(
             job_id=ai_job.job_id,
             status=ai_job.status,
@@ -165,6 +172,7 @@ def smartrecruiters_bulk(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> Dict[str, Any]:
+    ensure_project_access(db.get(Project, payload.project_id), current_user)
     job = start_smartrecruiters_bulk(db, payload.model_dump(), current_user.user_id)
     log_activity(
         db,

@@ -13,6 +13,7 @@ from ..schemas import DocumentRead
 from ..services.activity import log_activity
 from ..services.ai import create_ai_job
 from ..services.queue import background_queue
+from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..utils.security import generate_id
 from ..utils.storage import ensure_storage_dir, resolve_storage_path
 
@@ -21,7 +22,10 @@ router = APIRouter(prefix="/api", tags=["documents"])
 
 @router.get("/documents", response_model=List[DocumentRead])
 def list_documents(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[DocumentRead]:
-    documents = db.query(Document).filter(Document.owner_user == current_user.user_id).all()
+    query = db.query(Document)
+    if not can_manage_workspace(current_user):
+        query = query.filter(Document.owner_user == current_user.user_id)
+    documents = query.all()
     return [
         DocumentRead(
             id=doc.id,
@@ -52,9 +56,7 @@ def upload_document(
     if scope == "project":
         if not scope_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="scope_id required for project uploads")
-        project = db.get(Project, scope_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        ensure_project_access(db.get(Project, scope_id), current_user)
 
     safe_name = Path(file.filename).name
     file_id = generate_id()
@@ -128,9 +130,7 @@ def list_project_documents(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> List[DocumentRead]:
-    project = db.get(Project, project_id)
-    if not project or project.created_by != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    ensure_project_access(db.get(Project, project_id), current_user)
     documents = (
         db.query(ProjectDocument)
         .filter(ProjectDocument.project_id == project_id)
@@ -155,7 +155,7 @@ def list_project_documents(
 @router.get("/documents/{doc_id}/download")
 def download_document(doc_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> FileResponse:
     document = db.get(Document, doc_id)
-    if not document or document.owner_user != current_user.user_id:
+    if not document or (document.owner_user != current_user.user_id and not can_manage_workspace(current_user)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     try:
         path = resolve_storage_path(document.file_url)
@@ -169,7 +169,7 @@ def download_document(doc_id: str, db: Session = Depends(get_db), current_user=D
 @router.get("/documents/{doc_id}/file")
 def stream_document(doc_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> StreamingResponse:
     document = db.get(Document, doc_id)
-    if not document or document.owner_user != current_user.user_id:
+    if not document or (document.owner_user != current_user.user_id and not can_manage_workspace(current_user)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     try:
         path = resolve_storage_path(document.file_url)
@@ -190,7 +190,7 @@ def stream_document(doc_id: str, db: Session = Depends(get_db), current_user=Dep
 @router.get("/documents/{doc_id}/view", response_model=DocumentRead)
 def view_document(doc_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> DocumentRead:
     document = db.get(Document, doc_id)
-    if not document or document.owner_user != current_user.user_id:
+    if not document or (document.owner_user != current_user.user_id and not can_manage_workspace(current_user)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return DocumentRead(
         id=document.id,

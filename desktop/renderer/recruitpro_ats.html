@@ -1123,8 +1123,8 @@
                 </table>
               </div>
               <div class="quick-actions">
-                <a href="./project_page.html">Open project workspace</a>
-                <a href="./project_positions.html">Review requisitions</a>
+                <a data-route="/project-overview" data-requires-project="true" href="#">Open project workspace</a>
+                <a data-route="/project-positions" data-requires-project="true" href="#">Review requisitions</a>
               </div>
             </article>
           </section>
@@ -1191,7 +1191,7 @@
                 </ul>
               </div>
               <div class="quick-actions">
-                <a href="./candidate_profile.html">Open candidate profile</a>
+                <a data-route="/candidate-profile" data-requires-candidate="true" href="#">Open candidate profile</a>
               </div>
             </article>
           </section>
@@ -1232,7 +1232,7 @@
                 </table>
               </div>
               <div class="quick-actions">
-                <a href="./project_positions.html">Manage positions</a>
+                <a data-route="/project-positions" data-requires-project="true" href="#">Manage positions</a>
               </div>
             </article>
           </section>
@@ -1324,7 +1324,7 @@
                 <div id="aiSourcingFeedback" style="color: var(--text-muted)">Automations ready.</div>
               </div>
               <div class="quick-actions">
-                <a href="./ai_sourcing_overview.html">Launch sourcing overview</a>
+                <a data-route="/ai/sourcing-overview" href="#">Launch sourcing overview</a>
               </div>
             </article>
           </section>
@@ -1353,7 +1353,7 @@
                   <p style="color: var(--text-muted); margin-top: 6px">Connect additional data sources to power your candidate intelligence.</p>
                 </div>
                 <div class="quick-actions">
-                  <a href="./settings.html">Open integrations</a>
+                  <a data-route="/settings" href="#">Open integrations</a>
                 </div>
                 <div>
                   <strong>Theme</strong>
@@ -2083,8 +2083,10 @@
           backendUrl: null,
           user: null,
           projects: [],
+          activeProjectId: null,
           positions: [],
           candidates: [],
+          activeCandidateId: null,
           interviews: [],
           documents: [],
           duplicates: [],
@@ -2137,6 +2139,40 @@
       const projectAttentionStatuses = new Set(['paused', 'blocked', 'on-hold', 'hold', 'delayed', 'overdue', 'stalled', 'draft', 'needs-attention']);
       const closedProjectStatuses = new Set(['archived', 'closed', 'cancelled', 'canceled']);
       const newPositionStatuses = new Set(['draft', 'intake', 'new', 'requested']);
+
+      const quickActionLinks = Array.from(document.querySelectorAll('[data-route]'));
+
+      const getPreferredProjectId = () => {
+        if (state.projects.length === 0) {
+          state.activeProjectId = null;
+          return null;
+        }
+        if (
+          state.activeProjectId &&
+          state.projects.some((project) => project.project_id === state.activeProjectId)
+        ) {
+          return state.activeProjectId;
+        }
+        const firstProjectId = state.projects[0]?.project_id || null;
+        state.activeProjectId = firstProjectId;
+        return firstProjectId;
+      };
+
+      const getPreferredCandidateId = () => {
+        if (state.candidates.length === 0) {
+          state.activeCandidateId = null;
+          return null;
+        }
+        if (
+          state.activeCandidateId &&
+          state.candidates.some((candidate) => candidate.candidate_id === state.activeCandidateId)
+        ) {
+          return state.activeCandidateId;
+        }
+        const firstCandidateId = state.candidates[0]?.candidate_id || null;
+        state.activeCandidateId = firstCandidateId;
+        return firstCandidateId;
+      };
 
       const mapBadgeClass = (status) => {
         const value = (status || '').toLowerCase();
@@ -2390,6 +2426,88 @@
         return state.backendUrl || '';
       };
 
+      const buildQuickActionUrl = (baseUrl, route, { projectId, candidateId } = {}) => {
+        const normalizedRoute = route.startsWith('/') ? route : `/${route}`;
+        const query = new URLSearchParams();
+        if (projectId) {
+          query.set('project_id', projectId);
+        }
+        if (candidateId) {
+          query.set('candidate_id', candidateId);
+        }
+        if (state.token) {
+          query.set('token', state.token);
+        }
+        const queryString = query.toString();
+        const prefix = baseUrl ? baseUrl.replace(/\/$/, '') : '';
+        return `${prefix}${normalizedRoute}${queryString ? `?${queryString}` : ''}`;
+      };
+
+      const setQuickActionDisabled = (link, disabled, message) => {
+        if (!link) {
+          return;
+        }
+        if (disabled) {
+          link.setAttribute('href', '#');
+          link.setAttribute('aria-disabled', 'true');
+          if (message) {
+            link.dataset.disabledMessage = message;
+          }
+        } else {
+          link.removeAttribute('aria-disabled');
+          link.removeAttribute('data-disabled-message');
+          if ('disabledMessage' in link.dataset) {
+            delete link.dataset.disabledMessage;
+          }
+        }
+      };
+
+      const updateQuickActionLinks = async () => {
+        if (quickActionLinks.length === 0) {
+          return;
+        }
+        const baseUrl = await ensureBackendUrl();
+        quickActionLinks.forEach((link) => {
+          const route = link.dataset.route;
+          if (!route) {
+            return;
+          }
+          if (!state.token) {
+            setQuickActionDisabled(link, true, 'Sign in to open this workspace view.');
+            return;
+          }
+          const requiresProject = link.dataset.requiresProject === 'true';
+          const requiresCandidate = link.dataset.requiresCandidate === 'true';
+          const projectId = requiresProject ? getPreferredProjectId() : null;
+          const candidateId = requiresCandidate ? getPreferredCandidateId() : null;
+          if (requiresProject && !projectId) {
+            setQuickActionDisabled(link, true, 'Add a project to open this workspace view.');
+            return;
+          }
+          if (requiresCandidate && !candidateId) {
+            setQuickActionDisabled(link, true, 'Add a candidate to open this profile.');
+            return;
+          }
+          const targetUrl = buildQuickActionUrl(baseUrl, route, { projectId, candidateId });
+          link.setAttribute('href', targetUrl);
+          setQuickActionDisabled(link, false);
+        });
+      };
+
+      quickActionLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+          if (link.getAttribute('aria-disabled') === 'true') {
+            event.preventDefault();
+            const message = link.dataset.disabledMessage || 'Complete setup steps to open this view.';
+            window.alert(message);
+          }
+        });
+      });
+
+      updateQuickActionLinks().catch((error) => {
+        console.warn('Failed to initialize quick action links', error);
+      });
+
       const setToken = (token) => {
         state.token = token;
         if (token) {
@@ -2397,6 +2515,9 @@
         } else {
           sessionStorage.removeItem('recruitproAccessToken');
         }
+        updateQuickActionLinks().catch((error) => {
+          console.warn('Failed to update quick action links after token change', error);
+        });
       };
 
       const handleUnauthorized = () => {
@@ -2721,6 +2842,11 @@
         let onTrack = 0;
         let attention = 0;
         state.projects = rows;
+        if (rows.length === 0) {
+          state.activeProjectId = null;
+        } else if (!rows.some((project) => project.project_id === state.activeProjectId)) {
+          state.activeProjectId = rows[0]?.project_id || null;
+        }
         rows.forEach((project) => {
           const status = (project.status || '').toLowerCase();
           if (projectAttentionStatuses.has(status)) {
@@ -2765,6 +2891,9 @@
           tbody.appendChild(tr);
         });
         populateProjectSelects();
+        updateQuickActionLinks().catch((error) => {
+          console.warn('Failed to update quick action links after project render', error);
+        });
       };
 
       const renderCandidates = (candidates, positions, interviews) => {
@@ -2772,6 +2901,11 @@
           ? candidates.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           : [];
         state.candidates = candidateRows;
+        if (candidateRows.length === 0) {
+          state.activeCandidateId = null;
+        } else if (!candidateRows.some((candidate) => candidate.candidate_id === state.activeCandidateId)) {
+          state.activeCandidateId = candidateRows[0]?.candidate_id || null;
+        }
         const validCandidateIds = new Set(candidateRows.map((candidate) => candidate.candidate_id));
         state.selectedCandidates.forEach((id) => {
           if (!validCandidateIds.has(id)) {
@@ -2845,6 +2979,9 @@
         syncCandidateSelectAll();
         updateCandidateBulkFeedback();
         refreshCandidateSelects();
+        updateQuickActionLinks().catch((error) => {
+          console.warn('Failed to update quick action links after candidate render', error);
+        });
       };
 
       const renderPositions = (positions) => {
@@ -2969,6 +3106,11 @@
           select.innerHTML = html;
           if (current && state.projects.some((project) => project.project_id === current)) {
             select.value = current;
+          } else if (
+            state.activeProjectId &&
+            state.projects.some((project) => project.project_id === state.activeProjectId)
+          ) {
+            select.value = state.activeProjectId;
           }
         });
       };
@@ -4107,6 +4249,24 @@
           }
         });
       }
+
+      const projectSelectors = [
+        elements.documentProjectSelect,
+        elements.marketResearchProjectSelect,
+        elements.linkedinProjectSelect,
+        elements.smartRecruitersProjectSelect
+      ].filter(Boolean);
+
+      projectSelectors.forEach((select) => {
+        select.addEventListener('change', () => {
+          if (select.value) {
+            state.activeProjectId = select.value;
+          }
+          updateQuickActionLinks().catch((error) => {
+            console.warn('Failed to update quick action links after project selection', error);
+          });
+        });
+      });
 
       if (elements.linkedinXrayForm) {
         elements.linkedinXrayForm.addEventListener('submit', async (event) => {

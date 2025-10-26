@@ -27,6 +27,7 @@ from .routers import (
     projects,
     reporting,
     sourcing,
+    settings_api,
     system,
 )
 from .models import (
@@ -349,6 +350,7 @@ app.include_router(sourcing.router)
 app.include_router(interviews.router)
 app.include_router(admin.router)
 app.include_router(reporting.router)
+app.include_router(settings_api.router)
 app.include_router(system.router)
 
 

@@ -1,9 +1,9 @@
-"""Lightweight Gemini Flash Lite facade used throughout the app.
+"""Gemini integration helpers used across the RecruitPro backend.
 
-The goal of this module is not to provide real network access to Gemini but to
-model the prompt flows described in the system design documentation.  Each
-method synthesises deterministic-yet-rich responses so the rest of the
-codebase can behave as if a real LLM was invoked.
+When a Gemini API key is configured the service performs real HTTP calls to
+Google's Generative Language API.  For environments without outbound network
+access we retain deterministic offline fallbacks so that the wider application
+and test-suite continue to behave predictably.
 """
 
 from __future__ import annotations
@@ -12,16 +12,27 @@ import asyncio
 import csv
 import io
 import json
+import logging
 import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 from zipfile import ZipFile
 
 from ..config import get_settings
+
+try:  # pragma: no cover - optional dependency guard
+    import httpx
+except ImportError:  # pragma: no cover - httpx may be missing in lightweight installs
+    httpx = None  # type: ignore[assignment]
+
+
+T = TypeVar("T")
+
+logger = logging.getLogger(__name__)
 
 KEYWORD_SECTORS = {
     "infrastructure": ["bridge", "transport", "rail", "station", "highway"],
@@ -29,6 +40,10 @@ KEYWORD_SECTORS = {
     "healthcare": ["hospital", "clinic", "medical"],
     "education": ["school", "campus", "university"],
 }
+
+
+class GeminiServiceError(RuntimeError):
+    """Raised when live Gemini interactions fail."""
 
 
 @dataclass
@@ -40,19 +55,119 @@ class CandidatePersona:
 
 
 class GeminiService:
-    """Deterministic prompt implementations inspired by the spec."""
+    """Gemini client with graceful fallbacks for offline environments."""
 
     DEFAULT_MODEL = "gemini-flash-lite-latest"
+    _BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
     def __init__(self, model: str = DEFAULT_MODEL, temperature: float = 0.15):
         self.model = model
         self.temperature = temperature
         self.api_key: Optional[str] = None
+        self._client: Optional["httpx.Client"] = None
 
     def configure_api_key(self, api_key: Optional[str]) -> None:
         """Update the API key used for live Gemini calls."""
 
         self.api_key = api_key or None
+
+    # ------------------------------------------------------------------
+    # Live invocation helpers
+    # ------------------------------------------------------------------
+    def _live_enabled(self) -> bool:
+        return bool(self.api_key and httpx is not None)
+
+    def _http_client(self) -> "httpx.Client":
+        if httpx is None:  # pragma: no cover - guarded by _live_enabled
+            raise GeminiServiceError("httpx is not installed")
+        if self._client is None:
+            self._client = httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0))
+        return self._client
+
+    def _invoke_text(
+        self,
+        prompt: str,
+        *,
+        response_mime_type: str = "application/json",
+        system_instruction: Optional[str] = None,
+    ) -> str:
+        if not self._live_enabled():
+            raise GeminiServiceError("Gemini API key is not configured")
+
+        payload: Dict[str, Any] = {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": self.temperature,
+                "responseMimeType": response_mime_type,
+            },
+        }
+        if system_instruction:
+            payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+
+        endpoint = f"{self._BASE_URL}/models/{self.model}:generateContent"
+        client = self._http_client()
+        try:
+            response = client.post(endpoint, params={"key": self.api_key}, json=payload)
+            response.raise_for_status()
+        except Exception as exc:  # pragma: no cover - network interactions
+            raise GeminiServiceError("Gemini HTTP request failed") from exc
+
+        try:
+            data = response.json()
+        except ValueError as exc:  # pragma: no cover - defensive
+            raise GeminiServiceError("Gemini returned invalid JSON") from exc
+
+        candidates = data.get("candidates") or []
+        if not candidates:
+            raise GeminiServiceError("Gemini response did not include candidates")
+        parts = candidates[0].get("content", {}).get("parts") or []
+        text = "".join(part.get("text", "") for part in parts if isinstance(part, dict))
+        if not text.strip():
+            raise GeminiServiceError("Gemini returned an empty response")
+        return text
+
+    def _structured_completion(
+        self,
+        prompt: str,
+        *,
+        fallback: Callable[[], T],
+        system_instruction: Optional[str] = None,
+        postprocess: Optional[Callable[[Any, T], Optional[T]]] = None,
+    ) -> T:
+        baseline = fallback()
+        if not self._live_enabled():
+            return baseline
+        try:
+            raw_text = self._invoke_text(
+                prompt,
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+            )
+        except GeminiServiceError as exc:
+            logger.warning("Falling back to offline Gemini implementation: %s", exc)
+            return baseline
+        try:
+            payload = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            logger.warning("Invalid JSON payload from Gemini, using fallback: %s", exc)
+            return baseline
+
+        if postprocess:
+            processed = postprocess(payload, baseline)
+            if processed is not None:
+                return processed
+
+        if isinstance(baseline, dict) and isinstance(payload, dict):
+            merged = baseline.copy()
+            for key, value in payload.items():
+                if value not in (None, "", [], {}):
+                    merged[key] = value
+            return merged
+        if isinstance(baseline, list) and isinstance(payload, list):
+            return payload or baseline
+        if isinstance(payload, type(baseline)):
+            return payload
+        return baseline
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -343,191 +458,376 @@ class GeminiService:
     # Content generation helpers
     # ------------------------------------------------------------------
     def generate_job_description(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        title = context.get("title", "Role")
-        project_summary = context.get("project_summary") or "We are delivering a flagship infrastructure initiative."
-        responsibilities = context.get("responsibilities") or [
-            "Own end-to-end delivery of project workstreams",
-            "Partner with cross-functional experts across design, commercial and delivery",
-            "Embed Egis safety and sustainability standards in every decision",
-        ]
-        requirements = context.get("requirements") or [
-            "7+ years experience in large-scale AEC projects",
-            "Chartered or working towards chartership",
-            "Proven stakeholder management across consultants and contractors",
-        ]
-        nice_to_have = context.get("nice_to_have") or ["Experience with digital twin platforms", "Middle East market exposure"]
-        salary_hint = context.get("salary_hint")
+        def fallback() -> Dict[str, Any]:
+            title = context.get("title", "Role")
+            project_summary = context.get("project_summary") or "We are delivering a flagship infrastructure initiative."
+            responsibilities = context.get("responsibilities") or [
+                "Own end-to-end delivery of project workstreams",
+                "Partner with cross-functional experts across design, commercial and delivery",
+                "Embed Egis safety and sustainability standards in every decision",
+            ]
+            requirements = context.get("requirements") or [
+                "7+ years experience in large-scale AEC projects",
+                "Chartered or working towards chartership",
+                "Proven stakeholder management across consultants and contractors",
+            ]
+            nice_to_have = context.get("nice_to_have") or [
+                "Experience with digital twin platforms",
+                "Middle East market exposure",
+            ]
+            salary_hint = context.get("salary_hint")
+            return {
+                "title": title,
+                "summary": project_summary,
+                "description": (
+                    f"Egis is seeking a {title} to accelerate delivery of {project_summary.lower()} "
+                    "with a focus on operational excellence, innovation and sustainable outcomes."
+                ),
+                "responsibilities": responsibilities,
+                "requirements": requirements,
+                "nice_to_have": nice_to_have,
+                "compensation_note": salary_hint,
+            }
 
-        return {
-            "title": title,
-            "summary": project_summary,
-            "description": (
-                f"Egis is seeking a {title} to accelerate delivery of {project_summary.lower()} "
-                "with a focus on operational excellence, innovation and sustainable outcomes."
-            ),
-            "responsibilities": responsibilities,
-            "requirements": requirements,
-            "nice_to_have": nice_to_have,
-            "compensation_note": salary_hint,
-        }
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            merged = baseline.copy()
+            for key in (
+                "title",
+                "summary",
+                "description",
+                "responsibilities",
+                "requirements",
+                "nice_to_have",
+                "compensation_note",
+            ):
+                value = payload.get(key)
+                if value not in (None, "", []):
+                    merged[key] = value
+            return merged
+
+        prompt = (
+            "Generate a RecruitPro job description as JSON with keys "
+            "['title','summary','description','responsibilities','requirements','nice_to_have','compensation_note']. "
+            "Use the following context:\n"
+            f"{json.dumps(context, indent=2, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Respond with valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def generate_outreach_email(self, payload: Dict[str, Any]) -> Dict[str, str]:
-        candidate = payload.get("candidate_name", "Candidate")
-        role = payload.get("title") or payload.get("role") or "Opportunity"
-        highlights = payload.get("highlights") or ["mega-project exposure", "leadership runway"]
-        company = payload.get("company") or "Egis"
-        template = payload.get("template", "standard").lower()
+        def fallback() -> Dict[str, str]:
+            candidate = payload.get("candidate_name", "Candidate")
+            role = payload.get("title") or payload.get("role") or "Opportunity"
+            highlights = payload.get("highlights") or ["mega-project exposure", "leadership runway"]
+            company = payload.get("company") or "Egis"
+            template = payload.get("template", "standard").lower()
 
-        tone_by_template = {
-            "standard": ("""Hi {candidate},\n\n"
-                "I'm leading a search at {company} for a {role} and your profile stood out. "
-                "We're assembling a taskforce that blends technical mastery with collaborative leadership. "
-                "{highlights}.\n\nCould we schedule a 15 minute call this week to explore the fit?\n\n"
-                "Best regards,\nEgis Talent"""),
-            "executive": ("""Hello {candidate},\n\n"
-                "Egis is mobilising a leadership team for a flagship programme and your track record aligns "
-                "closely with what we're building. {highlights}. Let's find time to connect over the next few days.\n\n"
-                "Warm regards,\nEgis Executive Talent"""),
-            "technical": ("""Hi {candidate},\n\n"
-                "We're standing up a delivery pod focused on advanced engineering workflows and your contributions "
-                "caught our attention. {highlights}. Would you be open to a short conversation?\n\n"
-                "Thanks,\nEgis Talent"""),
-        }
-        template_body = tone_by_template.get(template, tone_by_template["standard"])
-        highlight_text = " ".join(f"• {point}" for point in payload.get("highlights", [])) or "• Impactful portfolio\n• Collaborative culture"
-        body = template_body.format(candidate=candidate, company=company, role=role, highlights=highlight_text)
-        subject = f"{company} | {role} opportunity"
-        return {"subject": subject, "body": body}
+            tone_by_template = {
+                "standard": (
+                    """Hi {candidate},\n\n"
+                    "I'm leading a search at {company} for a {role} and your profile stood out. "
+                    "We're assembling a taskforce that blends technical mastery with collaborative leadership. "
+                    "{highlights}.\n\nCould we schedule a 15 minute call this week to explore the fit?\n\n"
+                    "Best regards,\nEgis Talent"""
+                ),
+                "executive": (
+                    """Hello {candidate},\n\n"
+                    "Egis is mobilising a leadership team for a flagship programme and your track record aligns "
+                    "closely with what we're building. {highlights}. Let's find time to connect over the next few days.\n\n"
+                    "Warm regards,\nEgis Executive Talent"""
+                ),
+                "technical": (
+                    """Hi {candidate},\n\n"
+                    "We're standing up a delivery pod focused on advanced engineering workflows and your contributions "
+                    "caught our attention. {highlights}. Would you be open to a short conversation?\n\n"
+                    "Thanks,\nEgis Talent"""
+                ),
+            }
+            template_body = tone_by_template.get(template, tone_by_template["standard"])
+            highlight_text = " ".join(f"• {point}" for point in payload.get("highlights", [])) or (
+                "• Impactful portfolio\n• Collaborative culture"
+            )
+            body = template_body.format(
+                candidate=candidate, company=company, role=role, highlights=highlight_text
+            )
+            subject = f"{company} | {role} opportunity"
+            return {"subject": subject, "body": body}
+
+        def postprocess(payload: Any, baseline: Dict[str, str]) -> Optional[Dict[str, str]]:
+            if not isinstance(payload, dict):
+                return None
+            subject = payload.get("subject") or baseline["subject"]
+            body = payload.get("body") or baseline["body"]
+            return {"subject": subject, "body": body}
+
+        prompt = (
+            "Create an outreach email for a candidate. Respond as JSON with keys 'subject' and 'body'. "
+            f"Context: {json.dumps(payload, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def generate_call_script(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        title = payload.get("title", "the opportunity")
-        candidate = payload.get("candidate_name", "candidate")
-        location = payload.get("location", "the region")
-        value_props = payload.get("value_props") or [
-            "Tier-one infrastructure programme",
-            "Empowered decision making",
-            "Leadership succession planning",
-        ]
-        sections = {
-            "introduction": f"Hi {candidate}, it's great to connect. I'm supporting the {title} search in {location}.",
-            "context": "We're partnering with the client to deliver a high-impact mandate with strong board sponsorship.",
-            "motivation": [
-                "What would prompt you to explore a new role right now?",
-                "How do you evaluate opportunities in terms of scale and autonomy?",
-            ],
-            "technical": [
-                "Walk me through a recent project where you had to resolve a major engineering challenge.",
-                "How do you lead design coordination with remote partners?",
-            ],
-            "managerial": [
-                "How large were the teams you led and how were they structured?",
-                "Tell me about your stakeholder management cadence.",
-            ],
-            "commercial": [
-                "What financial levers do you monitor most closely during delivery?",
-                "Describe a time you protected margin without compromising quality.",
-            ],
-            "design": [
-                "How do you ensure the design intent is preserved through construction?",
-                "What digital tools do you rely on for coordination?",
-            ],
-            "objection_handling": [
-                {"objection": "Timing", "response": "We can align interviews around your availability, including after-hours."},
-                {"objection": "Relocation", "response": "We provide full mobilisation support including family assistance."},
-            ],
-            "closing": "I'd love to continue the conversation. I'll send a follow-up with next steps and insights.",
-        }
-        return {"candidate": candidate, "role": title, "location": location, "value_props": value_props, "sections": sections}
+        def fallback() -> Dict[str, Any]:
+            title = payload.get("title", "the opportunity")
+            candidate = payload.get("candidate_name", "candidate")
+            location = payload.get("location", "the region")
+            value_props = payload.get("value_props") or [
+                "Tier-one infrastructure programme",
+                "Empowered decision making",
+                "Leadership succession planning",
+            ]
+            sections = {
+                "introduction": f"Hi {candidate}, it's great to connect. I'm supporting the {title} search in {location}.",
+                "context": "We're partnering with the client to deliver a high-impact mandate with strong board sponsorship.",
+                "motivation": [
+                    "What would prompt you to explore a new role right now?",
+                    "How do you evaluate opportunities in terms of scale and autonomy?",
+                ],
+                "technical": [
+                    "Walk me through a recent project where you had to resolve a major engineering challenge.",
+                    "How do you lead design coordination with remote partners?",
+                ],
+                "managerial": [
+                    "How large were the teams you led and how were they structured?",
+                    "Tell me about your stakeholder management cadence.",
+                ],
+                "commercial": [
+                    "What financial levers do you monitor most closely during delivery?",
+                    "Describe a time you protected margin without compromising quality.",
+                ],
+                "design": [
+                    "How do you ensure the design intent is preserved through construction?",
+                    "What digital tools do you rely on for coordination?",
+                ],
+                "objection_handling": [
+                    {
+                        "objection": "Timing",
+                        "response": "We can align interviews around your availability, including after-hours.",
+                    },
+                    {
+                        "objection": "Relocation",
+                        "response": "We provide full mobilisation support including family assistance.",
+                    },
+                ],
+                "closing": "I'd love to continue the conversation. I'll send a follow-up with next steps and insights.",
+            }
+            return {
+                "candidate": candidate,
+                "role": title,
+                "location": location,
+                "value_props": value_props,
+                "sections": sections,
+            }
+
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            merged = baseline.copy()
+            for key, value in payload.items():
+                if value not in (None, ""):
+                    merged[key] = value
+            return merged
+
+        prompt = (
+            "Draft a structured call script for a recruiter. Return JSON including candidate, role, location, value_props"
+            " (list) and sections (object). Context: "
+            f"{json.dumps(payload, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def generate_chatbot_reply(self, history: List[Dict[str, str]], new_message: str) -> Dict[str, Any]:
-        context_blurb = " ".join(item["content"] for item in history[-5:])[-400:]
-        reply = (
-            "Thanks for the update. Here's what I can help with next: "
-            "1) summarise the latest candidate pipeline, 2) launch an AI sourcing job, "
-            "3) request market research. Just let me know which workflow to trigger."
+        def fallback() -> Dict[str, Any]:
+            context_blurb = " ".join(item["content"] for item in history[-5:])[-400:]
+            reply = (
+                "Thanks for the update. Here's what I can help with next: "
+                "1) summarise the latest candidate pipeline, 2) launch an AI sourcing job, "
+                "3) request market research. Just let me know which workflow to trigger."
+            )
+            if "market" in new_message.lower():
+                reply = "I'll prepare a market analysis pack. Provide the project ID or region so I can launch it."
+            elif "sourcing" in new_message.lower():
+                reply = "Happy to start sourcing. Share the position ID plus keywords and I'll build the boolean strings."
+            elif "status" in new_message.lower():
+                reply = "Current status: we have active candidates in screening and one interview scheduled this week."
+            return {"reply": reply, "context_echo": context_blurb}
+
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            reply = payload.get("reply") or baseline["reply"]
+            context_echo = payload.get("context_echo") or baseline["context_echo"]
+            return {"reply": reply, "context_echo": context_echo}
+
+        history_context = {"history": history[-10:], "message": new_message}
+        prompt = (
+            "You are the RecruitPro assistant. Provide a helpful reply in JSON with keys 'reply' and 'context_echo'. "
+            f"Conversation: {json.dumps(history_context, ensure_ascii=False)}"
         )
-        if "market" in new_message.lower():
-            reply = "I'll prepare a market analysis pack. Provide the project ID or region so I can launch it."
-        elif "sourcing" in new_message.lower():
-            reply = "Happy to start sourcing. Share the position ID plus keywords and I'll build the boolean strings."
-        elif "status" in new_message.lower():
-            reply = "Current status: we have active candidates in screening and one interview scheduled this week."
-        return {"reply": reply, "context_echo": context_blurb}
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     # ------------------------------------------------------------------
     # Research & sourcing helpers
     # ------------------------------------------------------------------
     def generate_market_research(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        region = payload.get("region", "GCC")
-        sector = payload.get("sector", "infrastructure")
-        summary = payload.get("summary") or "Landmark programme requiring multidisciplinary delivery partners."
-        year = datetime.utcnow().year
-        findings = [
-            {
-                "title": f"{region} flagship {sector} initiative",
-                "description": "Comparable project delivered under similar contract model with collaborative governance.",
-                "leads": ["PMC: Alpha Advisory", "Consultant: Delta Design", "Contractor: Horizon Build"],
-            },
-            {
-                "title": "Talent availability snapshot",
-                "description": "Regional supply constrained at senior levels; compelling EVP is critical.",
-                "leads": ["Leverage megaproject alumni networks", "Promote long-term mobility"],
-            },
-        ]
-        sources = [
-            {"title": f"{region} {sector} digest {year}", "url": f"https://insights.egis/{region.lower()}/{sector}"},
-            {"title": "World Construction Network", "url": "https://www.worldconstructionnetwork.com"},
-        ]
-        return {
-            "region": region,
-            "sector": sector,
-            "summary": summary,
-            "findings": findings,
-            "sources": sources,
-        }
+        def fallback() -> Dict[str, Any]:
+            region = payload.get("region", "GCC")
+            sector = payload.get("sector", "infrastructure")
+            summary = payload.get("summary") or "Landmark programme requiring multidisciplinary delivery partners."
+            year = datetime.utcnow().year
+            findings = [
+                {
+                    "title": f"{region} flagship {sector} initiative",
+                    "description": "Comparable project delivered under similar contract model with collaborative governance.",
+                    "leads": ["PMC: Alpha Advisory", "Consultant: Delta Design", "Contractor: Horizon Build"],
+                },
+                {
+                    "title": "Talent availability snapshot",
+                    "description": "Regional supply constrained at senior levels; compelling EVP is critical.",
+                    "leads": ["Leverage megaproject alumni networks", "Promote long-term mobility"],
+                },
+            ]
+            sources = [
+                {"title": f"{region} {sector} digest {year}", "url": f"https://insights.egis/{region.lower()}/{sector}"},
+                {"title": "World Construction Network", "url": "https://www.worldconstructionnetwork.com"},
+            ]
+            return {
+                "region": region,
+                "sector": sector,
+                "summary": summary,
+                "findings": findings,
+                "sources": sources,
+            }
+
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            merged = baseline.copy()
+            for key in ("region", "sector", "summary", "findings", "sources"):
+                value = payload.get(key)
+                if value not in (None, ""):
+                    merged[key] = value
+            return merged
+
+        prompt = (
+            "Generate market research insights as JSON with keys ['region','sector','summary','findings','sources']. "
+            f"Context: {json.dumps(payload, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def generate_salary_benchmark(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        base = 120000
-        modifiers = [len(payload.get("title", "")) * 120, len(payload.get("region", "")) * 80]
-        seniority = payload.get("seniority") or "mid"
-        seniority_factor = {"junior": 0.85, "mid": 1.0, "senior": 1.2, "director": 1.45}.get(seniority.lower(), 1.0)
-        mean_salary = int(base * seniority_factor + sum(modifiers))
-        spread = int(mean_salary * 0.1)
-        return {
-            "currency": "USD",
-            "annual_min": mean_salary - spread,
-            "annual_mid": mean_salary,
-            "annual_max": mean_salary + spread,
-            "rationale": "Benchmarked using Egis proprietary compensation datasets blended with public sources.",
-            "sources": [
-                {"title": "Glassdoor aggregated data", "url": "https://www.glassdoor.com"},
-                {"title": "Rethinking Construction Salaries 2024", "url": "https://insights.egis/salaries"},
-            ],
-        }
+        def fallback() -> Dict[str, Any]:
+            base = 120000
+            modifiers = [len(payload.get("title", "")) * 120, len(payload.get("region", "")) * 80]
+            seniority = payload.get("seniority") or "mid"
+            seniority_factor = {"junior": 0.85, "mid": 1.0, "senior": 1.2, "director": 1.45}.get(
+                seniority.lower(), 1.0
+            )
+            mean_salary = int(base * seniority_factor + sum(modifiers))
+            spread = int(mean_salary * 0.1)
+            return {
+                "currency": "USD",
+                "annual_min": mean_salary - spread,
+                "annual_mid": mean_salary,
+                "annual_max": mean_salary + spread,
+                "rationale": "Benchmarked using Egis proprietary compensation datasets blended with public sources.",
+                "sources": [
+                    {"title": "Glassdoor aggregated data", "url": "https://www.glassdoor.com"},
+                    {"title": "Rethinking Construction Salaries 2024", "url": "https://insights.egis/salaries"},
+                ],
+            }
+
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            merged = baseline.copy()
+            for key in ("currency", "annual_min", "annual_mid", "annual_max", "rationale", "sources"):
+                value = payload.get(key)
+                if value not in (None, ""):
+                    merged[key] = value
+            return merged
+
+        prompt = (
+            "Provide a salary benchmark as JSON with keys ['currency','annual_min','annual_mid','annual_max','rationale','sources']. "
+            f"Context: {json.dumps(payload, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def score_candidate(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        technical = 0.5
-        cultural = 0.5
-        growth = 0.5
-        for skill in payload.get("skills", []):
-            if skill.lower() in {"bim", "pmc", "design management", "pmp"}:
-                technical += 0.1
-        if payload.get("years_experience", 0) > 10:
-            technical += 0.2
-            growth += 0.1
-        if payload.get("leadership", False):
-            cultural += 0.2
-        score = {
-            "technical_fit": min(round(technical, 2), 1.0),
-            "cultural_alignment": min(round(cultural, 2), 1.0),
-            "growth_potential": min(round(growth, 2), 1.0),
-        }
-        score["match_score"] = round(mean(score.values()), 2)
-        score["notes"] = [
-            "Candidate has relevant project experience.",
-            "Consider deep dive on leadership examples.",
-        ]
-        return score
+        def fallback() -> Dict[str, Any]:
+            technical = 0.5
+            cultural = 0.5
+            growth = 0.5
+            for skill in payload.get("skills", []):
+                if skill.lower() in {"bim", "pmc", "design management", "pmp"}:
+                    technical += 0.1
+            if payload.get("years_experience", 0) > 10:
+                technical += 0.2
+                growth += 0.1
+            if payload.get("leadership", False):
+                cultural += 0.2
+            score = {
+                "technical_fit": min(round(technical, 2), 1.0),
+                "cultural_alignment": min(round(cultural, 2), 1.0),
+                "growth_potential": min(round(growth, 2), 1.0),
+            }
+            score["match_score"] = round(mean(score.values()), 2)
+            score["notes"] = [
+                "Candidate has relevant project experience.",
+                "Consider deep dive on leadership examples.",
+            ]
+            return score
+
+        def postprocess(payload: Any, baseline: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            if not isinstance(payload, dict):
+                return None
+            merged = baseline.copy()
+            for key, value in payload.items():
+                if value not in (None, ""):
+                    merged[key] = value
+            return merged
+
+        prompt = (
+            "Score a candidate for RecruitPro. Return JSON with keys technical_fit, cultural_alignment, growth_potential, "
+            "match_score, notes (list). Context: "
+            f"{json.dumps(payload, ensure_ascii=False)}"
+        )
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="Return valid JSON only.",
+            postprocess=postprocess,
+        )
 
     def build_boolean_search(self, persona: CandidatePersona) -> str:
         skills = persona.skills or ["PMO", "Mega Project", "Stakeholder Management"]

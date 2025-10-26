@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>RecruitPro - Settings</title>
+    <title>RecruitPro - System Settings</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
@@ -19,31 +19,17 @@
         theme: {
           extend: {
             colors: {
-              primary: "#2563EB",
-              "background-light": "#F8FAFC",
-              "background-dark": "#0F172A",
-              success: "#10B981",
-              error: "#EF4444",
-              warning: "#F59E0B",
-              "slate-50": "#F8FAFC",
-              "slate-100": "#F1F5F9",
-              "slate-200": "#E2E8F0",
-              "slate-300": "#CBD5E1",
-              "slate-400": "#94A3B8",
-              "slate-500": "#64748B",
-              "slate-600": "#475569",
-              "slate-700": "#334155",
-              "slate-800": "#1E293B",
-              "slate-900": "#0F172A",
+              primary: "#3B82F6",
+              "accent-sky": "#38BDF8",
+              "slate-950": "#020617",
             },
             fontFamily: {
               display: ["Inter", "sans-serif"],
             },
             borderRadius: {
-              DEFAULT: "0.5rem",
-              lg: "0.75rem",
-              xl: "1rem",
-              full: "9999px",
+              DEFAULT: "0.75rem",
+              lg: "1rem",
+              xl: "1.5rem",
             },
           },
         },
@@ -56,250 +42,317 @@
       }
     </style>
   </head>
-  <body
-    class="bg-background-light font-display text-slate-800 dark:bg-background-dark dark:text-slate-200"
-  >
-    <div class="flex min-h-screen w-full">
-      <!-- SideNavBar -->
+  <body class="bg-slate-950 font-display text-slate-200">
+    <div class="flex min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <aside
-        class="flex w-64 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+        class="hidden w-72 flex-col justify-between border-r border-white/10 bg-[#0C1727] px-6 py-8 text-slate-200 shadow-2xl lg:flex"
       >
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-3 px-2">
+        <div class="space-y-6">
+          <div class="flex items-center gap-3">
             <div
-              class="size-10 rounded-full bg-cover bg-center bg-no-repeat"
+              class="size-12 rounded-full border border-white/10 bg-cover bg-center bg-no-repeat"
               data-alt="RecruitPro company logo"
               style="background-image: url('{{ sidebar.logo_url }}');"
             ></div>
-            <div class="flex flex-col">
-              <h1 class="text-base font-semibold leading-normal text-slate-900 dark:text-white">
-                {{ sidebar.workspace_name }}
-              </h1>
-              <p class="text-sm font-normal leading-normal text-slate-500 dark:text-slate-400">
-                {{ sidebar.workspace_context }}
-              </p>
+            <div>
+              <p class="text-lg font-semibold text-white">{{ sidebar.workspace_name }}</p>
+              <p class="text-sm text-slate-400">{{ sidebar.workspace_context }}</p>
             </div>
           </div>
-          <nav class="mt-4 flex flex-col gap-1">
-            {% for item in sidebar.menu %}
-            <a
-              class="flex items-center gap-3 rounded px-3 py-2 {{ 'bg-primary/10 text-primary dark:bg-primary/20' if item.active else 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' }}"
-              href="{{ item.href }}"
-            >
-              <span class="material-symbols-outlined" {% if item.icon_filled %}style="font-variation-settings: 'FILL' 1;"{% endif %}>{{ item.icon }}</span>
-              <p class="text-sm font-medium leading-normal">{{ item.label }}</p>
-            </a>
-            {% endfor %}
-          </nav>
+          <div class="space-y-1">
+            <p class="text-xs uppercase tracking-wider text-slate-500">Navigation</p>
+            <nav class="flex flex-col gap-1">
+              {% for item in sidebar.menu %}
+              <a
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-white/5 {{ 'bg-white/10 text-white shadow-inner' if item.active else 'text-slate-400' }}"
+                href="{{ item.href }}"
+              >
+                <span class="material-symbols-outlined" {% if item.icon_filled %}style="font-variation-settings: 'FILL' 1;"{% endif %}>
+                  {{ item.icon }}
+                </span>
+                <span>{{ item.label }}</span>
+              </a>
+              {% endfor %}
+            </nav>
+          </div>
         </div>
-        <div class="mt-auto flex flex-col gap-1">
+        <div class="space-y-2">
           {% for item in sidebar.secondary_menu %}
           <a
-            class="flex items-center gap-3 rounded px-3 py-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5"
             href="{{ item.href }}"
           >
             <span class="material-symbols-outlined">{{ item.icon }}</span>
-            <p class="text-sm font-medium leading-normal">{{ item.label }}</p>
+            <span>{{ item.label }}</span>
           </a>
           {% endfor %}
+          <div class="rounded-lg border border-white/10 bg-white/5 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-300">Workspace Health</p>
+            <div class="mt-3 flex items-center justify-between text-sm text-slate-400">
+              <span>Gemini API</span>
+              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if gemini.configured else 'text-slate-500' }}">
+                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if gemini.configured else 'error' }}</span>
+                {{ 'Active' if gemini.configured else 'Missing' }}
+              </span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm text-slate-400">
+              <span>Google Search</span>
+              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if google.configured else 'text-slate-500' }}">
+                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if google.configured else 'error' }}</span>
+                {{ 'Active' if google.configured else 'Missing' }}
+              </span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-sm text-slate-400">
+              <span>SmartRecruiters</span>
+              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if smartrecruiters.configured else 'text-slate-500' }}">
+                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if smartrecruiters.configured else 'error' }}</span>
+                {{ 'Active' if smartrecruiters.configured else 'Missing' }}
+              </span>
+            </div>
+          </div>
         </div>
       </aside>
-      <!-- Main Content -->
-      <main class="flex-1">
-        <div class="mx-auto max-w-4xl p-6 lg:p-10">
-          <!-- PageHeading -->
-          <header>
-            <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-slate-900 dark:text-white">
-              Settings
-            </h1>
+      <main class="flex-1 overflow-y-auto">
+        <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-12">
+          <header class="flex flex-col justify-between gap-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur lg:flex-row lg:items-center">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Admin Console</p>
+              <h1 class="mt-2 text-3xl font-black text-white">System Settings</h1>
+              <p class="mt-2 max-w-2xl text-sm text-slate-400">
+                Manage system feature flags and external API configurations for RecruitPro. Changes are applied immediately after saving.
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <a
+                class="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-base">help</span>
+                Docs
+              </a>
+            </div>
           </header>
-          <div class="mt-8 flex flex-col gap-8">
-            {% if message %}
-            <div class="rounded-lg border border-success/40 bg-success/10 p-4 text-sm font-medium text-success">
-              {{ message }}
-            </div>
-            {% elif error %}
-            <div class="rounded-lg border border-error/40 bg-error/10 p-4 text-sm font-medium text-error">
-              {{ error }}
-            </div>
-            {% endif %}
-            <!-- SectionHeader -->
-            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-              API Keys Management
-            </h2>
-            <!-- Gemini API Card -->
+
+          {% if message %}
+          <div class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-300">
+            {{ message }}
+          </div>
+          {% elif error %}
+          <div class="rounded-xl border border-rose-400/40 bg-rose-400/10 p-4 text-sm font-medium text-rose-200">
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <section class="grid gap-6 lg:grid-cols-2">
+            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
+                  <h2 class="mt-1 text-xl font-semibold text-white">AI Candidate Matching</h2>
+                </div>
+                <button
+                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/80 text-left text-xs font-medium text-white"
+                  type="button"
+                  disabled
+                >
+                  <span class="sr-only">Toggle candidate matching</span>
+                  <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-emerald-500 shadow"></span>
+                </button>
+              </div>
+              <p class="mt-3 text-sm text-slate-400">
+                Automatically match AI-sourced candidates to open requisitions using RecruitPro's knowledge graph.
+              </p>
+            </article>
+            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
+                  <h2 class="mt-1 text-xl font-semibold text-white">Automated Interview Scheduling</h2>
+                </div>
+                <button
+                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/30 text-left text-xs font-medium text-white"
+                  type="button"
+                  disabled
+                >
+                  <span class="sr-only">Toggle interview scheduling</span>
+                  <span class="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-white/40 text-slate-500 shadow-inner"></span>
+                </button>
+              </div>
+              <p class="mt-3 text-sm text-slate-400">
+                Enable automated email outreach and interviewer coordination directly from RecruitPro.
+              </p>
+            </article>
+            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur lg:col-span-2">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
+                  <h2 class="mt-1 text-xl font-semibold text-white">Real-time Resume Parsing</h2>
+                </div>
+                <button
+                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/80 text-left text-xs font-medium text-white"
+                  type="button"
+                  disabled
+                >
+                  <span class="sr-only">Toggle resume parsing</span>
+                  <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-emerald-500 shadow"></span>
+                </button>
+              </div>
+              <p class="mt-3 text-sm text-slate-400">
+                Streamline intake workflows by automatically parsing resumes into structured candidate profiles.
+              </p>
+            </article>
+          </section>
+
+          <section class="space-y-6">
+            <header class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">External API Configurations</p>
+                <h2 class="mt-1 text-2xl font-semibold text-white">Connected Services</h2>
+              </div>
+            </header>
+
             <form
-              class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
+              id="gemini-settings"
               method="post"
             >
               <input name="form_id" type="hidden" value="gemini" />
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-                  Gemini API
-                </h3>
-                {% if gemini.configured %}
-                <div class="flex items-center gap-2 text-sm font-medium text-success">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                  <span>Connected</span>
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Gemini API</p>
+                  <h3 class="text-xl font-semibold text-white">Google Gemini</h3>
+                  <p class="mt-1 text-sm text-slate-400">Used for RecruitPro's AI reasoning and summarisation features.</p>
                 </div>
-                {% else %}
-                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  <span class="material-symbols-outlined text-base">help</span>
-                  <span>Not Configured</span>
-                </div>
-                {% endif %}
+                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if gemini.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if gemini.configured else 'warning' }}</span>
+                  {{ 'Connected' if gemini.configured else 'Not Configured' }}
+                </span>
               </div>
-              <div class="flex flex-col gap-1.5">
-                <label
-                  class="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  for="gemini-api"
-                  >Gemini API Key</label
-                >
-                <div class="relative flex w-full items-stretch">
-                  <input
-                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded rounded-r-none border border-slate-300 border-r-0 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
-                    id="gemini-api"
-                    name="gemini_api_key"
-                    type="password"
-                    placeholder="Enter your Gemini API key"
-                  />
-                  <button
-                    class="toggle-visibility flex items-center justify-center rounded-r border border-l-0 border-slate-300 bg-transparent p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-                    type="button"
-                    data-target="gemini-api"
-                  >
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                  {% if gemini.configured %}
-                  Current key: <span class="font-semibold">{{ gemini.masked }}</span> ({{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}).
-                  {% else %}
-                  No key configured. Provide a Gemini API key to enable real-time AI features.
-                  {% endif %}
-                  <a class="text-primary hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
-                </p>
-              </div>
-              <div class="flex items-center justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+              <label class="text-sm font-medium text-slate-300" for="gemini-api">Gemini API Key</label>
+              <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
+                <input
+                  class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
+                  id="gemini-api"
+                  name="gemini_api_key"
+                  type="password"
+                  placeholder="Enter your Gemini API key"
+                />
                 <button
-                  class="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
+                  type="button"
+                  data-target="gemini-api"
+                >
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+              </div>
+              <p class="text-xs text-slate-500">
+                {% if gemini.configured %}
+                Current key: <span class="font-semibold text-slate-200">{{ gemini.masked }}</span> ({{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}).
+                {% else %}
+                No key configured. Provide a Gemini API key to enable real-time AI features.
+                {% endif %}
+                <a class="text-accent-sky hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
+              </p>
+              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+                <button
+                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
                   type="submit"
                 >
+                  <span class="material-symbols-outlined text-base">save</span>
                   Save Gemini Settings
                 </button>
               </div>
             </form>
-            <!-- Google Custom Search Card -->
+
             <form
-              class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
               method="post"
             >
               <input name="form_id" type="hidden" value="google" />
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-                  Google Custom Search
-                </h3>
-                {% if google.configured %}
-                <div class="flex items-center gap-2 text-sm font-medium text-success">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                  <span>Connected</span>
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Google Custom Search</p>
+                  <h3 class="text-xl font-semibold text-white">Custom Search API</h3>
+                  <p class="mt-1 text-sm text-slate-400">Used to enrich candidate sourcing with web and LinkedIn data.</p>
                 </div>
-                {% else %}
-                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  <span class="material-symbols-outlined text-base">help</span>
-                  <span>Not Configured</span>
-                </div>
-                {% endif %}
+                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if google.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if google.configured else 'warning' }}</span>
+                  {{ 'Connected' if google.configured else 'Not Configured' }}
+                </span>
               </div>
-              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div class="flex flex-col gap-1.5">
-                  <label
-                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    for="google-api"
-                    >Google API Key</label
-                  >
-                  <div class="relative flex w-full items-stretch">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-300" for="google-api">Google API Key</label>
+                  <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
                     <input
-                      class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded rounded-r-none border border-slate-300 border-r-0 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
+                      class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                       id="google-api"
                       name="google_api_key"
                       type="password"
                       placeholder="Enter your Google API key"
                     />
                     <button
-                      class="toggle-visibility flex items-center justify-center rounded-r border border-l-0 border-slate-300 bg-transparent p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                      class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
                       type="button"
                       data-target="google-api"
                     >
-                      <span class="material-symbols-outlined">visibility_off</span>
+                      <span class="material-symbols-outlined">visibility</span>
                     </button>
                   </div>
                 </div>
-                <div class="flex flex-col gap-1.5">
-                  <label
-                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    for="search-engine-id"
-                    >Custom Search Engine ID</label
-                  >
-                  <div class="relative flex w-full items-stretch">
-                    <input
-                      class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded border border-slate-300 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
-                      id="search-engine-id"
-                      name="google_cse_id"
-                      type="text"
-                      value="{{ google.search_engine_id }}"
-                      placeholder="Enter your Search Engine ID"
-                    />
-                  </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-300" for="search-engine-id">Custom Search Engine ID</label>
+                  <input
+                    class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
+                    id="search-engine-id"
+                    name="google_cse_id"
+                    type="text"
+                    value="{{ google.search_engine_id }}"
+                    placeholder="Enter your Search Engine ID"
+                  />
                 </div>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
+              <p class="text-xs text-slate-500">
                 {% if google.configured %}
-                Current API key: <span class="font-semibold">{{ google.masked }}</span>.
+                Current API key: <span class="font-semibold text-slate-200">{{ google.masked }}</span>.
                 {% else %}
                 Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
                 {% endif %}
                 Find your API key and Search Engine ID in the
-                <a class="text-primary hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
+                <a class="text-accent-sky hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
               </p>
-              <div class="flex items-center justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
                 <button
-                  class="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
                   type="submit"
                 >
+                  <span class="material-symbols-outlined text-base">save</span>
                   Save Google Settings
                 </button>
               </div>
             </form>
-            <!-- SmartRecruiters Credentials Card -->
+
             <form
-              class="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
               method="post"
             >
               <input name="form_id" type="hidden" value="smartrecruiters" />
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-                  SmartRecruiters Credentials
-                </h3>
-                {% if smartrecruiters.configured %}
-                <div class="flex items-center gap-2 text-sm font-medium text-success">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                  <span>Connected</span>
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">SmartRecruiters</p>
+                  <h3 class="text-xl font-semibold text-white">Enterprise ATS Connector</h3>
+                  <p class="mt-1 text-sm text-slate-400">Authenticate with SmartRecruiters to sync jobs and applications.</p>
                 </div>
-                {% else %}
-                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  <span class="material-symbols-outlined text-base">help</span>
-                  <span>Not Configured</span>
-                </div>
-                {% endif %}
+                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if smartrecruiters.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
+                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if smartrecruiters.configured else 'warning' }}</span>
+                  {{ 'Connected' if smartrecruiters.configured else 'Not Configured' }}
+                </span>
               </div>
-              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div class="flex flex-col gap-1.5">
-                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="smartrecruiters-email"
-                    >SmartRecruiters Email</label
-                  >
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-300" for="smartrecruiters-email">SmartRecruiters Email</label>
                   <input
-                    class="form-input flex w-full min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50"
+                    class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                     id="smartrecruiters-email"
                     name="smartrecruiters_email"
                     type="email"
@@ -307,48 +360,45 @@
                     placeholder="username@example.com"
                   />
                 </div>
-                <div class="flex flex-col gap-1.5">
-                  <label
-                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    for="smartrecruiters-password"
-                    >SmartRecruiters Password</label
-                  >
-                  <div class="relative flex w-full items-stretch">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-300" for="smartrecruiters-password">SmartRecruiters Password</label>
+                  <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
                     <input
-                      class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded rounded-r-none border border-slate-300 border-r-0 bg-transparent px-3 text-sm font-normal leading-normal text-slate-900 focus:border-primary/50 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-slate-700 dark:text-white dark:focus:border-primary/50 dark:focus:ring-primary/50 dark:placeholder:text-slate-500"
+                      class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                       id="smartrecruiters-password"
                       name="smartrecruiters_password"
                       type="password"
                       placeholder="Enter your SmartRecruiters password"
                     />
                     <button
-                      class="toggle-visibility flex items-center justify-center rounded-r border border-l-0 border-slate-300 bg-transparent p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                      class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
                       type="button"
                       data-target="smartrecruiters-password"
                     >
-                      <span class="material-symbols-outlined">visibility_off</span>
+                      <span class="material-symbols-outlined">visibility</span>
                     </button>
                   </div>
                   {% if smartrecruiters.password_masked %}
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Stored password: <span class="font-semibold">{{ smartrecruiters.password_masked }}</span>
+                  <p class="text-xs text-slate-500">
+                    Stored password: <span class="font-semibold text-slate-200">{{ smartrecruiters.password_masked }}</span>
                   </p>
                   {% endif %}
                 </div>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
+              <p class="text-xs text-slate-500">
                 Credentials are encrypted at rest. Provide the SmartRecruiters login used for automated bulk imports.
               </p>
-              <div class="flex items-center justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
                 <button
-                  class="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
                   type="submit"
                 >
+                  <span class="material-symbols-outlined text-base">save</span>
                   Save SmartRecruiters Settings
                 </button>
               </div>
             </form>
-          </div>
+          </section>
         </div>
       </main>
     </div>

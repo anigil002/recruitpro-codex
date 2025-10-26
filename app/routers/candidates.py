@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
 from ..models import Candidate, CandidateStatusHistory, Position, Project
+from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..schemas import (
     CandidateBulkActionRequest,
     CandidateBulkActionResult,
@@ -37,9 +38,7 @@ def _ensure_candidate_access(candidate: Candidate, current_user, db: Session) ->
     elevated_roles = {"admin", "super_admin"}
 
     if candidate.project_id:
-        project = db.get(Project, candidate.project_id)
-        if not project:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        project = ensure_project_access(db.get(Project, candidate.project_id), current_user)
         if project.created_by != current_user.user_id and current_user.role not in elevated_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     elif current_user.role not in elevated_roles.union({"recruiter"}):
@@ -133,12 +132,10 @@ def _delete_candidate_record(
 
 @router.get("/candidates", response_model=List[CandidateRead])
 def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[CandidateRead]:
-    candidates = (
-        db.query(Candidate)
-        .join(Project, isouter=True)
-        .filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
-        .all()
-    )
+    query = db.query(Candidate).join(Project, isouter=True)
+    if not can_manage_workspace(current_user):
+        query = query.filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
+    candidates = query.all()
     return [
         CandidateRead(
             candidate_id=c.candidate_id,
@@ -166,12 +163,10 @@ def candidate_duplicates(
 ) -> List[dict]:
     """Return potential duplicate candidates grouped by matching signals."""
 
-    candidates = (
-        db.query(Candidate)
-        .join(Project, isouter=True)
-        .filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
-        .all()
-    )
+    query = db.query(Candidate).join(Project, isouter=True)
+    if not can_manage_workspace(current_user):
+        query = query.filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
+    candidates = query.all()
 
     def _serialize(candidate: Candidate) -> dict:
         return {
@@ -216,14 +211,14 @@ def create_candidate(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> CandidateRead:
+    project = None
     if payload.project_id:
-        project = db.get(Project, payload.project_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        project = ensure_project_access(db.get(Project, payload.project_id), current_user)
     if payload.position_id:
         position = db.get(Position, payload.position_id)
         if not position:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+        ensure_project_access(db.get(Project, position.project_id), current_user)
 
     candidate = Candidate(
         candidate_id=generate_id(),
@@ -275,9 +270,7 @@ def get_candidate(candidate_id: str, db: Session = Depends(get_db), current_user
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
     if candidate.project_id:
-        project = db.get(Project, candidate.project_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+        ensure_project_access(db.get(Project, candidate.project_id), current_user)
     return CandidateRead(
         candidate_id=candidate.candidate_id,
         project_id=candidate.project_id,
@@ -306,19 +299,16 @@ def update_candidate(
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
     if candidate.project_id:
-        project = db.get(Project, candidate.project_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+        ensure_project_access(db.get(Project, candidate.project_id), current_user)
 
     updates = payload.dict(exclude_unset=True)
     if "project_id" in updates and updates["project_id"]:
-        new_project = db.get(Project, updates["project_id"])
-        if not new_project or new_project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        ensure_project_access(db.get(Project, updates["project_id"]), current_user)
     if "position_id" in updates and updates["position_id"]:
         new_position = db.get(Position, updates["position_id"])
         if not new_position:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+        ensure_project_access(db.get(Project, new_position.project_id), current_user)
 
     previous_project_id = candidate.project_id
     previous_position_id = candidate.position_id
@@ -363,9 +353,7 @@ def patch_candidate(
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
     if candidate.project_id:
-        project = db.get(Project, candidate.project_id)
-        if not project or project.created_by != current_user.user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+        ensure_project_access(db.get(Project, candidate.project_id), current_user)
 
     previous_status = candidate.status
     for field, value in payload.dict(exclude_unset=True).items():

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db, get_stream_user
 from ..models import ActivityFeed, Candidate, Project
+from ..utils.permissions import can_manage_workspace
 from ..schemas import ActivityRead
 from ..services.realtime import events
 
@@ -47,12 +48,16 @@ def list_activity(
 
 @router.get("/dashboard/stats")
 def dashboard_stats(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> dict:
-    projects_count = db.query(Project).filter(Project.created_by == current_user.user_id).count()
-    candidate_query = (
-        db.query(Candidate)
-        .join(Project, isouter=True)
-        .filter(or_(Project.created_by == current_user.user_id, Candidate.project_id.is_(None)))
-    )
+    if can_manage_workspace(current_user):
+        projects_count = db.query(Project).count()
+        candidate_query = db.query(Candidate).join(Project, isouter=True)
+    else:
+        projects_count = db.query(Project).filter(Project.created_by == current_user.user_id).count()
+        candidate_query = (
+            db.query(Candidate)
+            .join(Project, isouter=True)
+            .filter(or_(Project.created_by == current_user.user_id, Candidate.project_id.is_(None)))
+        )
     candidates_count = candidate_query.count()
 
     pipeline_counts = {

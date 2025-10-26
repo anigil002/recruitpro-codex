@@ -255,7 +255,7 @@
                   <p class="text-xs uppercase tracking-[0.3em] text-primary">Project Command</p>
                   <h2 class="text-2xl font-semibold text-white">Project Management & Collaboration</h2>
                 </div>
-                <button class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Create project</button>
+                <button type="button" data-action="create-project" class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Create project</button>
               </div>
               <div class="mt-6 grid gap-5 lg:grid-cols-3">
                 <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
@@ -337,15 +337,19 @@
                         </div>
                       </div>
                     </div>
-                    <form class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm">
+                    <form id="salary-benchmark-form" class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm" novalidate>
                       <p class="font-semibold text-white">Trigger manual benchmark</p>
                       <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                        <label class="text-xs text-slate-400">Role<input class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2" placeholder="VP Product" type="text" /></label>
-                        <label class="text-xs text-slate-400">Region<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>North America</option><option>EMEA</option><option>APAC</option><option>LATAM</option></select></label>
-                        <label class="text-xs text-slate-400">Sector<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>SaaS</option><option>FinTech</option><option>Healthcare</option><option>Industrial</option></select></label>
-                        <label class="text-xs text-slate-400">Seniority<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Director</option><option>VP</option><option>Manager</option><option>IC</option></select></label>
+                        <label class="text-xs text-slate-400">Role<input id="salary-title" name="title" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2" placeholder="VP Product" type="text" required /></label>
+                        <label class="text-xs text-slate-400">Region<select id="salary-region" name="region" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2" required><option value="">Select region</option><option value="north-america">North America</option><option value="emea">EMEA</option><option value="apac">APAC</option><option value="latam">LATAM</option></select></label>
+                        <label class="text-xs text-slate-400">Sector<select id="salary-sector" name="sector" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option value="">All sectors</option><option value="saas">SaaS</option><option value="fintech">FinTech</option><option value="healthcare">Healthcare</option><option value="industrial">Industrial</option></select></label>
+                        <label class="text-xs text-slate-400">Seniority<select id="salary-seniority" name="seniority" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option value="">All levels</option><option value="director">Director</option><option value="vp">VP</option><option value="manager">Manager</option><option value="ic">IC</option></select></label>
                       </div>
-                      <button class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20">Run benchmark</button>
+                      <button type="submit" class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20">Run benchmark</button>
+                      <div id="salary-benchmark-result" class="mt-4 hidden rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-slate-200">
+                        <p class="font-semibold text-white">Benchmark ready</p>
+                        <p class="mt-1 text-slate-300">Submit the form to see Gemini's latest salary range and sourcing guidance.</p>
+                      </div>
                     </form>
                   </div>
                 </div>
@@ -860,46 +864,60 @@
                 </div>
                 <div class="flex items-center gap-3 text-sm text-slate-300">
                   <span class="material-symbols-outlined text-primary">schedule</span>
-                  Next refresh in 3h
+                  <span id="sourcing-next-refresh">Next refresh in 3h</span>
                 </div>
               </div>
               <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
-                <form class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                <form id="ai-sourcing-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
                   <div class="grid gap-4 sm:grid-cols-2">
-                    <label class="text-xs text-slate-400">Project<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Project Atlas</option><option>Executive Product Search</option><option>APAC GTM Expansion</option></select></label>
-                    <label class="text-xs text-slate-400">Position<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Director, Lifecycle Marketing</option><option>VP Sales</option><option>Principal Data Scientist</option></select></label>
-                    <label class="text-xs text-slate-400">Search platforms<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" multiple>
-                        <option selected>SmartRecruiters</option>
-                        <option>LinkedIn</option>
-                        <option>AngelList</option>
-                        <option>GitHub</option>
+                    <label class="text-xs text-slate-400">Project<select id="sourcing-project" name="project_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                        <option value="">Select project</option>
                       </select></label>
-                    <label class="text-xs text-slate-400">Seniority<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Director</option><option>VP</option><option>Senior IC</option></select></label>
-                    <label class="text-xs text-slate-400">Location<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Remote - Global</option><option>North America</option><option>EMEA</option><option>APAC</option></select></label>
-                    <label class="text-xs text-slate-400">Keywords<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Demand gen, PLG, retention" type="text" /></label>
+                    <label class="text-xs text-slate-400">Position<select id="sourcing-position" name="position_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                        <option value="">Select position</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Search platforms<select id="sourcing-platforms" name="platforms" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" multiple>
+                        <option value="smartrecruiters" selected>SmartRecruiters</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="angellist">AngelList</option>
+                        <option value="github">GitHub</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Seniority<select id="sourcing-seniority" name="seniority" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">All</option>
+                        <option value="director">Director</option>
+                        <option value="vp">VP</option>
+                        <option value="senior-ic">Senior IC</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Location<select id="sourcing-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">Any location</option>
+                        <option value="remote">Remote - Global</option>
+                        <option value="north-america">North America</option>
+                        <option value="emea">EMEA</option>
+                        <option value="apac">APAC</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Keywords<input id="sourcing-keywords" name="keywords" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Demand gen, PLG, retention" type="text" /></label>
                   </div>
-                  <label class="block text-xs text-slate-400">Additional context<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Highlight target companies, target backgrounds, or certification requirements"></textarea></label>
+                  <label class="block text-xs text-slate-400">Additional context<textarea id="sourcing-context" name="context" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Highlight target companies, target backgrounds, or certification requirements"></textarea></label>
                   <div class="flex flex-wrap items-center gap-3">
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Start AI search</button>
+                    <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Start AI search</button>
                     <div class="flex items-center gap-2 text-xs text-slate-400"><span class="material-symbols-outlined text-primary">sync</span>Auto-refresh enabled</div>
                   </div>
+                  <p id="ai-sourcing-message" class="text-xs text-slate-400"></p>
                 </form>
                 <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
                   <h3 class="text-lg font-semibold text-white">Progress</h3>
                   <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
                     <p class="text-xs uppercase text-slate-500">Search status</p>
-                    <p class="mt-2 text-lg font-semibold text-white">Gathering profiles</p>
+                    <p id="sourcing-status-label" class="mt-2 text-lg font-semibold text-white">No active sourcing jobs</p>
                     <div class="mt-3 h-2 rounded-full bg-slate-800">
-                      <div class="h-full w-2/3 rounded-full bg-primary"></div>
+                      <div id="sourcing-progress-bar" class="h-full rounded-full bg-primary" style="width: 0%"></div>
                     </div>
-                    <p class="mt-2 text-xs text-slate-400">Estimated completion • 4 minutes</p>
+                    <p id="sourcing-status-meta" class="mt-2 text-xs text-slate-400">Start a search to track Gemini's progress.</p>
                   </div>
                   <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
                     <p class="text-xs uppercase text-slate-500">Recent runs</p>
-                    <ul class="mt-3 space-y-2 text-xs">
-                      <li>VP Sales • SmartRecruiters + LinkedIn • Completed 1h ago</li>
-                      <li>Principal Data Scientist • GitHub focus • Completed 3h ago</li>
-                      <li>Product Marketing Director • AngelList + internal CRM • Completed yesterday</li>
+                    <ul id="sourcing-recent-list" class="mt-3 space-y-2 text-xs">
+                      <li class="text-slate-500">Run AI sourcing to see real-time activity.</li>
                     </ul>
                   </div>
                   <button data-screen="ai-sourcing-results" class="w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">View sourcing results</button>
@@ -1436,37 +1454,32 @@
                 <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Save script</button>
               </div>
               <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
-                <form class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                  <label class="block text-xs text-slate-400">Role title<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Director, Lifecycle Marketing" type="text" /></label>
-                  <label class="block text-xs text-slate-400">Seniority<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Director</option><option>VP</option><option>Manager</option></select></label>
-                  <label class="block text-xs text-slate-400">Script format<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Structured Q&A</option><option>Panel briefing</option><option>Phone screen</option></select></label>
-                  <div class="grid gap-4 lg:grid-cols-3">
-                    <label class="text-xs text-slate-400">Relevance focus<textarea class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Key experiences, team scale, tools"></textarea></label>
-                    <label class="text-xs text-slate-400">Impact focus<textarea class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Results delivered, metrics owned"></textarea></label>
-                    <label class="text-xs text-slate-400">Motivation focus<textarea class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Why now, what excites them"></textarea></label>
+                <form id="call-script-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <div class="grid gap-4 lg:grid-cols-2">
+                    <label class="text-xs text-slate-400">Candidate name<input id="call-candidate-name" name="candidate_name" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Taylor Reed" type="text" required /></label>
+                    <label class="text-xs text-slate-400">Role title<input id="call-role-title" name="title" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Director, Lifecycle Marketing" type="text" required /></label>
+                    <label class="text-xs text-slate-400">Location<input id="call-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Remote - North America" type="text" /></label>
+                    <label class="text-xs text-slate-400">Conversation style<select id="call-script-format" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option value="structured">Structured Q&A</option><option value="briefing">Panel briefing</option><option value="phone">Phone screen</option></select></label>
                   </div>
-                  <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Generate script</button>
+                  <div class="grid gap-4 lg:grid-cols-3">
+                    <label class="text-xs text-slate-400">Value prop 1<textarea id="call-value-prop-1" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Key experiences, team scale, tools"></textarea></label>
+                    <label class="text-xs text-slate-400">Value prop 2<textarea id="call-value-prop-2" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Results delivered, metrics owned"></textarea></label>
+                    <label class="text-xs text-slate-400">Value prop 3<textarea id="call-value-prop-3" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Why now, what excites them"></textarea></label>
+                  </div>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Generate script</button>
+                  <p id="call-script-message" class="text-xs text-slate-400"></p>
                 </form>
                 <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
                   <h3 class="text-lg font-semibold text-white">Generated script</h3>
-                  <div class="space-y-3 text-xs">
+                  <div id="call-script-output" class="space-y-3 text-xs">
                     <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
                       <p class="font-semibold text-white">Relevance</p>
-                      <p class="mt-2">Walk me through a lifecycle program you scaled globally. How did you structure the team?</p>
-                    </div>
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="font-semibold text-white">Impact</p>
-                      <p class="mt-2">What retention and monetization metrics improved? Which experiments delivered the biggest lift?</p>
-                    </div>
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="font-semibold text-white">Motivation</p>
-                      <p class="mt-2">Why does joining a PLG-focused scale-up excite you right now? What long-term goals does it unlock?</p>
+                      <p class="mt-2">Submit the form to generate a tailored call script for your candidate.</p>
                     </div>
                   </div>
                   <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <button class="rounded-full border border-slate-700 px-3 py-1">Edit</button>
-                    <button class="rounded-full border border-slate-700 px-3 py-1">Copy</button>
-                    <button class="rounded-full border border-slate-700 px-3 py-1">Download</button>
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-copy">Copy</button>
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-download">Download</button>
                   </div>
                 </div>
               </div>
@@ -1512,6 +1525,43 @@
       const navLinks = document.querySelectorAll('.nav-link');
       const navPills = document.querySelectorAll('.nav-pill');
 
+      const state = {
+        projects: [],
+        positions: [],
+        sourcingOverview: null,
+        callScriptText: '',
+      };
+
+      const elements = {
+        salaryForm: document.getElementById('salary-benchmark-form'),
+        salaryResult: document.getElementById('salary-benchmark-result'),
+        aiSourcingForm: document.getElementById('ai-sourcing-form'),
+        sourcingProject: document.getElementById('sourcing-project'),
+        sourcingPosition: document.getElementById('sourcing-position'),
+        sourcingPlatforms: document.getElementById('sourcing-platforms'),
+        sourcingSeniority: document.getElementById('sourcing-seniority'),
+        sourcingLocation: document.getElementById('sourcing-location'),
+        sourcingKeywords: document.getElementById('sourcing-keywords'),
+        sourcingContext: document.getElementById('sourcing-context'),
+        aiSourcingMessage: document.getElementById('ai-sourcing-message'),
+        sourcingStatusLabel: document.getElementById('sourcing-status-label'),
+        sourcingStatusMeta: document.getElementById('sourcing-status-meta'),
+        sourcingProgressBar: document.getElementById('sourcing-progress-bar'),
+        sourcingRecentList: document.getElementById('sourcing-recent-list'),
+        sourcingNextRefresh: document.getElementById('sourcing-next-refresh'),
+        callScriptForm: document.getElementById('call-script-form'),
+        callCandidateName: document.getElementById('call-candidate-name'),
+        callRoleTitle: document.getElementById('call-role-title'),
+        callLocation: document.getElementById('call-location'),
+        callValueProp1: document.getElementById('call-value-prop-1'),
+        callValueProp2: document.getElementById('call-value-prop-2'),
+        callValueProp3: document.getElementById('call-value-prop-3'),
+        callScriptMessage: document.getElementById('call-script-message'),
+        callScriptOutput: document.getElementById('call-script-output'),
+        callScriptCopy: document.getElementById('call-script-copy'),
+        callScriptDownload: document.getElementById('call-script-download'),
+      };
+
       function showScreen(id) {
         sections.forEach((section) => {
           section.classList.toggle('active', section.id === id);
@@ -1536,6 +1586,593 @@
         });
       });
 
+      function getToastContainer() {
+        let container = document.getElementById('toast-root');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'toast-root';
+          container.className = 'pointer-events-none fixed right-6 top-6 z-50 flex max-w-sm flex-col gap-2';
+          document.body.appendChild(container);
+        }
+        return container;
+      }
+
+      function showToast(message, tone = 'info') {
+        if (!message) return;
+        const container = getToastContainer();
+        const toast = document.createElement('div');
+        const toneClass = tone === 'success'
+          ? 'bg-emerald-500/10 text-emerald-200 ring-emerald-500/30'
+          : tone === 'error'
+            ? 'bg-rose-500/10 text-rose-200 ring-rose-500/30'
+            : 'bg-slate-900/90 text-slate-100 ring-slate-700/50';
+        toast.className = `pointer-events-auto rounded-2xl px-4 py-3 text-sm shadow-lg ring-1 ${toneClass}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.remove();
+        }, 4000);
+      }
+
+      function setMessage(element, message, tone = 'info') {
+        if (!element) return;
+        element.textContent = message || '';
+        element.classList.remove('text-emerald-400', 'text-red-400');
+        if (!message) {
+          element.classList.add('text-slate-400');
+          return;
+        }
+        if (tone === 'success') {
+          element.classList.add('text-emerald-400');
+          element.classList.remove('text-slate-400');
+        } else if (tone === 'error') {
+          element.classList.add('text-red-400');
+          element.classList.remove('text-slate-400');
+        } else {
+          element.classList.add('text-slate-400');
+        }
+      }
+
+      async function apiFetch(path, options = {}) {
+        const init = { credentials: 'include', ...options };
+        init.headers = new Headers(init.headers || {});
+        if (init.body && typeof init.body === 'object' && !(init.body instanceof FormData)) {
+          init.headers.set('Content-Type', 'application/json');
+          init.body = JSON.stringify(init.body);
+        }
+        if (!init.headers.has('Accept')) {
+          init.headers.set('Accept', 'application/json');
+        }
+        const response = await fetch(path, init);
+        const text = await response.text();
+        let data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (error) {
+            data = text;
+          }
+        }
+        if (!response.ok) {
+          const detail = typeof data === 'string' ? data : data?.detail || data?.message;
+          throw new Error(detail || `Request failed with status ${response.status}`);
+        }
+        return data;
+      }
+
+      function formatNumber(value) {
+        const number = Number(value) || 0;
+        return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(number);
+      }
+
+      function formatRelativeTime(value) {
+        if (!value) return '';
+        const timestamp = new Date(value);
+        if (Number.isNaN(timestamp.getTime())) {
+          return '';
+        }
+        const diffSeconds = Math.floor((Date.now() - timestamp.getTime()) / 1000);
+        if (diffSeconds < 60) {
+          return `${Math.max(1, diffSeconds)}s ago`;
+        }
+        if (diffSeconds < 3600) {
+          return `${Math.floor(diffSeconds / 60)}m ago`;
+        }
+        if (diffSeconds < 86400) {
+          return `${Math.floor(diffSeconds / 3600)}h ago`;
+        }
+        return `${Math.floor(diffSeconds / 86400)}d ago`;
+      }
+
+      function toTitleCase(value) {
+        if (!value) return '';
+        return value
+          .toString()
+          .replace(/[_-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/^(.)|\s+(.)/g, (match) => match.toUpperCase());
+      }
+
+      function populateProjectOptions() {
+        const select = elements.sourcingProject;
+        if (!select) return;
+        const previous = select.value;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select project';
+        select.appendChild(placeholder);
+        state.projects.forEach((project) => {
+          const option = document.createElement('option');
+          option.value = project.project_id;
+          option.textContent = project.name || 'Untitled project';
+          select.appendChild(option);
+        });
+        if (previous && state.projects.some((project) => project.project_id === previous)) {
+          select.value = previous;
+        } else if (!previous && state.projects.length === 1) {
+          select.value = state.projects[0].project_id;
+        }
+        populatePositionOptions(select.value || '');
+      }
+
+      function populatePositionOptions(projectId) {
+        const select = elements.sourcingPosition;
+        if (!select) return;
+        const previous = select.value;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select position';
+        select.appendChild(placeholder);
+        const rows = state.positions.filter((position) => {
+          if (!projectId) {
+            return true;
+          }
+          return position.project_id === projectId;
+        });
+        rows.forEach((position) => {
+          const option = document.createElement('option');
+          option.value = position.position_id;
+          option.textContent = position.title || 'Untitled position';
+          select.appendChild(option);
+        });
+        if (previous && rows.some((position) => position.position_id === previous)) {
+          select.value = previous;
+        } else if (!select.value && rows.length === 1) {
+          select.value = rows[0].position_id;
+        }
+      }
+
+      function renderSalaryBenchmark(result) {
+        const container = elements.salaryResult;
+        if (!container) return;
+        container.innerHTML = '';
+        if (!result) {
+          container.classList.add('hidden');
+          return;
+        }
+        container.classList.remove('hidden');
+        const headline = document.createElement('p');
+        headline.className = 'font-semibold text-white';
+        headline.textContent = `${result.currency || 'USD'} ${formatNumber(result.annual_mid || 0)}`;
+        const range = document.createElement('p');
+        range.className = 'mt-1 text-slate-300';
+        range.textContent = `Range: ${formatNumber(result.annual_min || 0)} - ${formatNumber(result.annual_max || 0)}`;
+        container.appendChild(headline);
+        container.appendChild(range);
+        if (result.rationale) {
+          const rationale = document.createElement('p');
+          rationale.className = 'mt-2 text-slate-400';
+          rationale.textContent = result.rationale;
+          container.appendChild(rationale);
+        }
+        if (Array.isArray(result.sources) && result.sources.length) {
+          const summary = document.createElement('p');
+          summary.className = 'mt-2 text-slate-500';
+          const sources = result.sources
+            .map((source) => source.name || source.url)
+            .filter(Boolean)
+            .slice(0, 5)
+            .join(', ');
+          summary.textContent = `Sources: ${sources}`;
+          container.appendChild(summary);
+        }
+      }
+
+      function updateSourcingOverview(data) {
+        state.sourcingOverview = data;
+        const jobs = Array.isArray(data?.jobs) ? data.jobs : [];
+        const activeJob = jobs.find((job) => {
+          const status = (job.status || '').toLowerCase();
+          return status && !['completed', 'failed'].includes(status);
+        }) || jobs[0];
+
+        if (elements.sourcingStatusLabel && elements.sourcingProgressBar && elements.sourcingStatusMeta) {
+          if (activeJob) {
+            elements.sourcingStatusLabel.textContent = toTitleCase(activeJob.status || 'In progress');
+            const progressValue = Math.min(100, Math.max(0, Math.round(activeJob.progress ?? 0)));
+            elements.sourcingProgressBar.style.width = `${progressValue}%`;
+            if (typeof activeJob.found_count === 'number' && activeJob.found_count > 0) {
+              elements.sourcingStatusMeta.textContent = `${activeJob.found_count} profiles found • ${progressValue}% complete`;
+            } else if (activeJob.updated_at) {
+              elements.sourcingStatusMeta.textContent = `Updated ${formatRelativeTime(activeJob.updated_at)}`;
+            } else {
+              elements.sourcingStatusMeta.textContent = `${progressValue}% complete`;
+            }
+          } else {
+            elements.sourcingStatusLabel.textContent = 'No active sourcing jobs';
+            elements.sourcingProgressBar.style.width = '0%';
+            elements.sourcingStatusMeta.textContent = 'Start a search to track Gemini\'s progress.';
+          }
+        }
+
+        if (elements.sourcingNextRefresh) {
+          if (activeJob && (activeJob.updated_at || activeJob.created_at)) {
+            elements.sourcingNextRefresh.textContent = `Updated ${formatRelativeTime(activeJob.updated_at || activeJob.created_at)}`;
+          } else {
+            elements.sourcingNextRefresh.textContent = jobs.length ? 'Monitoring recent sourcing jobs' : 'No active jobs';
+          }
+        }
+
+        if (elements.sourcingRecentList) {
+          elements.sourcingRecentList.innerHTML = '';
+          if (!jobs.length) {
+            const empty = document.createElement('li');
+            empty.className = 'text-slate-500';
+            empty.textContent = 'Run AI sourcing to see real-time activity.';
+            elements.sourcingRecentList.appendChild(empty);
+          } else {
+            jobs.slice(0, 5).forEach((job) => {
+              const item = document.createElement('li');
+              const parts = [job.position_title || job.project_name || 'Sourcing job'];
+              if (job.status) {
+                parts.push(toTitleCase(job.status));
+              }
+              if (typeof job.found_count === 'number' && job.found_count > 0) {
+                parts.push(`${job.found_count} profiles`);
+              }
+              if (job.updated_at || job.created_at) {
+                parts.push(formatRelativeTime(job.updated_at || job.created_at));
+              }
+              item.textContent = parts.filter(Boolean).join(' • ');
+              elements.sourcingRecentList.appendChild(item);
+            });
+          }
+        }
+      }
+
+      async function refreshSourcingOverview() {
+        try {
+          const overview = await apiFetch('/api/sourcing/overview');
+          if (overview) {
+            updateSourcingOverview(overview);
+          }
+        } catch (error) {
+          console.warn('Unable to refresh sourcing overview', error);
+        }
+      }
+
+      async function loadProjects() {
+        try {
+          const projects = await apiFetch('/api/projects');
+          if (Array.isArray(projects)) {
+            state.projects = projects;
+            populateProjectOptions();
+          }
+        } catch (error) {
+          console.warn('Unable to load projects', error);
+        }
+      }
+
+      async function loadPositions() {
+        try {
+          const positions = await apiFetch('/api/positions');
+          if (Array.isArray(positions)) {
+            state.positions = positions;
+            populatePositionOptions(elements.sourcingProject?.value || '');
+          }
+        } catch (error) {
+          console.warn('Unable to load positions', error);
+        }
+      }
+
+      async function initializeConsole() {
+        await Promise.all([loadProjects(), loadPositions(), refreshSourcingOverview()]);
+      }
+
+      if (elements.sourcingProject) {
+        elements.sourcingProject.addEventListener('change', (event) => {
+          populatePositionOptions(event.target.value || '');
+        });
+      }
+
+      if (elements.salaryForm) {
+        elements.salaryForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.salaryForm);
+          const title = formData.get('title');
+          const region = formData.get('region');
+          if (!title || !region) {
+            showToast('Role and region are required for benchmarking.', 'error');
+            return;
+          }
+          const payload = { title, region };
+          const sector = formData.get('sector');
+          const seniority = formData.get('seniority');
+          if (sector) {
+            payload.sector = sector;
+          }
+          if (seniority) {
+            payload.seniority = seniority;
+          }
+          try {
+            const result = await apiFetch('/api/research/salary-benchmark', {
+              method: 'POST',
+              body: payload,
+            });
+            renderSalaryBenchmark(result);
+            showToast('Salary benchmark ready.', 'success');
+          } catch (error) {
+            renderSalaryBenchmark(null);
+            showToast(error.message || 'Unable to fetch salary benchmark.', 'error');
+          }
+        });
+      }
+
+      if (elements.aiSourcingForm) {
+        elements.aiSourcingForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.aiSourcingForm);
+          const projectId = formData.get('project_id');
+          const positionId = formData.get('position_id');
+          if (!projectId || !positionId) {
+            setMessage(elements.aiSourcingMessage, 'Select a project and position before starting a search.', 'error');
+            return;
+          }
+          setMessage(elements.aiSourcingMessage, 'Queuing AI sourcing job...');
+          const platforms = formData.getAll('platforms').map((value) => value.trim()).filter(Boolean);
+          const keywordsRaw = formData.get('keywords') || '';
+          const keywords = keywordsRaw
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          const payload = {
+            project_id: projectId,
+            position_id: positionId,
+            platforms,
+          };
+          const seniority = formData.get('seniority');
+          const location = formData.get('location');
+          const context = formData.get('context');
+          if (seniority) {
+            payload.seniority = seniority;
+          }
+          if (location) {
+            payload.location = location;
+          }
+          if (keywords.length) {
+            payload.keywords = keywords;
+          }
+          if (context) {
+            payload.context = context;
+          }
+          try {
+            await apiFetch('/api/ai/source-candidates', {
+              method: 'POST',
+              body: payload,
+            });
+            setMessage(elements.aiSourcingMessage, 'AI sourcing job queued. Tracking progress...', 'success');
+            showToast('AI sourcing job queued.', 'success');
+            refreshSourcingOverview();
+          } catch (error) {
+            setMessage(elements.aiSourcingMessage, error.message || 'Unable to start AI sourcing.', 'error');
+            showToast(error.message || 'Unable to start AI sourcing.', 'error');
+          }
+        });
+      }
+
+      function renderCallScript(script) {
+        const container = elements.callScriptOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        state.callScriptText = '';
+        if (!script) {
+          const empty = document.createElement('div');
+          empty.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          empty.innerHTML = '<p class="font-semibold text-white">Call script</p><p class="mt-2">Submit the form to generate a tailored call script for your candidate.</p>';
+          container.appendChild(empty);
+          return;
+        }
+        const headerLines = [];
+        if (script.candidate || script.role) {
+          headerLines.push(`${script.candidate || 'Candidate'} — ${script.role || 'Role'}`);
+        }
+        if (script.location) {
+          headerLines.push(`Location: ${script.location}`);
+        }
+        if (Array.isArray(script.value_props) && script.value_props.length) {
+          headerLines.push('Value props:');
+          script.value_props.forEach((value) => {
+            headerLines.push(`- ${value}`);
+          });
+        }
+        const textLines = headerLines.slice();
+
+        if (headerLines.length) {
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const title = document.createElement('p');
+          title.className = 'font-semibold text-white';
+          title.textContent = 'Overview';
+          card.appendChild(title);
+          headerLines.forEach((line) => {
+            const paragraph = document.createElement('p');
+            paragraph.className = 'mt-2 text-slate-300';
+            paragraph.textContent = line;
+            card.appendChild(paragraph);
+          });
+          container.appendChild(card);
+        }
+
+        const sections = script.sections && typeof script.sections === 'object' ? script.sections : {};
+        Object.entries(sections).forEach(([key, value]) => {
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const title = document.createElement('p');
+          title.className = 'font-semibold text-white';
+          title.textContent = toTitleCase(key);
+          card.appendChild(title);
+          const lines = Array.isArray(value)
+            ? value
+            : typeof value === 'string'
+              ? [value]
+              : Object.values(value || {});
+          lines.forEach((line) => {
+            const paragraph = document.createElement('p');
+            paragraph.className = 'mt-2 text-slate-300';
+            paragraph.textContent = line;
+            card.appendChild(paragraph);
+          });
+          container.appendChild(card);
+          textLines.push('', toTitleCase(key));
+          lines.forEach((line) => {
+            textLines.push(line);
+          });
+        });
+        state.callScriptText = textLines.join('\n');
+      }
+
+      if (elements.callScriptForm) {
+        elements.callScriptForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.callScriptForm);
+          const candidateName = formData.get('candidate_name');
+          const title = formData.get('title');
+          if (!candidateName || !title) {
+            setMessage(elements.callScriptMessage, 'Candidate name and role title are required.', 'error');
+            return;
+          }
+          setMessage(elements.callScriptMessage, 'Generating script...');
+          const valueProps = [
+            elements.callValueProp1?.value,
+            elements.callValueProp2?.value,
+            elements.callValueProp3?.value,
+          ]
+            .map((value) => value?.trim())
+            .filter(Boolean);
+          const payload = {
+            candidate_name: candidateName,
+            title,
+          };
+          const location = formData.get('location');
+          if (location) {
+            payload.location = location;
+          }
+          if (valueProps.length) {
+            payload.value_props = valueProps;
+          }
+          try {
+            const script = await apiFetch('/api/ai/call-script', {
+              method: 'POST',
+              body: payload,
+            });
+            renderCallScript(script);
+            setMessage(elements.callScriptMessage, 'Script generated successfully.', 'success');
+            showToast('Call script ready.', 'success');
+          } catch (error) {
+            setMessage(elements.callScriptMessage, error.message || 'Unable to generate script.', 'error');
+            showToast(error.message || 'Unable to generate script.', 'error');
+          }
+        });
+      }
+
+      if (elements.callScriptCopy) {
+        elements.callScriptCopy.addEventListener('click', () => {
+          if (!state.callScriptText) {
+            showToast('Generate a script before copying.', 'info');
+            return;
+          }
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(state.callScriptText).then(() => {
+              showToast('Script copied to clipboard.', 'success');
+            }).catch(() => {
+              showToast('Unable to copy to clipboard.', 'error');
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = state.callScriptText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+              document.execCommand('copy');
+              showToast('Script copied to clipboard.', 'success');
+            } catch (error) {
+              showToast('Unable to copy to clipboard.', 'error');
+            }
+            document.body.removeChild(textarea);
+          }
+        });
+      }
+
+      if (elements.callScriptDownload) {
+        elements.callScriptDownload.addEventListener('click', () => {
+          if (!state.callScriptText) {
+            showToast('Generate a script before downloading.', 'info');
+            return;
+          }
+          const blob = new Blob([state.callScriptText], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'recruitpro-call-script.txt';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('Script downloaded.', 'success');
+        });
+      }
+
+      const createProjectButton = document.querySelector('[data-action="create-project"]');
+      if (createProjectButton) {
+        createProjectButton.addEventListener('click', async () => {
+          const name = (window.prompt('Project name?') || '').trim();
+          if (!name) {
+            return;
+          }
+          const client = (window.prompt('Client (optional)?') || '').trim();
+          const region = (window.prompt('Region (optional)?') || '').trim();
+          const summary = (window.prompt('Summary (optional)?') || '').trim();
+          const payload = {
+            name,
+          };
+          if (client) {
+            payload.client = client;
+          }
+          if (region) {
+            payload.location_region = region;
+          }
+          if (summary) {
+            payload.summary = summary;
+          }
+          try {
+            const project = await apiFetch('/api/projects', {
+              method: 'POST',
+              body: payload,
+            });
+            showToast(`Project “${project.name}” created.`, 'success');
+            await loadProjects();
+          } catch (error) {
+            showToast(error.message || 'Unable to create project.', 'error');
+          }
+        });
+      }
+
+      initializeConsole();
       showScreen('dashboard');
     </script>
   </body>

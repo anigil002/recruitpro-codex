@@ -157,6 +157,12 @@
           </div>
         </header>
         <div class="flex-1 overflow-y-auto px-8 py-8">
+          <div
+            id="initialization-status"
+            class="mb-6 hidden rounded-3xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100"
+            role="status"
+            aria-live="polite"
+          ></div>
           <section id="dashboard" class="screen active">
             <div class="grid gap-6 lg:grid-cols-4">
               <div class="col-span-2 rounded-3xl bg-surface/90 p-6 shadow-card ring-1 ring-slate-800/60">
@@ -1525,6 +1531,19 @@
       const navLinks = document.querySelectorAll('.nav-link');
       const navPills = document.querySelectorAll('.nav-pill');
 
+      const TOKEN_STORAGE_KEY = 'recruitpro.token';
+      const TOKEN_TYPE_STORAGE_KEY = 'recruitpro.tokenType';
+      let unauthorizedNotified = false;
+
+      class HttpError extends Error {
+        constructor(message, status, payload) {
+          super(message);
+          this.name = 'HttpError';
+          this.status = status;
+          this.payload = payload;
+        }
+      }
+
       const state = {
         projects: [],
         positions: [],
@@ -1532,7 +1551,44 @@
         callScriptText: '',
       };
 
+      const initializationIssues = new Map();
+
+      function getStoredAuthHeader() {
+        try {
+          const token = window.localStorage?.getItem(TOKEN_STORAGE_KEY);
+          if (!token) {
+            return null;
+          }
+          const tokenType = window.localStorage?.getItem(TOKEN_TYPE_STORAGE_KEY) || 'Bearer';
+          return `${tokenType} ${token}`.trim();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function clearStoredAuth() {
+        try {
+          window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage?.removeItem(TOKEN_TYPE_STORAGE_KEY);
+        } catch (error) {
+          // Ignore storage cleanup issues.
+        }
+      }
+
+      function handleUnauthorized(message) {
+        if (unauthorizedNotified) {
+          return;
+        }
+        unauthorizedNotified = true;
+        showToast(message || 'Your session has expired. Please sign in again.', 'error');
+        const current = `${window.location.pathname}${window.location.search}`;
+        window.setTimeout(() => {
+          window.location.href = `/login?next=${encodeURIComponent(current)}`;
+        }, 1200);
+      }
+
       const elements = {
+        initializationStatus: document.getElementById('initialization-status'),
         salaryForm: document.getElementById('salary-benchmark-form'),
         salaryResult: document.getElementById('salary-benchmark-result'),
         aiSourcingForm: document.getElementById('ai-sourcing-form'),
@@ -1561,6 +1617,36 @@
         callScriptCopy: document.getElementById('call-script-copy'),
         callScriptDownload: document.getElementById('call-script-download'),
       };
+
+      function updateInitializationStatus() {
+        const banner = elements.initializationStatus;
+        if (!banner) {
+          return;
+        }
+        if (!initializationIssues.size) {
+          banner.classList.add('hidden');
+          banner.textContent = '';
+          return;
+        }
+        const messages = Array.from(initializationIssues.values());
+        const summary = `We couldn't load some console data. ${messages.join(' ')}`;
+        banner.textContent = summary;
+        banner.classList.remove('hidden');
+      }
+
+      function setInitializationIssue(key, label, message) {
+        if (!message) {
+          return;
+        }
+        initializationIssues.set(key, `${label}: ${message}`);
+        updateInitializationStatus();
+      }
+
+      function clearInitializationIssue(key) {
+        if (initializationIssues.delete(key)) {
+          updateInitializationStatus();
+        }
+      }
 
       function showScreen(id) {
         sections.forEach((section) => {
@@ -1636,6 +1722,10 @@
       async function apiFetch(path, options = {}) {
         const init = { credentials: 'include', ...options };
         init.headers = new Headers(init.headers || {});
+        const authHeader = getStoredAuthHeader();
+        if (authHeader && !init.headers.has('Authorization')) {
+          init.headers.set('Authorization', authHeader);
+        }
         if (init.body && typeof init.body === 'object' && !(init.body instanceof FormData)) {
           init.headers.set('Content-Type', 'application/json');
           init.body = JSON.stringify(init.body);
@@ -1655,7 +1745,11 @@
         }
         if (!response.ok) {
           const detail = typeof data === 'string' ? data : data?.detail || data?.message;
-          throw new Error(detail || `Request failed with status ${response.status}`);
+          if (response.status === 401) {
+            clearStoredAuth();
+            handleUnauthorized(detail || 'Authentication required.');
+          }
+          throw new HttpError(detail || `Request failed with status ${response.status}`, response.status, data);
         }
         return data;
       }
@@ -1846,11 +1940,16 @@
       async function refreshSourcingOverview() {
         try {
           const overview = await apiFetch('/api/sourcing/overview');
+          clearInitializationIssue('sourcing');
           if (overview) {
             updateSourcingOverview(overview);
           }
         } catch (error) {
-          console.warn('Unable to refresh sourcing overview', error);
+          const message = error instanceof Error ? error.message : 'Unable to refresh sourcing overview.';
+          setInitializationIssue('sourcing', 'Sourcing overview', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
         }
       }
 
@@ -1861,8 +1960,13 @@
             state.projects = projects;
             populateProjectOptions();
           }
+          clearInitializationIssue('projects');
         } catch (error) {
-          console.warn('Unable to load projects', error);
+          const message = error instanceof Error ? error.message : 'Unable to load projects.';
+          setInitializationIssue('projects', 'Projects', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
         }
       }
 
@@ -1873,8 +1977,13 @@
             state.positions = positions;
             populatePositionOptions(elements.sourcingProject?.value || '');
           }
+          clearInitializationIssue('positions');
         } catch (error) {
-          console.warn('Unable to load positions', error);
+          const message = error instanceof Error ? error.message : 'Unable to load positions.';
+          setInitializationIssue('positions', 'Positions', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
         }
       }
 

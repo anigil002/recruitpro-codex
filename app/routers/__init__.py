@@ -11,6 +11,7 @@ from . import (
     projects,
     reporting,
     sourcing,
+    settings_api,
     system,
 )
 
@@ -25,5 +26,6 @@ __all__ = [
     "projects",
     "reporting",
     "sourcing",
+    "settings_api",
     "system",
 ]

@@ -143,6 +143,13 @@
           </div>
           {% endif %}
 
+          <div
+            id="settings-feedback"
+            class="hidden rounded-xl border border-white/10 bg-white/5 p-4 text-sm font-medium text-slate-200"
+            role="status"
+            aria-live="polite"
+          ></div>
+
           <section class="grid gap-6 lg:grid-cols-2">
             <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur">
               <div class="flex items-start justify-between">
@@ -215,6 +222,8 @@
               class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
               id="gemini-settings"
               method="post"
+              data-settings-form="gemini"
+              novalidate
             >
               <input name="form_id" type="hidden" value="gemini" />
               <div class="flex flex-wrap items-center justify-between gap-4">
@@ -223,9 +232,28 @@
                   <h3 class="text-xl font-semibold text-white">Google Gemini</h3>
                   <p class="mt-1 text-sm text-slate-400">Used for RecruitPro's AI reasoning and summarisation features.</p>
                 </div>
-                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if gemini.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if gemini.configured else 'warning' }}</span>
-                  {{ 'Connected' if gemini.configured else 'Not Configured' }}
+                <span
+                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if gemini.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
+                  data-integration-status="gemini"
+                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
+                >
+                  <span
+                    class="material-symbols-outlined text-base"
+                    style="font-variation-settings: 'FILL' 1;"
+                    data-integration-status-icon="gemini"
+                    data-connected-icon="verified"
+                    data-missing-icon="warning"
+                  >
+                    {{ 'verified' if gemini.configured else 'warning' }}
+                  </span>
+                  <span
+                    data-integration-status-text="gemini"
+                    data-connected-label="Connected"
+                    data-missing-label="Not Configured"
+                  >
+                    {{ 'Connected' if gemini.configured else 'Not Configured' }}
+                  </span>
                 </span>
               </div>
               <label class="text-sm font-medium text-slate-300" for="gemini-api">Gemini API Key</label>
@@ -245,12 +273,15 @@
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
               </div>
-              <p class="text-xs text-slate-500">
-                {% if gemini.configured %}
-                Current key: <span class="font-semibold text-slate-200">{{ gemini.masked }}</span> ({{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}).
-                {% else %}
-                No key configured. Provide a Gemini API key to enable real-time AI features.
-                {% endif %}
+              <p class="text-xs text-slate-500" data-integration-description="gemini">
+                <span class="{{ '' if gemini.configured else 'hidden' }}" data-visible-when="configured">
+                  Current key:
+                  <span class="font-semibold text-slate-200" data-integration-masked="gemini">{{ gemini.masked }}</span>
+                  (<span data-integration-source="gemini">{{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}</span>).
+                </span>
+                <span class="{{ 'hidden' if gemini.configured else '' }}" data-visible-when="missing">
+                  No key configured. Provide a Gemini API key to enable real-time AI features.
+                </span>
                 <a class="text-accent-sky hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
               </p>
               <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
@@ -259,7 +290,7 @@
                   type="submit"
                 >
                   <span class="material-symbols-outlined text-base">save</span>
-                  Save Gemini Settings
+                  <span class="button-label">Save Gemini Settings</span>
                 </button>
               </div>
             </form>
@@ -267,6 +298,9 @@
             <form
               class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
               method="post"
+              id="google-settings"
+              data-settings-form="google"
+              novalidate
             >
               <input name="form_id" type="hidden" value="google" />
               <div class="flex flex-wrap items-center justify-between gap-4">
@@ -275,9 +309,28 @@
                   <h3 class="text-xl font-semibold text-white">Custom Search API</h3>
                   <p class="mt-1 text-sm text-slate-400">Used to enrich candidate sourcing with web and LinkedIn data.</p>
                 </div>
-                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if google.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if google.configured else 'warning' }}</span>
-                  {{ 'Connected' if google.configured else 'Not Configured' }}
+                <span
+                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if google.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
+                  data-integration-status="google"
+                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
+                >
+                  <span
+                    class="material-symbols-outlined text-base"
+                    style="font-variation-settings: 'FILL' 1;"
+                    data-integration-status-icon="google"
+                    data-connected-icon="verified"
+                    data-missing-icon="warning"
+                  >
+                    {{ 'verified' if google.configured else 'warning' }}
+                  </span>
+                  <span
+                    data-integration-status-text="google"
+                    data-connected-label="Connected"
+                    data-missing-label="Not Configured"
+                  >
+                    {{ 'Connected' if google.configured else 'Not Configured' }}
+                  </span>
                 </span>
               </div>
               <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -312,12 +365,14 @@
                   />
                 </div>
               </div>
-              <p class="text-xs text-slate-500">
-                {% if google.configured %}
-                Current API key: <span class="font-semibold text-slate-200">{{ google.masked }}</span>.
-                {% else %}
-                Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
-                {% endif %}
+              <p class="text-xs text-slate-500" data-integration-description="google">
+                <span class="{{ '' if google.configured else 'hidden' }}" data-visible-when="configured">
+                  Current API key:
+                  <span class="font-semibold text-slate-200" data-integration-masked="google_api_key">{{ google.masked }}</span>.
+                </span>
+                <span class="{{ 'hidden' if google.configured else '' }}" data-visible-when="missing">
+                  Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
+                </span>
                 Find your API key and Search Engine ID in the
                 <a class="text-accent-sky hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
               </p>
@@ -327,7 +382,7 @@
                   type="submit"
                 >
                   <span class="material-symbols-outlined text-base">save</span>
-                  Save Google Settings
+                  <span class="button-label">Save Google Settings</span>
                 </button>
               </div>
             </form>
@@ -335,6 +390,10 @@
             <form
               class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
               method="post"
+              id="smartrecruiters-settings"
+              data-settings-form="smartrecruiters"
+              data-clear-password-intent="false"
+              novalidate
             >
               <input name="form_id" type="hidden" value="smartrecruiters" />
               <div class="flex flex-wrap items-center justify-between gap-4">
@@ -343,9 +402,28 @@
                   <h3 class="text-xl font-semibold text-white">Enterprise ATS Connector</h3>
                   <p class="mt-1 text-sm text-slate-400">Authenticate with SmartRecruiters to sync jobs and applications.</p>
                 </div>
-                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'text-emerald-300' if smartrecruiters.configured else 'text-amber-300 border-amber-400/30 bg-amber-400/10' }}">
-                  <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'verified' if smartrecruiters.configured else 'warning' }}</span>
-                  {{ 'Connected' if smartrecruiters.configured else 'Not Configured' }}
+                <span
+                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if smartrecruiters.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
+                  data-integration-status="smartrecruiters"
+                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
+                >
+                  <span
+                    class="material-symbols-outlined text-base"
+                    style="font-variation-settings: 'FILL' 1;"
+                    data-integration-status-icon="smartrecruiters"
+                    data-connected-icon="verified"
+                    data-missing-icon="warning"
+                  >
+                    {{ 'verified' if smartrecruiters.configured else 'warning' }}
+                  </span>
+                  <span
+                    data-integration-status-text="smartrecruiters"
+                    data-connected-label="Connected"
+                    data-missing-label="Not Configured"
+                  >
+                    {{ 'Connected' if smartrecruiters.configured else 'Not Configured' }}
+                  </span>
                 </span>
               </div>
               <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -361,7 +439,16 @@
                   />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-300" for="smartrecruiters-password">SmartRecruiters Password</label>
+                  <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium text-slate-300" for="smartrecruiters-password">SmartRecruiters Password</label>
+                    <button
+                      class="text-xs font-semibold text-rose-300 transition hover:text-rose-200 {{ '' if smartrecruiters.password_masked else 'hidden' }}"
+                      type="button"
+                      data-clear-password-button
+                    >
+                      Clear stored password
+                    </button>
+                  </div>
                   <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
                     <input
                       class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
@@ -378,11 +465,15 @@
                       <span class="material-symbols-outlined">visibility</span>
                     </button>
                   </div>
-                  {% if smartrecruiters.password_masked %}
-                  <p class="text-xs text-slate-500">
-                    Stored password: <span class="font-semibold text-slate-200">{{ smartrecruiters.password_masked }}</span>
+                  <p
+                    class="text-xs text-slate-500 {{ '' if smartrecruiters.password_masked else 'hidden' }}"
+                    data-smartrecruiters-password-status
+                  >
+                    Stored password:
+                    <span class="font-semibold text-slate-200" data-integration-masked="smartrecruiters_password">
+                      {{ smartrecruiters.password_masked }}
+                    </span>
                   </p>
-                  {% endif %}
                 </div>
               </div>
               <p class="text-xs text-slate-500">
@@ -394,7 +485,7 @@
                   type="submit"
                 >
                   <span class="material-symbols-outlined text-base">save</span>
-                  Save SmartRecruiters Settings
+                  <span class="button-label">Save SmartRecruiters Settings</span>
                 </button>
               </div>
             </form>
@@ -403,21 +494,454 @@
       </main>
     </div>
     <script>
-      const toggleButtons = document.querySelectorAll('.toggle-visibility');
+      const toggleButtons = document.querySelectorAll(".toggle-visibility");
       toggleButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          const targetId = button.getAttribute('data-target');
+        button.addEventListener("click", () => {
+          const targetId = button.getAttribute("data-target");
           const input = document.getElementById(targetId);
           if (!input) {
             return;
           }
-          if (input.type === 'password') {
-            input.type = 'text';
-            button.querySelector('.material-symbols-outlined').textContent = 'visibility_off';
+          const icon = button.querySelector(".material-symbols-outlined");
+          if (input.type === "password") {
+            input.type = "text";
+            if (icon) {
+              icon.textContent = "visibility_off";
+            }
           } else {
-            input.type = 'password';
-            button.querySelector('.material-symbols-outlined').textContent = 'visibility';
+            input.type = "password";
+            if (icon) {
+              icon.textContent = "visibility";
+            }
           }
+        });
+      });
+
+      const FIELD_ERROR_CLASSES = [
+        "border-rose-400",
+        "focus:border-rose-400/80",
+        "focus:ring-rose-400/20",
+        "ring-1",
+        "ring-rose-400/40",
+      ];
+
+      const FEEDBACK_VARIANTS = {
+        success: ["border-emerald-400/40", "bg-emerald-400/10", "text-emerald-200"],
+        error: ["border-rose-400/60", "bg-rose-400/10", "text-rose-200"],
+        info: ["border-sky-400/40", "bg-sky-400/10", "text-sky-200"],
+      };
+
+      const feedbackBox = document.getElementById("settings-feedback");
+      let feedbackTimer;
+
+      function clearFeedbackVariants() {
+        if (!feedbackBox) {
+          return;
+        }
+        Object.values(FEEDBACK_VARIANTS).forEach((classes) => {
+          feedbackBox.classList.remove(...classes);
+        });
+      }
+
+      function hideFeedback() {
+        if (!feedbackBox) {
+          return;
+        }
+        clearTimeout(feedbackTimer);
+        clearFeedbackVariants();
+        feedbackBox.classList.add("hidden");
+        feedbackBox.textContent = "";
+      }
+
+      function showFeedback(type, message) {
+        if (!feedbackBox) {
+          return;
+        }
+        clearTimeout(feedbackTimer);
+        clearFeedbackVariants();
+        const classes = FEEDBACK_VARIANTS[type] || [];
+        if (classes.length) {
+          feedbackBox.classList.add(...classes);
+        }
+        feedbackBox.textContent = message;
+        feedbackBox.classList.remove("hidden");
+        feedbackTimer = window.setTimeout(() => {
+          hideFeedback();
+        }, 6000);
+      }
+
+      function setFieldError(field, message) {
+        if (!field) {
+          return;
+        }
+        FIELD_ERROR_CLASSES.forEach((cls) => field.classList.add(cls));
+        field.dataset.hasError = "true";
+        field.setAttribute("aria-invalid", "true");
+        if (typeof field.setCustomValidity === "function") {
+          field.setCustomValidity(message);
+        }
+        if (typeof field.reportValidity === "function") {
+          field.reportValidity();
+        }
+        if (typeof field.focus === "function") {
+          field.focus();
+        }
+      }
+
+      function clearFieldError(field) {
+        if (!field || !field.dataset.hasError) {
+          return;
+        }
+        FIELD_ERROR_CLASSES.forEach((cls) => field.classList.remove(cls));
+        field.removeAttribute("aria-invalid");
+        if (typeof field.setCustomValidity === "function") {
+          field.setCustomValidity("");
+        }
+        delete field.dataset.hasError;
+      }
+
+      function clearFormErrors(form) {
+        form.querySelectorAll("[data-has-error]").forEach((input) => clearFieldError(input));
+      }
+
+      function parseClasses(value) {
+        return value ? value.split(" ").filter(Boolean) : [];
+      }
+
+      function applyBadge(name, configured) {
+        const badge = document.querySelector(`[data-integration-status="${name}"]`);
+        if (!badge) {
+          return;
+        }
+        const connected = parseClasses(badge.dataset.connectedClass);
+        const missing = parseClasses(badge.dataset.missingClass);
+        const combined = [...connected, ...missing];
+        if (combined.length) {
+          badge.classList.remove(...combined);
+        }
+        badge.classList.add(...(configured ? connected : missing));
+
+        const icon = document.querySelector(`[data-integration-status-icon="${name}"]`);
+        if (icon) {
+          const iconValue = configured ? icon.dataset.connectedIcon : icon.dataset.missingIcon;
+          if (iconValue) {
+            icon.textContent = iconValue;
+          }
+        }
+
+        const label = document.querySelector(`[data-integration-status-text="${name}"]`);
+        if (label) {
+          const textValue = configured ? label.dataset.connectedLabel : label.dataset.missingLabel;
+          if (textValue) {
+            label.textContent = textValue;
+          }
+        }
+      }
+
+      function updateDescription(name, status) {
+        const container = document.querySelector(`[data-integration-description="${name}"]`);
+        if (!container) {
+          return;
+        }
+        const configured = Boolean(status && status.configured);
+        const configuredEl = container.querySelector('[data-visible-when="configured"]');
+        const missingEl = container.querySelector('[data-visible-when="missing"]');
+        if (configuredEl) {
+          configuredEl.classList.toggle("hidden", !configured);
+        }
+        if (missingEl) {
+          missingEl.classList.toggle("hidden", configured);
+        }
+        const maskedSpan = container.querySelector(`[data-integration-masked="${name}"]`);
+        if (maskedSpan && Object.prototype.hasOwnProperty.call(status || {}, "masked")) {
+          maskedSpan.textContent = status.masked || "";
+        }
+        if (name === "gemini") {
+          const sourceSpan = container.querySelector('[data-integration-source="gemini"]');
+          if (sourceSpan && status) {
+            let sourceText = "stored in database";
+            if (status.source === "environment") {
+              sourceText = "loaded from environment";
+            }
+            sourceSpan.textContent = sourceText;
+          }
+        }
+      }
+
+      function updateSmartRecruitersDetails(form, status) {
+        if (!form) {
+          return;
+        }
+        const passwordField = form.querySelector('[name="smartrecruiters_password"]');
+        if (passwordField) {
+          passwordField.value = "";
+          clearFieldError(passwordField);
+        }
+        const statusContainer = form.querySelector("[data-smartrecruiters-password-status]");
+        if (statusContainer) {
+          statusContainer.classList.toggle("hidden", !status || !status.configured);
+          const maskedSpan = statusContainer.querySelector('[data-integration-masked="smartrecruiters_password"]');
+          if (maskedSpan && Object.prototype.hasOwnProperty.call(status || {}, "masked")) {
+            maskedSpan.textContent = status.masked || "";
+          }
+        }
+        const clearButton = form.querySelector("[data-clear-password-button]");
+        if (clearButton) {
+          clearButton.classList.toggle("hidden", !status || !status.configured);
+        }
+      }
+
+      function updateIntegrationStatus(formId, integration, form) {
+        if (!integration) {
+          return;
+        }
+        if (formId === "gemini") {
+          applyBadge("gemini", Boolean(integration.configured));
+          updateDescription("gemini", integration);
+          const field = form.querySelector('[name="gemini_api_key"]');
+          if (field) {
+            field.value = "";
+            clearFieldError(field);
+          }
+        } else if (formId === "google") {
+          const keyStatus = integration.google_api_key || {};
+          applyBadge("google", Boolean(keyStatus.configured));
+          updateDescription("google", keyStatus);
+          const apiField = form.querySelector('[name="google_api_key"]');
+          if (apiField) {
+            apiField.value = "";
+            clearFieldError(apiField);
+          }
+          const cseField = form.querySelector('[name="google_cse_id"]');
+          if (cseField) {
+            clearFieldError(cseField);
+          }
+        } else if (formId === "smartrecruiters") {
+          const emailStatus = integration.smartrecruiters_email || {};
+          const passwordStatus = integration.smartrecruiters_password || {};
+          applyBadge("smartrecruiters", Boolean(emailStatus.configured));
+          updateSmartRecruitersDetails(form, passwordStatus);
+          if (form) {
+            form.dataset.clearPasswordIntent = "false";
+          }
+          const emailField = form.querySelector('[name="smartrecruiters_email"]');
+          if (emailField) {
+            clearFieldError(emailField);
+          }
+        }
+      }
+
+      function setLoading(form, isLoading) {
+        const button = form.querySelector('button[type="submit"]');
+        if (!button) {
+          return;
+        }
+        const icon = button.querySelector(".material-symbols-outlined");
+        const label = button.querySelector(".button-label");
+        if (isLoading) {
+          button.disabled = true;
+          button.setAttribute("aria-busy", "true");
+          button.classList.add("opacity-70", "cursor-not-allowed");
+          if (icon) {
+            button.dataset.originalIcon = icon.textContent;
+            icon.textContent = "hourglass_top";
+          }
+          if (label) {
+            button.dataset.originalLabel = label.textContent;
+            label.textContent = "Saving…";
+          }
+        } else {
+          button.disabled = false;
+          button.removeAttribute("aria-busy");
+          button.classList.remove("opacity-70", "cursor-not-allowed");
+          if (icon && button.dataset.originalIcon) {
+            icon.textContent = button.dataset.originalIcon;
+          }
+          if (label && button.dataset.originalLabel) {
+            label.textContent = button.dataset.originalLabel;
+          }
+          delete button.dataset.originalIcon;
+          delete button.dataset.originalLabel;
+        }
+      }
+
+      document.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", () => {
+          if (input.dataset.hasError) {
+            clearFieldError(input);
+          }
+        });
+      });
+
+      const CLEAR_PASSWORD_FLAG = "clearPasswordIntent";
+
+      const VALIDATORS = {
+        gemini(form) {
+          const apiField = form.querySelector('[name="gemini_api_key"]');
+          const value = (apiField?.value || "").trim();
+          if (!value) {
+            setFieldError(apiField, "Gemini API key is required.");
+            return { valid: false, message: "Enter a Gemini API key to continue." };
+          }
+          return { valid: true, payload: { gemini_api_key: value } };
+        },
+        google(form) {
+          const apiField = form.querySelector('[name="google_api_key"]');
+          const cseField = form.querySelector('[name="google_cse_id"]');
+          const apiKey = (apiField?.value || "").trim();
+          const cseId = (cseField?.value || "").trim();
+          let message = "";
+          if (!apiKey) {
+            setFieldError(apiField, "Google API key is required.");
+            message = "Enter your Google API key.";
+          }
+          if (!cseId) {
+            setFieldError(cseField, "Custom Search Engine ID is required.");
+            message = message || "Enter your Custom Search Engine ID.";
+          }
+          if (message) {
+            return { valid: false, message };
+          }
+          return {
+            valid: true,
+            payload: {
+              google_api_key: apiKey,
+              google_cse_id: cseId,
+            },
+          };
+        },
+        smartrecruiters(form) {
+          const emailField = form.querySelector('[name="smartrecruiters_email"]');
+          const passwordField = form.querySelector('[name="smartrecruiters_password"]');
+          const email = (emailField?.value || "").trim();
+          const password = (passwordField?.value || "").trim();
+          const clearIntent = form.dataset.clearPasswordIntent === "true";
+          const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+          if (!email) {
+            setFieldError(emailField, "SmartRecruiters email is required.");
+            return { valid: false, message: "Provide the SmartRecruiters account email." };
+          }
+
+          if (!emailPattern.test(email)) {
+            setFieldError(emailField, "Enter a valid email address.");
+            return { valid: false, message: "Enter a valid SmartRecruiters email address." };
+          }
+
+          if (password && password.length < 8) {
+            setFieldError(passwordField, "Password must be at least 8 characters long.");
+            return {
+              valid: false,
+              message: "SmartRecruiters password must be at least 8 characters.",
+            };
+          }
+
+          return {
+            valid: true,
+            payload: {
+              smartrecruiters_email: email,
+              smartrecruiters_password: password ? password : null,
+              clear_password: clearIntent && !password,
+            },
+          };
+        },
+      };
+
+      const forms = document.querySelectorAll("form[data-settings-form]");
+
+      forms.forEach((form) => {
+        if (!form.dataset.clearPasswordIntent) {
+          form.dataset.clearPasswordIntent = "false";
+        }
+
+        const passwordField = form.querySelector('[name="smartrecruiters_password"]');
+        if (passwordField) {
+          passwordField.addEventListener("input", () => {
+            if (passwordField.value.trim().length > 0) {
+              form.dataset.clearPasswordIntent = "false";
+            }
+          });
+        }
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          hideFeedback();
+          clearFormErrors(form);
+          const formId = form.dataset.settingsForm;
+          const validator = VALIDATORS[formId];
+          if (!validator) {
+            return;
+          }
+
+          const result = validator(form);
+          if (!result.valid) {
+            if (result.message) {
+              showFeedback("error", result.message);
+            }
+            return;
+          }
+
+          const payload = result.payload || {};
+
+          try {
+            setLoading(form, true);
+            const response = await fetch(`/api/settings/${formId}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
+
+            const responseText = await response.text();
+            let data = null;
+            if (responseText) {
+              try {
+                data = JSON.parse(responseText);
+              } catch (error) {
+                throw new Error("Unexpected response from the server.");
+              }
+            }
+
+            if (!response.ok || !data) {
+              const detail = data?.detail || data?.message || "Unable to save settings.";
+              throw new Error(detail);
+            }
+
+            if (data.status !== "success") {
+              throw new Error(data.message || "Unable to save settings.");
+            }
+
+            showFeedback("success", data.message || "Settings updated successfully.");
+            updateIntegrationStatus(formId, data.integration, form);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to save settings.";
+            showFeedback("error", message);
+          } finally {
+            setLoading(form, false);
+          }
+        });
+      });
+
+      const clearPasswordButtons = document.querySelectorAll("[data-clear-password-button]");
+      clearPasswordButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const form = button.closest("form");
+          if (!form) {
+            return;
+          }
+          form.dataset.clearPasswordIntent = "true";
+          const passwordField = form.querySelector('[name="smartrecruiters_password"]');
+          if (passwordField) {
+            passwordField.value = "";
+            clearFieldError(passwordField);
+            passwordField.focus();
+          }
+          showFeedback(
+            "info",
+            "The stored SmartRecruiters password will be removed after saving."
+          );
         });
       });
     </script>

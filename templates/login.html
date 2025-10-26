@@ -163,6 +163,12 @@
             >
               Log In
             </button>
+            <div
+              id="login-error"
+              class="hidden rounded-lg border border-rose-400/40 bg-rose-500/10 p-3 text-sm font-medium text-rose-200"
+              role="alert"
+              aria-live="polite"
+            ></div>
           </form>
           <!-- Divider -->
           <div class="flex items-center gap-4">
@@ -217,6 +223,126 @@
           toggleButton.querySelector("span").textContent = isPassword
             ? "visibility_off"
             : "visibility";
+        });
+      }
+
+      const loginForm = document.querySelector('form[action="/api/auth/login"]');
+      const loginError = document.getElementById("login-error");
+      const submitButton = loginForm?.querySelector('button[type="submit"]');
+      const TOKEN_STORAGE_KEY = "recruitpro.token";
+      const TOKEN_TYPE_STORAGE_KEY = "recruitpro.tokenType";
+
+      function setLoginError(message) {
+        if (!loginError) {
+          return;
+        }
+        if (!message) {
+          loginError.classList.add("hidden");
+          loginError.textContent = "";
+          return;
+        }
+        loginError.textContent = message;
+        loginError.classList.remove("hidden");
+      }
+
+      function setSubmitting(isSubmitting) {
+        if (!submitButton) {
+          return;
+        }
+        if (isSubmitting) {
+          submitButton.disabled = true;
+          submitButton.setAttribute("aria-busy", "true");
+          submitButton.dataset.originalLabel = submitButton.textContent;
+          submitButton.textContent = "Signing In…";
+        } else {
+          submitButton.disabled = false;
+          submitButton.removeAttribute("aria-busy");
+          if (submitButton.dataset.originalLabel) {
+            submitButton.textContent = submitButton.dataset.originalLabel;
+            delete submitButton.dataset.originalLabel;
+          }
+        }
+      }
+
+      function persistToken(token, tokenType = "Bearer") {
+        try {
+          window.localStorage?.setItem(TOKEN_STORAGE_KEY, token);
+          window.localStorage?.setItem(TOKEN_TYPE_STORAGE_KEY, tokenType || "Bearer");
+        } catch (error) {
+          // Swallow storage errors (e.g. Safari private mode).
+        }
+      }
+
+      function clearStoredToken() {
+        try {
+          window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage?.removeItem(TOKEN_TYPE_STORAGE_KEY);
+        } catch (error) {
+          // Ignore storage cleanup failures.
+        }
+      }
+
+      function resolveRedirectTarget() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("next") || params.get("redirect") || "/app";
+      }
+
+      if (loginForm) {
+        loginForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          delete loginForm.dataset.redirecting;
+          setLoginError("");
+          setSubmitting(true);
+          const formData = new FormData(loginForm);
+          const body = new URLSearchParams();
+          formData.forEach((value, key) => {
+            if (typeof value === "string") {
+              body.append(key, value);
+            }
+          });
+
+          try {
+            const response = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Accept: "application/json",
+              },
+              credentials: "include",
+              body: body.toString(),
+            });
+
+            const text = await response.text();
+            let data = null;
+            if (text) {
+              try {
+                data = JSON.parse(text);
+              } catch (error) {
+                throw new Error("Unexpected response from the server.");
+              }
+            }
+
+            if (!response.ok) {
+              const detail = typeof data === "string" ? data : data?.detail || data?.message;
+              throw new Error(detail || "Unable to sign in with those credentials.");
+            }
+
+            if (!data?.access_token) {
+              throw new Error("Login response did not include an access token.");
+            }
+
+            clearStoredToken();
+            persistToken(data.access_token, data.token_type);
+            loginForm.dataset.redirecting = "true";
+            window.location.assign(resolveRedirectTarget());
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to sign in.";
+            setLoginError(message);
+          } finally {
+            if (loginForm.dataset.redirecting !== "true") {
+              setSubmitting(false);
+            }
+          }
         });
       }
     </script>

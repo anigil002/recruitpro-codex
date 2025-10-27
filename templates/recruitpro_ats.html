@@ -60,6 +60,29 @@
     </style>
   </head>
   <body class="min-h-screen font-display">
+    <div
+      id="global-loading-overlay"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+      aria-live="polite"
+      aria-busy="false"
+    >
+      <div class="flex flex-col items-center gap-4 text-slate-200" role="status">
+        <svg
+          class="size-12 animate-spin text-primary"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 4.418 3.134 8.166 7.292 8.944l.708-3.653z"
+            fill="currentColor"
+          ></path>
+        </svg>
+        <p id="global-loading-label" class="text-sm font-medium text-slate-100"></p>
+      </div>
+    </div>
     <div class="mx-auto flex min-h-screen max-w-[1400px] gap-6 px-4 py-6 lg:px-8">
       <aside class="flex w-[250px] shrink-0 flex-col justify-between rounded-3xl bg-slate-950/80 ring-1 ring-slate-800/60 backdrop-blur">
         <div>
@@ -1553,6 +1576,108 @@
 
       const initializationIssues = new Map();
 
+      function setButtonLoading(button, label) {
+        if (!button) {
+          return () => {};
+        }
+        const originalHtml = button.innerHTML;
+        const originalAriaBusy = button.getAttribute('aria-busy');
+        const wasDisabled = button.disabled;
+        const hadCursorWait = button.classList.contains('cursor-wait');
+        const originalMinWidth = button.style.minWidth;
+        const { width } = button.getBoundingClientRect();
+        if (width) {
+          button.style.minWidth = `${Math.ceil(width)}px`;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.classList.add('cursor-wait');
+        const text = label || 'Working…';
+        button.innerHTML = `
+          <span class="flex items-center justify-center gap-2">
+            <svg class="size-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 4.418 3.134 8.166 7.292 8.944l.708-3.653z" fill="currentColor"></path>
+            </svg>
+            <span>${text}</span>
+          </span>
+        `.trim();
+        return () => {
+          button.innerHTML = originalHtml;
+          if (originalAriaBusy !== null) {
+            button.setAttribute('aria-busy', originalAriaBusy);
+          } else {
+            button.removeAttribute('aria-busy');
+          }
+          if (!hadCursorWait) {
+            button.classList.remove('cursor-wait');
+          }
+          button.style.minWidth = originalMinWidth;
+          button.disabled = wasDisabled;
+        };
+      }
+
+      const loadingManager = (() => {
+        const overlay = document.getElementById('global-loading-overlay');
+        const label = document.getElementById('global-loading-label');
+        const messages = new Map();
+        let idCounter = 0;
+
+        function updateOverlay() {
+          if (!overlay) {
+            return;
+          }
+          if (messages.size) {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            overlay.setAttribute('aria-busy', 'true');
+            if (label) {
+              const lastMessage = Array.from(messages.values()).pop() || 'Processing…';
+              label.textContent = lastMessage;
+            }
+          } else {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            overlay.setAttribute('aria-busy', 'false');
+            if (label) {
+              label.textContent = '';
+            }
+          }
+        }
+
+        function start(message) {
+          const id = ++idCounter;
+          messages.set(id, message || 'Processing…');
+          updateOverlay();
+          return () => {
+            if (messages.delete(id)) {
+              updateOverlay();
+            }
+          };
+        }
+
+        async function wrap(task, options = {}) {
+          const { message, button, buttonLabel } = options;
+          const stopOverlay = message ? start(message) : null;
+          const stopButton = button ? setButtonLoading(button, buttonLabel || message) : null;
+          try {
+            return await task();
+          } finally {
+            if (typeof stopButton === 'function') {
+              stopButton();
+            }
+            if (typeof stopOverlay === 'function') {
+              stopOverlay();
+            }
+          }
+        }
+
+        return {
+          start,
+          wrap,
+        };
+      })();
+
       function getStoredAuthHeader() {
         try {
           const token = window.localStorage?.getItem(TOKEN_STORAGE_KEY);
@@ -1720,7 +1845,14 @@
       }
 
       async function apiFetch(path, options = {}) {
-        const init = { credentials: 'include', ...options };
+        const {
+          loadingMessage,
+          loadingButton,
+          loadingButtonLabel,
+          suppressGlobalLoading,
+          ...fetchOptions
+        } = options;
+        const init = { credentials: 'include', ...fetchOptions };
         init.headers = new Headers(init.headers || {});
         const authHeader = getStoredAuthHeader();
         if (authHeader && !init.headers.has('Authorization')) {
@@ -1733,25 +1865,40 @@
         if (!init.headers.has('Accept')) {
           init.headers.set('Accept', 'application/json');
         }
-        const response = await fetch(path, init);
-        const text = await response.text();
-        let data = null;
-        if (text) {
-          try {
-            data = JSON.parse(text);
-          } catch (error) {
-            data = text;
+        const stopOverlay = loadingMessage && !suppressGlobalLoading
+          ? loadingManager.start(loadingMessage)
+          : null;
+        const stopButton = loadingButton
+          ? setButtonLoading(loadingButton, loadingButtonLabel || loadingMessage)
+          : null;
+        try {
+          const response = await fetch(path, init);
+          const text = await response.text();
+          let data = null;
+          if (text) {
+            try {
+              data = JSON.parse(text);
+            } catch (error) {
+              data = text;
+            }
+          }
+          if (!response.ok) {
+            const detail = typeof data === 'string' ? data : data?.detail || data?.message;
+            if (response.status === 401) {
+              clearStoredAuth();
+              handleUnauthorized(detail || 'Authentication required.');
+            }
+            throw new HttpError(detail || `Request failed with status ${response.status}`, response.status, data);
+          }
+          return data;
+        } finally {
+          if (typeof stopButton === 'function') {
+            stopButton();
+          }
+          if (typeof stopOverlay === 'function') {
+            stopOverlay();
           }
         }
-        if (!response.ok) {
-          const detail = typeof data === 'string' ? data : data?.detail || data?.message;
-          if (response.status === 401) {
-            clearStoredAuth();
-            handleUnauthorized(detail || 'Authentication required.');
-          }
-          throw new HttpError(detail || `Request failed with status ${response.status}`, response.status, data);
-        }
-        return data;
       }
 
       function formatNumber(value) {
@@ -1988,7 +2135,12 @@
       }
 
       async function initializeConsole() {
-        await Promise.all([loadProjects(), loadPositions(), refreshSourcingOverview()]);
+        const stopLoading = loadingManager.start('Loading console data…');
+        try {
+          await Promise.all([loadProjects(), loadPositions(), refreshSourcingOverview()]);
+        } finally {
+          stopLoading?.();
+        }
       }
 
       if (elements.sourcingProject) {
@@ -2016,10 +2168,14 @@
           if (seniority) {
             payload.seniority = seniority;
           }
+          const submitButton = elements.salaryForm.querySelector('[type="submit"]');
           try {
             const result = await apiFetch('/api/research/salary-benchmark', {
               method: 'POST',
               body: payload,
+              loadingMessage: 'Fetching salary benchmark…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Fetching…',
             });
             renderSalaryBenchmark(result);
             showToast('Salary benchmark ready.', 'success');
@@ -2067,10 +2223,14 @@
           if (context) {
             payload.context = context;
           }
+          const submitButton = elements.aiSourcingForm.querySelector('[type="submit"]');
           try {
             await apiFetch('/api/ai/source-candidates', {
               method: 'POST',
               body: payload,
+              loadingMessage: 'Queuing AI sourcing job…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Queuing…',
             });
             setMessage(elements.aiSourcingMessage, 'AI sourcing job queued. Tracking progress...', 'success');
             showToast('AI sourcing job queued.', 'success');
@@ -2182,10 +2342,14 @@
           if (valueProps.length) {
             payload.value_props = valueProps;
           }
+          const submitButton = elements.callScriptForm.querySelector('[type="submit"]');
           try {
             const script = await apiFetch('/api/ai/call-script', {
               method: 'POST',
               body: payload,
+              loadingMessage: 'Generating call script…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Generating…',
             });
             renderCallScript(script);
             setMessage(elements.callScriptMessage, 'Script generated successfully.', 'success');
@@ -2272,6 +2436,9 @@
             const project = await apiFetch('/api/projects', {
               method: 'POST',
               body: payload,
+              loadingMessage: 'Creating project…',
+              loadingButton: createProjectButton,
+              loadingButtonLabel: 'Creating…',
             });
             showToast(`Project “${project.name}” created.`, 'success');
             await loadProjects();

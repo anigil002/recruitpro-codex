@@ -66,7 +66,7 @@ def update_gemini_settings(
 
     try:
         set_integration_credential(
-            db, "gemini_api_key", payload.gemini_api_key, user_id="settings_api"
+            db, "gemini_api_key", payload.gemini_api_key, user_id=None
         )
         db.commit()
     except Exception as exc:  # pragma: no cover - defensive guard
@@ -92,10 +92,10 @@ def update_google_settings(
 
     try:
         set_integration_credential(
-            db, "google_api_key", payload.google_api_key, user_id="settings_api"
+            db, "google_api_key", payload.google_api_key, user_id=None
         )
         set_integration_credential(
-            db, "google_cse_id", payload.google_cse_id, user_id="settings_api"
+            db, "google_cse_id", payload.google_cse_id, user_id=None
         )
         db.commit()
     except Exception as exc:  # pragma: no cover - defensive guard
@@ -123,19 +123,19 @@ def update_smartrecruiters_settings(
 
     try:
         set_integration_credential(
-            db, "smartrecruiters_email", payload.smartrecruiters_email, user_id="settings_api"
+            db, "smartrecruiters_email", payload.smartrecruiters_email, user_id=None
         )
 
         if payload.clear_password:
             set_integration_credential(
-                db, "smartrecruiters_password", "", user_id="settings_api"
+                db, "smartrecruiters_password", "", user_id=None
             )
         elif payload.smartrecruiters_password is not None:
             set_integration_credential(
                 db,
                 "smartrecruiters_password",
                 payload.smartrecruiters_password,
-                user_id="settings_api",
+                user_id=None,
             )
 
         db.commit()

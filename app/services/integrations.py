@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_session
-from ..models import IntegrationCredential
+from ..models import IntegrationCredential, User
 from ..utils.secrets import decrypt_secret, encrypt_secret, mask_secret
 
 
@@ -37,11 +37,26 @@ def _load_record(session: Session, key: str) -> Optional[IntegrationCredential]:
     return session.get(IntegrationCredential, key)
 
 
-def set_integration_credential(session: Session, key: str, value: Optional[str], *, user_id: str) -> None:
+def _resolve_user_id(session: Session, user_id: Optional[str]) -> Optional[str]:
+    """Return the ID if it belongs to a persisted user, otherwise ``None``."""
+
+    if not user_id:
+        return None
+
+    # ``session.get`` will hit the identity map first, so the lookup is cheap when
+    # the caller already has the user loaded in the active transaction.
+    user = session.get(User, user_id)
+    return user.user_id if user else None
+
+
+def set_integration_credential(
+    session: Session, key: str, value: Optional[str], *, user_id: Optional[str]
+) -> None:
     """Persist or remove a credential value."""
 
     normalized = _normalise_key(key)
     record = _load_record(session, normalized)
+    actor_id = _resolve_user_id(session, user_id)
 
     if not value:
         if record:
@@ -53,14 +68,14 @@ def set_integration_credential(session: Session, key: str, value: Optional[str],
     if record:
         record.value_encrypted = encrypted
         record.updated_at = now
-        record.updated_by = user_id
+        record.updated_by = actor_id
         session.add(record)
     else:
         session.add(
             IntegrationCredential(
                 key=normalized,
                 value_encrypted=encrypted,
-                updated_by=user_id,
+                updated_by=actor_id,
                 updated_at=now,
             )
         )

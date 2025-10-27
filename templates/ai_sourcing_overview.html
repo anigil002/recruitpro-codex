@@ -23,6 +23,42 @@
           "GRAD" 0,
           "opsz" 24;
       }
+
+      @layer components {
+        .rp-card {
+          @apply rounded-lg border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
+        }
+
+        .rp-card:hover {
+          @apply -translate-y-0.5 border-primary/30 shadow-lg shadow-primary/20;
+        }
+
+        .rp-card:focus-within {
+          @apply border-primary/40 shadow-lg shadow-primary/25;
+        }
+
+        .rp-surface {
+          @apply rounded-xl border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
+        }
+
+        .rp-surface:hover {
+          @apply border-primary/30 shadow-lg shadow-primary/15;
+        }
+
+        .rp-button {
+          @apply transition-transform duration-200 ease-out shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rp-card,
+        .rp-surface,
+        .rp-button {
+          transition: none !important;
+          transform: none !important;
+          box-shadow: none !important;
+        }
+      }
     </style>
     <script>
       tailwind.config = {
@@ -126,7 +162,7 @@
             </p>
           </header>
 
-          <section class="flex flex-wrap items-center gap-4 rounded-xl border border-border-light bg-container-light p-4 dark:border-border-dark dark:bg-container-dark">
+          <section class="rp-surface flex flex-wrap items-center gap-4 p-4">
             <form method="get" class="flex items-center gap-2">
               <input type="hidden" name="token" value="{{ token }}" />
               <label class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark" for="project-filter">Project</label>
@@ -141,25 +177,25 @@
           </section>
 
           <section class="grid gap-4 md:grid-cols-4">
-            <article class="rounded-lg border border-border-light bg-container-light p-5 dark:border-border-dark dark:bg-container-dark">
+            <article class="rp-card p-5">
               <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Total jobs</p>
               <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.total_jobs }}</p>
             </article>
-            <article class="rounded-lg border border-border-light bg-container-light p-5 dark:border-border-dark dark:bg-container-dark">
+            <article class="rp-card p-5">
               <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Active jobs</p>
               <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.active_jobs }}</p>
             </article>
-            <article class="rounded-lg border border-border-light bg-container-light p-5 dark:border-border-dark dark:bg-container-dark">
+            <article class="rp-card p-5">
               <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Profiles generated</p>
               <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.total_profiles }}</p>
             </article>
-            <article class="rounded-lg border border-border-light bg-container-light p-5 dark:border-border-dark dark:bg-container-dark">
+            <article class="rp-card p-5">
               <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Projects tracked</p>
               <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.tracked_projects }}</p>
             </article>
           </section>
 
-          <section class="flex flex-col gap-3 rounded-xl border border-border-light bg-container-light p-6 dark:border-border-dark dark:bg-container-dark">
+          <section class="rp-surface flex flex-col gap-3 p-6">
             <header class="flex items-center justify-between">
               <h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Sourcing jobs</h3>
               <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Newest first</span>
@@ -167,7 +203,7 @@
             {% if jobs %}
             <ul class="flex flex-col divide-y divide-border-light dark:divide-border-dark">
               {% for job in jobs %}
-              <li class="flex flex-col gap-1 py-3">
+              <li class="flex flex-col gap-1 py-3 transition-all duration-200 ease-out hover:-translate-y-0.5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <p class="text-sm font-medium text-text-light dark:text-text-dark">{{ job.position_title }}</p>
                   <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{{ job.status|title }}</span>
@@ -188,7 +224,7 @@
             {% endif %}
           </section>
 
-          <section class="flex flex-col gap-3 rounded-xl border border-border-light bg-container-light p-6 dark:border-border-dark dark:bg-container-dark">
+          <section class="rp-surface flex flex-col gap-3 p-6">
             <header class="flex items-center justify-between">
               <h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Latest profiles</h3>
               <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Up to 12 recent results</span>
@@ -196,7 +232,7 @@
             {% if results %}
             <div class="grid gap-3 md:grid-cols-2">
               {% for result in results %}
-              <article class="rounded-lg border border-border-light bg-background-light p-4 text-sm dark:border-border-dark dark:bg-background-dark">
+              <article class="rp-card p-4 text-sm">
                 <p class="font-semibold text-text-light dark:text-text-dark">{{ result.name or 'Unnamed profile' }}</p>
                 <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">{{ result.title or 'Role unknown' }}{% if result.company %} · {{ result.company }}{% endif %}</p>
                 <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">{{ result.location or 'Location not provided' }}</p>
@@ -215,7 +251,7 @@
             {% endif %}
           </section>
           {% else %}
-          <div class="rounded-xl border border-border-light bg-container-light p-10 text-center text-text-secondary-light dark:border-border-dark dark:bg-container-dark dark:text-text-secondary-dark">
+          <div class="rp-surface p-10 text-center text-text-secondary-light dark:text-text-secondary-dark">
             Provide a valid token query parameter to load AI sourcing data for your workspace.
           </div>
           {% endif %}

@@ -42,6 +42,86 @@
       .material-symbols-outlined {
         font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
       }
+
+      :root {
+        color-scheme: light dark;
+      }
+
+      .input-field {
+        transition: border-color 180ms ease, box-shadow 200ms ease, transform 180ms ease;
+      }
+
+      .input-field:focus {
+        box-shadow: 0 8px 24px -12px rgba(17, 115, 212, 0.55), 0 0 0 4px rgba(17, 115, 212, 0.2);
+        transform: translateY(-1px);
+      }
+
+      .interactive-button {
+        transition: transform 200ms ease, box-shadow 220ms ease, background-color 150ms ease, color 150ms ease;
+      }
+
+      .interactive-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 35px -20px rgba(17, 115, 212, 0.75);
+      }
+
+      .interactive-button:active {
+        transform: translateY(0);
+      }
+
+      .interactive-icon-button {
+        transition: transform 200ms ease, color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+      }
+
+      .interactive-icon-button:hover {
+        color: rgba(17, 115, 212, 0.9);
+        transform: translateY(-1px);
+      }
+
+      .interactive-icon-button:focus-visible {
+        outline: 2px solid rgba(17, 115, 212, 0.6);
+        outline-offset: 2px;
+      }
+
+      #login-error {
+        transition: opacity 220ms ease, transform 220ms ease, max-height 260ms ease, padding 200ms ease, margin 200ms ease,
+          border-width 160ms ease;
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        padding: 0;
+        margin-top: 0;
+        border-width: 0;
+      }
+
+      #login-error[data-visible="true"] {
+        opacity: 1;
+        max-height: 320px;
+        transform: translateY(0);
+        pointer-events: auto;
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+        border-width: 1px;
+      }
+
+      #login-error span + span {
+        display: block;
+        margin-top: 0.35rem;
+        font-size: 0.8rem;
+        color: rgba(255, 228, 230, 0.85);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .input-field,
+        .interactive-button,
+        .interactive-icon-button,
+        #login-error {
+          transition: none !important;
+          transform: none !important;
+          animation: none !important;
+        }
+      }
     </style>
   </head>
   <body
@@ -97,7 +177,7 @@
               </p>
               <div class="flex w-full flex-1 items-stretch rounded-lg">
                 <input
-                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 focus:border-primary h-14 placeholder:text-gray-500 dark:placeholder:text-gray-500 p-[15px] pr-2 text-base font-normal leading-normal"
+                  class="form-input input-field flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 focus:border-primary h-14 placeholder:text-gray-500 dark:placeholder:text-gray-500 p-[15px] pr-2 text-base font-normal leading-normal"
                   placeholder="you@example.com"
                   type="email"
                   name="username"
@@ -116,7 +196,7 @@
               <div class="flex w-full flex-1 items-stretch rounded-lg">
                 <input
                   id="password-input"
-                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 focus:border-primary h-14 placeholder:text-gray-500 dark:placeholder:text-gray-500 p-[15px] rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
+                  class="form-input input-field flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 focus:border-primary h-14 placeholder:text-gray-500 dark:placeholder:text-gray-500 p-[15px] rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
                   placeholder="Enter your password"
                   type="password"
                   name="password"
@@ -126,7 +206,7 @@
                 <button
                   type="button"
                   id="toggle-password"
-                  class="text-gray-400 dark:text-gray-500 flex border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 items-center justify-center pr-[15px] rounded-r-lg border-l-0"
+                  class="interactive-icon-button text-gray-400 dark:text-gray-500 flex border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 items-center justify-center pr-[15px] rounded-r-lg border-l-0"
                   aria-label="Toggle password visibility"
                 >
                   <span class="material-symbols-outlined text-2xl">
@@ -158,14 +238,15 @@
             </div>
             <!-- Login Button -->
             <button
-              class="flex h-14 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-bold text-white shadow-sm transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+              class="interactive-button flex h-14 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-bold text-white shadow-sm transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
               type="submit"
             >
               Log In
             </button>
             <div
               id="login-error"
-              class="hidden rounded-lg border border-rose-400/40 bg-rose-500/10 p-3 text-sm font-medium text-rose-200"
+              data-visible="false"
+              class="rounded-lg border border-rose-400/40 bg-rose-500/10 text-sm font-medium text-rose-200"
               role="alert"
               aria-live="polite"
             ></div>
@@ -179,7 +260,7 @@
           <!-- SSO Login -->
           <button
             type="button"
-            class="flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-6 text-base font-medium text-gray-900 dark:text-white shadow-sm transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+            class="interactive-button flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-6 text-base font-medium text-gray-900 dark:text-white shadow-sm transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
           >
             <svg class="h-6 w-6" data-alt="Google logo" viewBox="0 0 48 48">
               <path
@@ -232,17 +313,33 @@
       const TOKEN_STORAGE_KEY = "recruitpro.token";
       const TOKEN_TYPE_STORAGE_KEY = "recruitpro.tokenType";
 
-      function setLoginError(message) {
+      class LoginRequestError extends Error {
+        constructor(message, options = {}) {
+          super(message || "Unable to sign in.");
+          this.name = "LoginRequestError";
+          this.hint = typeof options.hint === "string" ? options.hint : "";
+        }
+      }
+
+      function setLoginError(message, hint = "") {
         if (!loginError) {
           return;
         }
         if (!message) {
-          loginError.classList.add("hidden");
-          loginError.textContent = "";
+          loginError.dataset.visible = "false";
+          loginError.replaceChildren();
           return;
         }
-        loginError.textContent = message;
-        loginError.classList.remove("hidden");
+        loginError.replaceChildren();
+        const messageNode = document.createElement("span");
+        messageNode.textContent = message;
+        loginError.appendChild(messageNode);
+        if (hint) {
+          const hintNode = document.createElement("span");
+          hintNode.textContent = hint;
+          loginError.appendChild(hintNode);
+        }
+        loginError.dataset.visible = "true";
       }
 
       function setSubmitting(isSubmitting) {
@@ -287,11 +384,25 @@
         return params.get("next") || params.get("redirect") || "/app";
       }
 
+      function deriveHint(status, payloadHint) {
+        if (typeof payloadHint === "string" && payloadHint.trim()) {
+          return payloadHint.trim();
+        }
+        const fallback = {
+          400: "Review the form fields for typos or missing information.",
+          401: "Double-check your email and password and try again.",
+          422: "Make sure each field is filled out correctly.",
+          429: "Too many attempts. Wait a few seconds before trying again.",
+          500: "We're experiencing an issue. Try again in a moment.",
+        };
+        return fallback[status] || "";
+      }
+
       if (loginForm) {
         loginForm.addEventListener("submit", async (event) => {
           event.preventDefault();
           delete loginForm.dataset.redirecting;
-          setLoginError("");
+          setLoginError("", "");
           setSubmitting(true);
           const formData = new FormData(loginForm);
           const body = new URLSearchParams();
@@ -318,17 +429,34 @@
               try {
                 data = JSON.parse(text);
               } catch (error) {
-                throw new Error("Unexpected response from the server.");
+                throw new LoginRequestError(
+                  "We couldn't understand the server response.",
+                  { hint: "Try again in a few moments." }
+                );
               }
             }
 
             if (!response.ok) {
-              const detail = typeof data === "string" ? data : data?.detail || data?.message;
-              throw new Error(detail || "Unable to sign in with those credentials.");
+              const parsedHint = typeof data === "object" && data !== null ? data?.error?.hint : undefined;
+              const detail =
+                typeof data === "string"
+                  ? data
+                  : data?.detail || data?.error?.message || data?.message;
+              const hint = deriveHint(response.status, parsedHint);
+              throw new LoginRequestError(
+                detail ||
+                  (response.status === 401
+                    ? "Those credentials don't match our records."
+                    : "Unable to sign in with those credentials."),
+                { hint }
+              );
             }
 
             if (!data?.access_token) {
-              throw new Error("Login response did not include an access token.");
+              throw new LoginRequestError(
+                "Login response did not include an access token.",
+                { hint: "Refresh the page and submit the form again." }
+              );
             }
 
             clearStoredToken();
@@ -336,8 +464,18 @@
             loginForm.dataset.redirecting = "true";
             window.location.assign(resolveRedirectTarget());
           } catch (error) {
-            const message = error instanceof Error ? error.message : "Unable to sign in.";
-            setLoginError(message);
+            let message = "Unable to sign in.";
+            let hint = "";
+            if (error instanceof LoginRequestError) {
+              message = error.message;
+              hint = error.hint;
+            } else if (error instanceof TypeError) {
+              message = "We couldn't reach the server.";
+              hint = "Check your internet connection and try again.";
+            } else if (error instanceof Error) {
+              message = error.message;
+            }
+            setLoginError(message, hint);
           } finally {
             if (loginForm.dataset.redirecting !== "true") {
               setSubmitting(false);

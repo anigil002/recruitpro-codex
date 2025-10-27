@@ -44,6 +44,42 @@
           "GRAD" 0,
           "opsz" 24;
       }
+
+      @layer components {
+        .rp-card {
+          @apply rounded-lg border border-slate-800 bg-[#111a22] transition-all duration-200 ease-out shadow-sm;
+        }
+
+        .rp-card:hover {
+          @apply -translate-y-0.5 border-primary/40 shadow-lg shadow-primary/20;
+        }
+
+        .rp-card:focus-within {
+          @apply border-primary/50 shadow-lg shadow-primary/25;
+        }
+
+        .rp-surface {
+          @apply rounded-xl border border-slate-800 bg-[#111a22] transition-all duration-200 ease-out shadow-sm;
+        }
+
+        .rp-surface:hover {
+          @apply border-primary/30 shadow-lg shadow-primary/20;
+        }
+
+        .rp-button {
+          @apply transition-transform duration-200 ease-out shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1720];
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rp-card,
+        .rp-surface,
+        .rp-button {
+          transition: none !important;
+          transform: none !important;
+          box-shadow: none !important;
+        }
+      }
     </style>
   </head>
   <body class="font-display bg-background-light text-slate-200 antialiased dark:bg-background-dark">
@@ -116,32 +152,32 @@
         </header>
 
         <section class="grid gap-4 md:grid-cols-3">
-          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+          <article class="rp-card p-4">
             <p class="text-xs text-slate-400">Total roles</p>
             <p class="text-2xl font-semibold text-white">{{ position_stats.total }}</p>
           </article>
-          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+          <article class="rp-card p-4">
             <p class="text-xs text-slate-400">Open roles</p>
             <p class="text-2xl font-semibold text-white">{{ position_stats.open }}</p>
           </article>
-          <article class="rounded-lg border border-slate-800 bg-[#111a22] p-4">
+          <article class="rp-card p-4">
             <p class="text-xs text-slate-400">Candidates tracked</p>
             <p class="text-2xl font-semibold text-white">{{ candidate_summary.total }}</p>
           </article>
         </section>
 
-        <section class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-[#111a22] p-3">
+        <section class="rp-surface flex flex-wrap items-center justify-between gap-3 p-3">
           <div class="text-sm text-slate-400">
             {{ positions|length }} position{{ 's' if positions|length != 1 else '' }} in this project.
           </div>
           <div class="flex items-center gap-2">
-            <a class="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800" href="/app">
+            <a class="rp-button flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800" href="/app">
               Manage in console
             </a>
           </div>
         </section>
 
-        <section class="w-full overflow-hidden rounded-xl border border-slate-800 bg-[#111a22]">
+        <section class="rp-surface w-full overflow-hidden">
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-800/50 text-xs uppercase text-slate-400">
               <tr>
@@ -185,12 +221,12 @@
           </table>
         </section>
 
-        <section class="rounded-xl border border-slate-800 bg-[#111a22] p-6">
+        <section class="rp-surface p-6">
           <h2 class="text-lg font-semibold text-white">Recent candidates</h2>
           {% if candidate_summary.recent %}
           <ul class="mt-3 grid gap-3 sm:grid-cols-2">
             {% for candidate in candidate_summary.recent %}
-            <li class="rounded-lg border border-slate-700 bg-slate-900/60 p-4 text-sm">
+            <li class="rounded-lg border border-slate-700 bg-slate-900/60 p-4 text-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20">
               <p class="font-semibold text-white">{{ candidate.name }}</p>
               <p class="text-xs text-slate-400">{{ candidate.status|title }}{% if candidate.source %} • {{ candidate.source }}{% endif %}</p>
               <a class="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline" href="/candidate-profile?candidate_id={{ candidate.candidate_id }}{% if token %}&token={{ token }}{% endif %}" target="_blank" rel="noreferrer">

@@ -1,6 +1,7 @@
 """RecruitPro FastAPI application."""
 
 import json
+import logging
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
@@ -51,6 +52,7 @@ from .services.integrations import (
 )
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -58,6 +60,19 @@ async def lifespan(_: FastAPI):
     """Initialize application resources before serving requests."""
 
     init_db()
+
+    # Load API keys from database and configure runtime services
+    try:
+        from .database import get_session
+        with get_session() as db:
+            # Load Gemini API key from database (if set via UI)
+            gemini_key = get_integration_value("gemini_api_key", session=db)
+            if gemini_key:
+                gemini.configure_api_key(gemini_key)
+                logger.info("Gemini API key loaded from database")
+    except Exception as exc:
+        logger.warning(f"Failed to load integration credentials from database: {exc}")
+
     yield
 
 

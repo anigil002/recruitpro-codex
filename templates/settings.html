@@ -52,8 +52,16 @@
             <div
               class="size-12 rounded-full border border-white/10 bg-cover bg-center bg-no-repeat"
               data-alt="RecruitPro company logo"
+              {% if sidebar.logo_url %}
               style="background-image: url('{{ sidebar.logo_url }}');"
-            ></div>
+              {% else %}
+              aria-hidden="true"
+              {% endif %}
+            >
+              {% if not sidebar.logo_url %}
+              <span class="flex h-full items-center justify-center text-lg font-semibold">{{ sidebar.workspace_name[:2] }}</span>
+              {% endif %}
+            </div>
             <div>
               <p class="text-lg font-semibold text-white">{{ sidebar.workspace_name }}</p>
               <p class="text-sm text-slate-400">{{ sidebar.workspace_context }}</p>
@@ -121,15 +129,6 @@
               <p class="mt-2 max-w-2xl text-sm text-slate-400">
                 Manage system feature flags and external API configurations for RecruitPro. Changes are applied immediately after saving.
               </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <a
-                class="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
-                href="#"
-              >
-                <span class="material-symbols-outlined text-base">help</span>
-                Docs
-              </a>
             </div>
           </header>
 
@@ -782,8 +781,10 @@
           }
         } else if (formId === "google") {
           const keyStatus = integration.google_api_key || {};
-          applyBadge("google", Boolean(keyStatus.configured));
-          updateDescription("google", keyStatus);
+          const cseStatus = integration.google_cse_id || {};
+          const configured = Boolean(keyStatus.configured && cseStatus.configured);
+          applyBadge("google", configured);
+          updateDescription("google", { ...keyStatus, configured });
           const apiField = form.querySelector('[name="google_api_key"]');
           if (apiField) {
             apiField.value = "";
@@ -796,7 +797,8 @@
         } else if (formId === "smartrecruiters") {
           const emailStatus = integration.smartrecruiters_email || {};
           const passwordStatus = integration.smartrecruiters_password || {};
-          applyBadge("smartrecruiters", Boolean(emailStatus.configured));
+          const configured = Boolean(emailStatus.configured && passwordStatus.configured);
+          applyBadge("smartrecruiters", configured);
           updateSmartRecruitersDetails(form, passwordStatus);
           if (form) {
             form.dataset.clearPasswordIntent = "false";

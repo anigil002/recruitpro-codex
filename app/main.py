@@ -530,22 +530,22 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
         try:
             if action == "gemini":
                 api_key = (form.get("gemini_api_key") or "").strip()
-                set_integration_credential(db, "gemini_api_key", api_key, user_id="settings_ui")
+                set_integration_credential(db, "gemini_api_key", api_key, user_id=None)
                 gemini.configure_api_key(get_integration_value("gemini_api_key", session=db) or None)
                 message = "Gemini API credentials updated."
                 should_commit = True
             elif action == "google":
                 api_key = (form.get("google_api_key") or "").strip()
                 cse_id = (form.get("google_cse_id") or "").strip()
-                set_integration_credential(db, "google_api_key", api_key, user_id="settings_ui")
-                set_integration_credential(db, "google_cse_id", cse_id, user_id="settings_ui")
+                set_integration_credential(db, "google_api_key", api_key, user_id=None)
+                set_integration_credential(db, "google_cse_id", cse_id, user_id=None)
                 message = "Google Custom Search configuration updated."
                 should_commit = True
             elif action == "smartrecruiters":
                 email = (form.get("smartrecruiters_email") or "").strip()
                 password = form.get("smartrecruiters_password") or ""
-                set_integration_credential(db, "smartrecruiters_email", email, user_id="settings_ui")
-                set_integration_credential(db, "smartrecruiters_password", password, user_id="settings_ui")
+                set_integration_credential(db, "smartrecruiters_email", email, user_id=None)
+                set_integration_credential(db, "smartrecruiters_password", password, user_id=None)
                 message = "SmartRecruiters credentials updated."
                 should_commit = True
             else:
@@ -564,27 +564,34 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
     smart_email_value = get_integration_value("smartrecruiters_email", session=db)
     smart_password_status = snapshot.get("smartrecruiters_password", {})
 
+    integration_links = [
+        {
+            "icon": "key",
+            "label": "Gemini API",
+            "href": "#gemini-settings",
+            "active": True,
+            "icon_filled": True,
+        },
+        {
+            "icon": "search",
+            "label": "Google Custom Search",
+            "href": "#google-settings",
+            "active": False,
+        },
+        {
+            "icon": "work",
+            "label": "SmartRecruiters",
+            "href": "#smartrecruiters-settings",
+            "active": False,
+        },
+    ]
+
     sidebar = {
-        "logo_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuC1J7UyLIViqxSyACOj8r849gKCUxlXYhUoJzEPigDkrZrbTnpsbhrACpejUnyYK6Ec_01VMtmnR7HmFzI5uclry4cYgWo9ECs4m1Lrot4i24aa9HaRaQ4P9njXkzBgSX_DBdqPqROdPX9mAun8S9oQQG3xgY4WjAj_EuZANnFsAo00q5hkvrENCWOtcycFa37bqnznIWTyTu8boN53lb4heHut2Zzi4Bd_wKPg-vjsR8mVfVnVhrfdDfihlo7aMo00Ffg1XMG3UX0",
+        "logo_url": getattr(settings, "brand_logo_url", None),
         "workspace_name": settings.app_name,
-        "workspace_context": "Workspace Settings",
-        "menu": [
-            {"icon": "account_circle", "label": "Profile", "href": "#", "active": False},
-            {"icon": "notifications", "label": "Notifications", "href": "#", "active": False},
-            {
-                "icon": "key",
-                "label": "API Keys",
-                "href": "#",
-                "active": True,
-                "icon_filled": True,
-            },
-            {"icon": "extension", "label": "Integrations", "href": "#", "active": False},
-            {"icon": "database", "label": "Data & Storage", "href": "#", "active": False},
-        ],
-        "secondary_menu": [
-            {"icon": "help_outline", "label": "Help Center", "href": "#"},
-            {"icon": "logout", "label": "Logout", "href": "#"},
-        ],
+        "workspace_context": "System Settings",
+        "menu": integration_links,
+        "secondary_menu": [],
     }
 
     gemini_card = {

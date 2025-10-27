@@ -102,9 +102,9 @@
               <span class="material-symbols-outlined text-xl">folder_open</span>
               Projects
             </button>
-            <button data-screen="candidate-management-1" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button data-screen="candidate-management" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
               <span class="material-symbols-outlined text-xl">order_approve</span>
-              AI Screening
+              Candidate Management
             </button>
             <button data-screen="ai-sourcing" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
               <span class="material-symbols-outlined text-xl">travel_explore</span>
@@ -114,23 +114,15 @@
               <span class="material-symbols-outlined text-xl">badge</span>
               Positions
             </button>
-            <button data-screen="candidate-management-2" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
-              <span class="material-symbols-outlined text-xl">forum</span>
-              Interviews
-            </button>
             <button data-screen="activity" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
               <span class="material-symbols-outlined text-xl">dynamic_feed</span>
               Activity
             </button>
-            <button data-screen="admin-settings" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
-              <span class="material-symbols-outlined text-xl">admin_panel_settings</span>
-              Admin Settings
+            <button data-screen="settings" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+              <span class="material-symbols-outlined text-xl">settings</span>
+              Settings
             </button>
-            <button data-screen="user-app-settings" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
-              <span class="material-symbols-outlined text-xl">tune</span>
-              System Settings
-            </button>
-            <button data-screen="market-research" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button data-screen="analytics" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
               <span class="material-symbols-outlined text-xl">stacked_line_chart</span>
               Analytics
             </button>
@@ -337,7 +329,7 @@
                 <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
                   <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-white">Salary benchmarking</h3>
-                    <button data-screen="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Open benchmark hub</button>
+                    <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Open benchmark hub</button>
                   </div>
                   <p class="text-sm text-slate-300">Launch manual analysis or review AI-generated benchmarks aligned to project context.</p>
                   <div class="space-y-4 text-sm text-slate-300">
@@ -383,378 +375,358 @@
               </div>
             </div>
           </section>
-          <section id="candidate-management-1" class="screen">
-            <div class="space-y-6 rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+          <section id="candidate-management" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
               <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Command</p>
-                  <h2 class="text-2xl font-semibold text-white">Candidate Management • Variant 1</h2>
+                  <h2 class="text-2xl font-semibold text-white">Candidate Management Hub</h2>
+                  <p class="mt-2 text-sm text-slate-300">Unify AI screening, shortlist orchestration, and interview execution without leaving the workspace.</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-                  <a data-screen="dashboard" class="rounded-full border border-slate-700 px-3 py-1">Dashboard</a>
-                  <a data-screen="candidate-management-1" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-primary">AI Screening</a>
-                  <a data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-3 py-1">AI Sourcing</a>
-                  <a data-screen="positions-overview" class="rounded-full border border-slate-700 px-3 py-1">Positions</a>
-                  <a data-screen="candidate-management-2" class="rounded-full border border-slate-700 px-3 py-1">Interviews</a>
-                  <a data-screen="activity" class="rounded-full border border-slate-700 px-3 py-1">Activity</a>
-                  <a data-screen="admin-settings" class="rounded-full border border-slate-700 px-3 py-1">Admin Settings</a>
-                  <a data-screen="user-app-settings" class="rounded-full border border-slate-700 px-3 py-1">System Settings</a>
-                  <a data-screen="market-research" class="rounded-full border border-slate-700 px-3 py-1">Analytics</a>
-                </div>
-              </div>
-              <div class="grid gap-6 lg:grid-cols-4">
-                <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">New</p>
-                  <p class="mt-2 text-2xl font-semibold text-white">36</p>
-                  <p class="text-xs text-slate-400">Awaiting screening</p>
-                </div>
-                <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">Screening</p>
-                  <p class="mt-2 text-2xl font-semibold text-white">24</p>
-                  <p class="text-xs text-slate-400">AI-first evaluation</p>
-                </div>
-                <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">Interview</p>
-                  <p class="mt-2 text-2xl font-semibold text-white">18</p>
-                  <p class="text-xs text-slate-400">Panel coordination</p>
-                </div>
-                <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">Offer / Hired</p>
-                  <p class="mt-2 text-2xl font-semibold text-white">9</p>
-                  <p class="text-xs text-slate-400">Ready for onboarding</p>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Candidate management views">
+                  <button type="button" id="candidate-management-tab-ai-screening" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="ai-screening" role="tab" aria-selected="true" aria-controls="candidate-management-ai-screening">
+                    AI Screening
+                  </button>
+                  <button type="button" id="candidate-management-tab-shortlist" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="shortlist" role="tab" aria-selected="false" aria-controls="candidate-management-shortlist">
+                    Shortlist Builder
+                  </button>
+                  <button type="button" id="candidate-management-tab-interview" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="interview" role="tab" aria-selected="false" aria-controls="candidate-management-interview">
+                    Interview Console
+                  </button>
                 </div>
               </div>
-              <div class="grid gap-6 lg:grid-cols-2">
-                <div class="space-y-4">
-                  <h3 class="text-lg font-semibold text-white">Pipeline board</h3>
-                  <div class="grid gap-4 lg:grid-cols-4">
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="text-sm font-semibold text-white">New</p>
-                      <ul class="mt-3 space-y-2 text-xs text-slate-400">
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Maya Chen • Product Marketing</li>
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Alexei Morozov • ML Engineer</li>
-                      </ul>
+              <div class="mt-6 space-y-6">
+                <div id="candidate-management-ai-screening" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-ai-screening" data-tab-group="candidate-management" data-tab-panel="ai-screening" aria-hidden="false">
+                  <div class="grid gap-6 lg:grid-cols-4">
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">New</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">36</p>
+                      <p class="text-xs text-slate-400">Awaiting screening</p>
                     </div>
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="text-sm font-semibold text-white">Screening</p>
-                      <ul class="mt-3 space-y-2 text-xs text-slate-400">
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Priya Patel • RevOps</li>
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Samuel Osei • Data Strategy</li>
-                      </ul>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Screening</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">24</p>
+                      <p class="text-xs text-slate-400">AI-first evaluation</p>
                     </div>
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="text-sm font-semibold text-white">Interview</p>
-                      <ul class="mt-3 space-y-2 text-xs text-slate-400">
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Helena Kaur • Finance Ops</li>
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Ben Torres • AI PM</li>
-                      </ul>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Interview</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">18</p>
+                      <p class="text-xs text-slate-400">Panel coordination</p>
                     </div>
-                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                      <p class="text-sm font-semibold text-white">Offer</p>
-                      <ul class="mt-3 space-y-2 text-xs text-slate-400">
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Chloe Singh • Director CS</li>
-                        <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Daniel Reed • Staff Engineer</li>
-                      </ul>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Offer / Hired</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">9</p>
+                      <p class="text-xs text-slate-400">Ready for onboarding</p>
+                    </div>
+                  </div>
+                  <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="space-y-4">
+                      <h3 class="text-lg font-semibold text-white">Pipeline board</h3>
+                      <div class="grid gap-4 lg:grid-cols-4">
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">New</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Maya Chen • Product Marketing</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Alexei Morozov • ML Engineer</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Screening</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Priya Patel • RevOps</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Samuel Osei • Data Strategy</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Interview</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Helena Kaur • Finance Ops</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Ben Torres • AI PM</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Offer</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Chloe Singh • Director CS</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Daniel Reed • Staff Engineer</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="space-y-4">
+                      <h3 class="text-lg font-semibold text-white">Bulk actions & smart filters</h3>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-5 text-sm text-slate-300">
+                        <div class="flex flex-wrap items-center gap-3">
+                          <label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Select all</label>
+                          <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1 text-xs"><option>Move to Interview</option><option>Add to Project</option><option>Send Outreach</option></select>
+                          <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Apply</button>
+                        </div>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                          <label class="text-xs text-slate-400">AI score<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>90+</option><option>80+</option><option>70+</option></select></label>
+                          <label class="text-xs text-slate-400">Location<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Remote</option><option>Onsite</option><option>Hybrid</option></select></label>
+                          <label class="text-xs text-slate-400">Source<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Gemini</option><option>Referral</option><option>Manual</option></select></label>
+                          <label class="text-xs text-slate-400">Tags<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Leadership</option><option>Diversity</option><option>Top performer</option></select></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Rating matrix</h3>
+                      <div class="flex items-center gap-2 text-xs">
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export CSV</button>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Sync ATS</button>
+                      </div>
+                    </div>
+                    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Relevance</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">91%</p>
+                        <p class="text-xs text-slate-400">Weighted by skills match & experience.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Impact</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">87%</p>
+                        <p class="text-xs text-slate-400">Projected business contribution.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-3 text-3xl font-semibold text-emerald">High</p>
+                        <p class="text-xs text-slate-400">Outreach sentiment & notes.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="space-y-4">
-                  <h3 class="text-lg font-semibold text-white">Bulk actions & smart filters</h3>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-5 text-sm text-slate-300">
-                    <div class="flex flex-wrap items-center gap-3">
-                      <label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Select all</label>
-                      <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1 text-xs"><option>Move to Interview</option><option>Add to Project</option><option>Send Outreach</option></select>
-                      <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Apply</button>
+                <div id="candidate-management-shortlist" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-shortlist" data-tab-group="candidate-management" data-tab-panel="shortlist" aria-hidden="true">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p class="text-sm text-slate-400">Interview coordination</p>
+                        <h3 class="text-xl font-semibold text-white">Pipeline tracking</h3>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-3 text-xs">
+                        <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>All projects</option><option>Atlas</option><option>GTM Expansion</option></select>
+                        <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>Stage</option><option>Panel ready</option><option>Offer review</option></select>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk actions</button>
+                      </div>
                     </div>
-                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                      <label class="text-xs text-slate-400">AI score<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>90+</option><option>80+</option><option>70+</option></select></label>
-                      <label class="text-xs text-slate-400">Location<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Remote</option><option>Onsite</option><option>Hybrid</option></select></label>
-                      <label class="text-xs text-slate-400">Source<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Gemini</option><option>Referral</option><option>Manual</option></select></label>
-                      <label class="text-xs text-slate-400">Tags<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Leadership</option><option>Diversity</option><option>Top performer</option></select></label>
+                    <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800/60">
+                      <table class="min-w-full divide-y divide-slate-800/80 text-sm">
+                        <thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
+                          <tr>
+                            <th class="px-4 py-3 text-left">Candidate</th>
+                            <th class="px-4 py-3 text-left">Role</th>
+                            <th class="px-4 py-3 text-left">Stage</th>
+                            <th class="px-4 py-3 text-left">AI rating</th>
+                            <th class="px-4 py-3 text-left">Notes</th>
+                            <th class="px-4 py-3 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Sophia Reyes</p>
+                              <p class="text-xs text-slate-500">Referral • Diversity flag</p>
+                            </td>
+                            <td class="px-4 py-4">Director of Lifecycle Marketing</td>
+                            <td class="px-4 py-4">Panel interview</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">94</span></td>
+                            <td class="px-4 py-4 text-xs">High alignment on growth. Prepare salary benchmark.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1">Profile</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Rate</button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Noah Williams</p>
+                              <p class="text-xs text-slate-500">Gemini sourced</p>
+                            </td>
+                            <td class="px-4 py-4">Head of Enterprise Sales</td>
+                            <td class="px-4 py-4">Offer</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">89</span></td>
+                            <td class="px-4 py-4 text-xs">Pending references. Salary benchmark attached.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Feedback</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Move stage</button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Amelia Tan</p>
+                              <p class="text-xs text-slate-500">Outbound sequence</p>
+                            </td>
+                            <td class="px-4 py-4">Principal Data Scientist</td>
+                            <td class="px-4 py-4">Screening</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">97</span></td>
+                            <td class="px-4 py-4 text-xs">Recommend panel scheduling & outreach automation.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Schedule</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Send doc</button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-5 text-sm text-slate-300">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
                     <div class="flex items-center justify-between">
-                      <p class="font-semibold text-white">AI recommendations</p>
-                      <button data-screen="ai-tools" class="text-xs text-primary">Open tools</button>
+                      <h3 class="text-lg font-semibold text-white">Candidate radar</h3>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Analytics</button>
                     </div>
-                    <ul class="mt-3 space-y-3 text-xs text-slate-400">
-                      <li>Boost Priya Patel to interview based on cultural alignment.</li>
-                      <li>Trigger outreach warm-up for EMEA Data Engineering candidates.</li>
-                      <li>Share salary benchmarks before issuing offers.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-          <section id="candidate-management-2" class="screen">
-            <div class="space-y-6 rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Command</p>
-                  <h2 class="text-2xl font-semibold text-white">Candidate Management • Variant 2</h2>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-                  <a data-screen="dashboard" class="rounded-full border border-slate-700 px-3 py-1">Dashboard</a>
-                  <a data-screen="candidate-management-1" class="rounded-full border border-slate-700 px-3 py-1">AI Screening</a>
-                  <a data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-3 py-1">AI Sourcing</a>
-                  <a data-screen="positions-overview" class="rounded-full border border-slate-700 px-3 py-1">Positions</a>
-                  <a data-screen="candidate-management-2" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-primary">Interviews</a>
-                  <a data-screen="activity" class="rounded-full border border-slate-700 px-3 py-1">Activity</a>
-                  <a data-screen="admin-settings" class="rounded-full border border-slate-700 px-3 py-1">Admin Settings</a>
-                  <a data-screen="user-app-settings" class="rounded-full border border-slate-700 px-3 py-1">System Settings</a>
-                  <a data-screen="market-research" class="rounded-full border border-slate-700 px-3 py-1">Analytics</a>
-                </div>
-              </div>
-              <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p class="text-sm text-slate-400">Interview coordination</p>
-                    <h3 class="text-xl font-semibold text-white">Pipeline tracking</h3>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-3 text-xs">
-                    <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>All projects</option><option>Atlas</option><option>GTM Expansion</option></select>
-                    <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>Stage</option><option>Panel ready</option><option>Offer review</option></select>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk actions</button>
-                  </div>
-                </div>
-                <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800/60">
-                  <table class="min-w-full divide-y divide-slate-800/80 text-sm">
-                    <thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
-                      <tr>
-                        <th class="px-4 py-3 text-left">Candidate</th>
-                        <th class="px-4 py-3 text-left">Role</th>
-                        <th class="px-4 py-3 text-left">Stage</th>
-                        <th class="px-4 py-3 text-left">AI rating</th>
-                        <th class="px-4 py-3 text-left">Notes</th>
-                        <th class="px-4 py-3 text-left">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/70 text-slate-300">
-                      <tr>
-                        <td class="px-4 py-4">
-                          <p class="font-semibold text-white">Sophia Reyes</p>
-                          <p class="text-xs text-slate-500">Referral • Diversity flag</p>
-                        </td>
-                        <td class="px-4 py-4">Director of Lifecycle Marketing</td>
-                        <td class="px-4 py-4">Panel interview</td>
-                        <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">94</span></td>
-                        <td class="px-4 py-4 text-xs">High alignment on growth. Prepare salary benchmark.</td>
-                        <td class="px-4 py-4">
-                          <div class="flex gap-2 text-xs">
-                            <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1">Profile</button>
-                            <button class="rounded-full border border-slate-700 px-3 py-1">Rate</button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="px-4 py-4">
-                          <p class="font-semibold text-white">Noah Williams</p>
-                          <p class="text-xs text-slate-500">Gemini sourced</p>
-                        </td>
-                        <td class="px-4 py-4">Head of Enterprise Sales</td>
-                        <td class="px-4 py-4">Offer</td>
-                        <td class="px-4 py-4"><span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">89</span></td>
-                        <td class="px-4 py-4 text-xs">Pending references. Salary benchmark attached.</td>
-                        <td class="px-4 py-4">
-                          <div class="flex gap-2 text-xs">
-                            <button class="rounded-full border border-slate-700 px-3 py-1">Feedback</button>
-                            <button class="rounded-full border border-slate-700 px-3 py-1">Move stage</button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="px-4 py-4">
-                          <p class="font-semibold text-white">Amelia Tan</p>
-                          <p class="text-xs text-slate-500">Outbound sequence</p>
-                        </td>
-                        <td class="px-4 py-4">Principal Data Scientist</td>
-                        <td class="px-4 py-4">Screening</td>
-                        <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">97</span></td>
-                        <td class="px-4 py-4 text-xs">Recommend panel scheduling & outreach automation.</td>
-                        <td class="px-4 py-4">
-                          <div class="flex gap-2 text-xs">
-                            <button class="rounded-full border border-slate-700 px-3 py-1">Schedule</button>
-                            <button class="rounded-full border border-slate-700 px-3 py-1">Send doc</button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div class="grid gap-6 lg:grid-cols-2">
-                <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Candidate radar</h3>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Analytics</button>
-                  </div>
-                  <p class="mt-2 text-xs text-slate-400">Gemini highlights readiness, motivations, and risk signals.</p>
-                  <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                      <p class="text-xs uppercase text-slate-500">Ready</p>
-                      <p class="mt-2 text-2xl font-semibold text-white">14</p>
-                    </div>
-                    <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                      <p class="text-xs uppercase text-slate-500">Motivation</p>
-                      <p class="mt-2 text-2xl font-semibold text-emerald">High</p>
-                    </div>
-                    <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                      <p class="text-xs uppercase text-slate-500">Risk</p>
-                      <p class="mt-2 text-2xl font-semibold text-amber-300">Low</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <h3 class="text-lg font-semibold text-white">Bulk outreach</h3>
-                  <p class="mt-2 text-xs text-slate-400">Trigger multi-platform outreach sequences.</p>
-                  <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                    <label class="text-xs text-slate-400">Select cohort<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Top AI scores</option><option>Passive prospects</option><option>Warm referrals</option></select></label>
-                    <label class="text-xs text-slate-400">Outreach template<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Executive outreach</option><option>Technical follow-up</option><option>Market insight invite</option></select></label>
-                  </div>
-                  <textarea class="mt-4 h-28 w-full rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-xs" placeholder="Personalized intro with AI suggestions"></textarea>
-                  <div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary">Launch outreach</button>
-                    <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Save as template</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-          <section id="candidate-management-3" class="screen">
-            <div class="space-y-6 rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Command</p>
-                  <h2 class="text-2xl font-semibold text-white">Candidate Management • Variant 3</h2>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-                  <a data-screen="dashboard" class="rounded-full border border-slate-700 px-3 py-1">Dashboard</a>
-                  <a data-screen="candidate-management-1" class="rounded-full border border-slate-700 px-3 py-1">AI Screening</a>
-                  <a data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-3 py-1">AI Sourcing</a>
-                  <a data-screen="positions-overview" class="rounded-full border border-slate-700 px-3 py-1">Positions</a>
-                  <a data-screen="candidate-management-2" class="rounded-full border border-slate-700 px-3 py-1">Interviews</a>
-                  <a data-screen="activity" class="rounded-full border border-slate-700 px-3 py-1">Activity</a>
-                  <a data-screen="admin-settings" class="rounded-full border border-slate-700 px-3 py-1">Admin Settings</a>
-                  <a data-screen="user-app-settings" class="rounded-full border border-slate-700 px-3 py-1">System Settings</a>
-                  <a data-screen="market-research" class="rounded-full border border-slate-700 px-3 py-1">Analytics</a>
-                </div>
-              </div>
-              <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                  <h3 class="text-lg font-semibold text-white">Pipeline board with ratings</h3>
-                  <div class="flex flex-wrap items-center gap-3 text-xs">
-                    <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Show AI insights</label>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk move</button>
-                    <button class="rounded-full border border-slate-700 px-3 py-1">Export</button>
-                  </div>
-                </div>
-                <div class="mt-6 grid gap-4 lg:grid-cols-5">
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                      <p>New</p>
-                      <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">12</span>
-                    </div>
-                    <div class="mt-3 space-y-3 text-xs text-slate-300">
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Dylan Ortiz</p>
-                        <p class="text-[10px] text-slate-400">AI score 88 • UX Lead</p>
-                        <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Rate</button>
+                    <p class="mt-2 text-xs text-slate-400">Gemini highlights readiness, motivations, and risk signals.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Ready</p>
+                        <p class="mt-2 text-2xl font-semibold text-white">14</p>
                       </div>
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Leah Moritz</p>
-                        <p class="text-[10px] text-slate-400">AI score 80 • Ops</p>
-                        <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Send brief</button>
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-2 text-2xl font-semibold text-emerald">High</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Risk</p>
+                        <p class="mt-2 text-2xl font-semibold text-amber-300">Low</p>
                       </div>
                     </div>
                   </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                      <p>Screening</p>
-                      <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">16</span>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <h3 class="text-lg font-semibold text-white">Bulk outreach</h3>
+                    <p class="mt-2 text-xs text-slate-400">Trigger multi-platform outreach sequences.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                      <label class="text-xs text-slate-400">Select cohort<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Top AI scores</option><option>Passive prospects</option><option>Warm referrals</option></select></label>
+                      <label class="text-xs text-slate-400">Outreach template<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Executive outreach</option><option>Technical follow-up</option><option>Market insight invite</option></select></label>
                     </div>
-                    <div class="mt-3 space-y-3 text-xs text-slate-300">
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Sasha Petrov</p>
-                        <p class="text-[10px] text-slate-400">AI score 92 • DevOps</p>
-                        <div class="mt-2 flex gap-2">
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Schedule</button>
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Notes</button>
+                    <textarea class="mt-4 h-28 w-full rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-xs" placeholder="Personalized intro with AI suggestions"></textarea>
+                    <div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary">Launch outreach</button>
+                      <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Save as template</label>
+                    </div>
+                  </div>
+                </div>
+                <div id="candidate-management-interview" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-interview" data-tab-group="candidate-management" data-tab-panel="interview" aria-hidden="true">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Pipeline board with ratings</h3>
+                      <div class="flex flex-wrap items-center gap-3 text-xs">
+                        <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Show AI insights</label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk move</button>
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export</button>
+                      </div>
+                    </div>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-5">
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>New</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">12</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Dylan Ortiz</p>
+                            <p class="text-[10px] text-slate-400">AI score 88 • UX Lead</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Rate</button>
+                          </div>
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Leah Moritz</p>
+                            <p class="text-[10px] text-slate-400">AI score 80 • Ops</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Send brief</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Screening</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">16</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Sasha Petrov</p>
+                            <p class="text-[10px] text-slate-400">AI score 92 • DevOps</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Schedule</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Notes</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Interview</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">10</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Grace Lin</p>
+                            <p class="text-[10px] text-slate-400">AI score 95 • Product Ops</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Panel</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Share</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Offer</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">6</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Zara Kim</p>
+                            <p class="text-[10px] text-slate-400">AI score 93 • Revenue Ops</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Offer</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Benchmark</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Hired</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">5</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Kai Turner</p>
+                            <p class="text-[10px] text-slate-400">Start date • 12 Jun</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Onboarding</button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                      <p>Interview</p>
-                      <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">10</span>
-                    </div>
-                    <div class="mt-3 space-y-3 text-xs text-slate-300">
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Grace Lin</p>
-                        <p class="text-[10px] text-slate-400">AI score 95 • Product Ops</p>
-                        <div class="mt-2 flex gap-2">
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Panel</button>
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Share</button>
-                        </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Rating matrix</h3>
+                      <div class="flex items-center gap-2 text-xs">
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export CSV</button>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Sync ATS</button>
                       </div>
                     </div>
-                  </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                      <p>Offer</p>
-                      <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">6</span>
-                    </div>
-                    <div class="mt-3 space-y-3 text-xs text-slate-300">
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Zara Kim</p>
-                        <p class="text-[10px] text-slate-400">AI score 93 • Revenue Ops</p>
-                        <div class="mt-2 flex gap-2">
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Offer</button>
-                          <button class="rounded-full border border-slate-700 px-2 py-1">Benchmark</button>
-                        </div>
+                    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Relevance</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">91%</p>
+                        <p class="text-xs text-slate-400">Weighted by skills match & experience.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Impact</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">87%</p>
+                        <p class="text-xs text-slate-400">Projected business contribution.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-3 text-3xl font-semibold text-emerald">High</p>
+                        <p class="text-xs text-slate-400">Outreach sentiment & notes.</p>
                       </div>
                     </div>
-                  </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
-                    <div class="flex items-center justify-between text-xs text-slate-400">
-                      <p>Hired</p>
-                      <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">5</span>
-                    </div>
-                    <div class="mt-3 space-y-3 text-xs text-slate-300">
-                      <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
-                        <p class="font-semibold text-white">Kai Turner</p>
-                        <p class="text-[10px] text-slate-400">Start date • 12 Jun</p>
-                        <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Onboarding</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                  <h3 class="text-lg font-semibold text-white">Rating matrix</h3>
-                  <div class="flex items-center gap-2 text-xs">
-                    <button class="rounded-full border border-slate-700 px-3 py-1">Export CSV</button>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Sync ATS</button>
-                  </div>
-                </div>
-                <div class="mt-4 grid gap-4 lg:grid-cols-3">
-                  <div class="rounded-2xl bg-slate-950/70 p-4">
-                    <p class="text-xs uppercase text-slate-500">Relevance</p>
-                    <p class="mt-3 text-3xl font-semibold text-white">91%</p>
-                    <p class="text-xs text-slate-400">Weighted by skills match & experience.</p>
-                  </div>
-                  <div class="rounded-2xl bg-slate-950/70 p-4">
-                    <p class="text-xs uppercase text-slate-500">Impact</p>
-                    <p class="mt-3 text-3xl font-semibold text-white">87%</p>
-                    <p class="text-xs text-slate-400">Projected business contribution.</p>
-                  </div>
-                  <div class="rounded-2xl bg-slate-950/70 p-4">
-                    <p class="text-xs uppercase text-slate-500">Motivation</p>
-                    <p class="mt-3 text-3xl font-semibold text-emerald">High</p>
-                    <p class="text-xs text-slate-400">Outreach sentiment & notes.</p>
                   </div>
                 </div>
               </div>
@@ -844,38 +816,96 @@
               </div>
             </div>
           </section>
-          <section id="admin-settings" class="screen">
+          <section id="settings" class="screen">
             <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
-              <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Administration</p>
-                  <h2 class="text-2xl font-semibold text-white">Admin Settings</h2>
-                  <p class="mt-2 text-sm text-slate-300">Control system-wide features, manage AI prompt packs, register embedding indexes, and configure API credentials.</p>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Unified Settings</p>
+                  <h2 class="text-2xl font-semibold text-white">Workspace &amp; Admin Controls</h2>
+                  <p class="mt-2 text-sm text-slate-300">Configure governance, integrations, and personal preferences from a single control center.</p>
                 </div>
-                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Save changes</button>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Settings views">
+                  <button type="button" id="settings-tab-admin" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="settings" data-tab-target="admin" role="tab" aria-selected="true" aria-controls="settings-admin">
+                    Admin Controls
+                  </button>
+                  <button type="button" id="settings-tab-workspace" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="settings" data-tab-target="workspace" role="tab" aria-selected="false" aria-controls="settings-workspace">
+                    Workspace Setup
+                  </button>
+                </div>
               </div>
-              <div class="mt-6 grid gap-6 lg:grid-cols-2">
-                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <h3 class="text-lg font-semibold text-white">AI Prompt Packs</h3>
-                  <div class="space-y-3 text-sm text-slate-300">
-                    <label class="block text-xs text-slate-400">Create prompt pack<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Executive outreach pack" type="text" /></label>
-                    <label class="block text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Guidelines for executive-level outreach"></textarea></label>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Add prompt pack</button>
+              <div class="mt-6 space-y-6">
+                <div id="settings-admin" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="settings-tab-admin" data-tab-group="settings" data-tab-panel="admin" aria-hidden="false">
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.3em] text-primary">Administration</p>
+                      <h3 class="text-xl font-semibold text-white">Admin Settings</h3>
+                      <p class="mt-2 text-sm text-slate-300">Control system-wide features, manage AI prompt packs, and configure external integrations.</p>
+                    </div>
+                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Save changes</button>
                   </div>
-                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm text-slate-300">
-                    <p class="font-semibold text-white">Available packs</p>
-                    <p class="mt-2 text-xs text-slate-400">Screening essentials • Sales leadership • Product strategy • DEI narratives</p>
+                  <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                      <h4 class="text-lg font-semibold text-white">AI Prompt Packs</h4>
+                      <div class="space-y-3 text-sm text-slate-300">
+                        <label class="block text-xs text-slate-400">Create prompt pack<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Executive outreach pack" type="text" /></label>
+                        <label class="block text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Guidelines for executive-level outreach"></textarea></label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Add prompt pack</button>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm text-slate-300">
+                        <p class="font-semibold text-white">Available packs</p>
+                        <p class="mt-2 text-xs text-slate-400">Screening essentials • Sales leadership • Product strategy • DEI narratives</p>
+                      </div>
+                    </div>
+                    <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                      <h4 class="text-lg font-semibold text-white">Embedding indexes &amp; External APIs</h4>
+                      <div class="space-y-3 text-sm text-slate-300">
+                        <label class="text-xs text-slate-400">Index name<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="RecruitPro-Knowledge" type="text" /></label>
+                        <label class="text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="2" placeholder="Content available to Gemini"></textarea></label>
+                        <label class="text-xs text-slate-400">Gemini API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
+                        <label class="text-xs text-slate-400">Google Search API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
+                        <label class="text-xs text-slate-400">Custom Engine ID<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="search-engine-id" type="text" /></label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Register integrations</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <h3 class="text-lg font-semibold text-white">Embedding indexes & External APIs</h3>
-                  <div class="space-y-3 text-sm text-slate-300">
-                    <label class="text-xs text-slate-400">Index name<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="RecruitPro-Knowledge" type="text" /></label>
-                    <label class="text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="2" placeholder="Content available to Gemini"></textarea></label>
-                    <label class="text-xs text-slate-400">Gemini API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
-                    <label class="text-xs text-slate-400">Google Search API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
-                    <label class="text-xs text-slate-400">Custom Engine ID<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="search-engine-id" type="text" /></label>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Register integrations</button>
+                <div id="settings-workspace" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="settings-tab-workspace" data-tab-group="settings" data-tab-panel="workspace" aria-hidden="true">
+                  <div class="rounded-3xl bg-[#062c3a] p-6 ring-1 ring-slate-800/60 text-slate-100">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p class="text-xs uppercase tracking-[0.3em] text-primary">User &amp; App Settings</p>
+                        <h3 class="text-2xl font-semibold">Preferences &amp; controls</h3>
+                        <p class="mt-2 text-sm text-slate-200">Manage personal information, application preferences, and system-level settings in one place.</p>
+                      </div>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Save</button>
+                    </div>
+                    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">User profile settings</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Full name<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="Alex Morgan" type="text" /></label>
+                          <label class="block text-xs text-slate-200">Email<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="alex@recruitpro.ai" type="email" /></label>
+                          <label class="block text-xs text-slate-200">Password<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="••••••••" type="password" /></label>
+                          <label class="block text-xs text-slate-200">Notifications<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>All</option><option>Important only</option><option>Mute</option></select></label>
+                        </div>
+                      </div>
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">Application preferences</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Default view<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Dashboard</option><option>Candidate pipeline</option><option>AI sourcing</option></select></label>
+                          <label class="block text-xs text-slate-200">Language<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>English</option><option>Spanish</option><option>French</option></select></label>
+                          <label class="block text-xs text-slate-200">Theme<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Gemini Dark</option><option>Azure Light</option></select></label>
+                        </div>
+                      </div>
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">System controls</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Data export<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Weekly</option><option>Monthly</option><option>Manual</option></select></label>
+                          <label class="block text-xs text-slate-200">Privacy controls<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Strict</option><option>Standard</option><option>Custom</option></select></label>
+                          <label class="block text-xs text-slate-200">Audit log recipients<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="ops@recruitpro.ai" type="email" /></label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1116,8 +1146,8 @@
                   <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
                     <h3 class="text-lg font-semibold text-white">Linked insights</h3>
                     <ul class="mt-3 space-y-2 text-xs">
-                      <li>Salary benchmark ready • <button data-screen="salary-benchmark" class="text-primary">View</button></li>
-                      <li>Market research summary attached • <button data-screen="market-research" class="text-primary">Open</button></li>
+                      <li>Salary benchmark ready • <button data-screen="analytics" data-screen-tab="salary-benchmark" class="text-primary">View</button></li>
+                      <li>Market research summary attached • <button data-screen="analytics" data-screen-tab="market-research" class="text-primary">Open</button></li>
                       <li>Outreach email queued • <span class="text-emerald">Scheduled</span></li>
                     </ul>
                   </div>
@@ -1125,191 +1155,147 @@
               </div>
             </div>
           </section>
-          <section id="market-research" class="screen">
+          <section id="analytics" class="screen">
             <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
-              <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Market Research</p>
-                  <h2 class="text-2xl font-semibold text-white">Regional talent & hiring intelligence</h2>
-                  <p class="mt-2 text-sm text-slate-300">Auto-generated insights across regional talent pools, sector dynamics, competitor activity, and salary trends.</p>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Insights</p>
+                  <h2 class="text-2xl font-semibold text-white">Analytics &amp; Market Intelligence</h2>
+                  <p class="mt-2 text-sm text-slate-300">Surface regional signals, competitor activity, and compensation trends to guide hiring decisions.</p>
                 </div>
-                <nav class="flex flex-wrap items-center gap-2 text-xs text-slate-300">
-                  <a data-screen="dashboard" class="rounded-full border border-slate-700 px-3 py-1">Dashboard</a>
-                  <a data-screen="project-management" class="rounded-full border border-slate-700 px-3 py-1">Projects</a>
-                  <a data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-3 py-1">AI Sourcing</a>
-                  <a data-screen="positions-overview" class="rounded-full border border-slate-700 px-3 py-1">Positions</a>
-                  <a data-screen="admin-settings" class="rounded-full border border-slate-700 px-3 py-1">Admin</a>
-                </nav>
-              </div>
-              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
-                <div class="space-y-4">
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Regional talent analysis</h3>
-                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                      <div class="rounded-2xl bg-slate-950/70 p-4">
-                        <p class="text-xs uppercase text-slate-500">North America</p>
-                        <p class="mt-2 text-2xl font-semibold text-white">+14%</p>
-                        <p class="text-xs text-slate-400">YoY growth in lifecycle leadership roles</p>
-                      </div>
-                      <div class="rounded-2xl bg-slate-950/70 p-4">
-                        <p class="text-xs uppercase text-slate-500">EMEA</p>
-                        <p class="mt-2 text-2xl font-semibold text-white">+9%</p>
-                        <p class="text-xs text-slate-400">Hiring velocity improvement</p>
-                      </div>
-                    </div>
-                    <ul class="mt-4 space-y-2 text-xs">
-                      <li>FinTech and SaaS sectors continue to outpace overall hiring demand.</li>
-                      <li>Competitors shifting focus to retention-led growth across key regions.</li>
-                    </ul>
-                  </div>
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Hiring trends</h3>
-                    <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">6 months</p>
-                        <p class="mt-2 text-xl font-semibold text-white">+6%</p>
-                      </div>
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">12 months</p>
-                        <p class="mt-2 text-xl font-semibold text-white">+11%</p>
-                      </div>
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">24 months</p>
-                        <p class="mt-2 text-xl font-semibold text-white">+17%</p>
-                      </div>
-                    </div>
-                    <p class="mt-4 text-xs text-slate-400">Competitor intelligence reveals acceleration in PLG hiring, particularly across APAC GTM teams.</p>
-                  </div>
-                </div>
-                <div class="space-y-4">
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Summary</h3>
-                    <ul class="mt-3 space-y-2 text-xs">
-                      <li>Talent availability strong across remote-first growth roles.</li>
-                      <li>Salary expectations trending +8% vs previous cycle.</li>
-                      <li>Recommend targeting FinTech competitors for outreach.</li>
-                    </ul>
-                    <button class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Download report</button>
-                  </div>
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Linked resources</h3>
-                    <ul class="mt-3 space-y-2 text-xs">
-                      <li><button data-screen="salary-benchmark" class="text-primary">Salary benchmark</button> updated 7d ago</li>
-                      <li><button data-screen="ai-sourcing" class="text-primary">AI sourcing job</button> queued for refresh</li>
-                      <li><button data-screen="verbal-script" class="text-primary">Verbal script</button> tailored for final interviews</li>
-                    </ul>
-                  </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Analytics views">
+                  <button type="button" id="analytics-tab-market-research" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="analytics" data-tab-target="market-research" role="tab" aria-selected="true" aria-controls="analytics-market-research">
+                    Market Research
+                  </button>
+                  <button type="button" id="analytics-tab-salary-benchmark" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="analytics" data-tab-target="salary-benchmark" role="tab" aria-selected="false" aria-controls="analytics-salary-benchmark">
+                    Salary Benchmarking
+                  </button>
                 </div>
               </div>
-            </div>
-          </section>
-          <section id="salary-benchmark" class="screen">
-            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Salary Benchmark</p>
-                  <h2 class="text-2xl font-semibold text-white">Compensation intelligence</h2>
-                  <p class="mt-2 text-sm text-slate-300">Detailed role-based salary data including regional variations, sector benchmarks, seniority adjustments, and rationale.</p>
-                </div>
-                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Refresh benchmark</button>
-              </div>
-              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
-                <div class="space-y-4">
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Role overview</h3>
-                    <div class="mt-3 grid gap-3 sm:grid-cols-3">
-                      <div>
-                        <p class="text-xs uppercase text-slate-500">Base</p>
-                        <p class="text-2xl font-semibold text-white">$168k</p>
+              <div class="mt-6 space-y-6">
+                <div id="analytics-market-research" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="analytics-tab-market-research" data-tab-group="analytics" data-tab-panel="market-research" aria-hidden="false">
+                  <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Regional talent analysis</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                          <div class="rounded-2xl bg-slate-950/70 p-4">
+                            <p class="text-xs uppercase text-slate-500">North America</p>
+                            <p class="mt-2 text-2xl font-semibold text-white">+14%</p>
+                            <p class="text-xs text-slate-400">YoY growth in lifecycle leadership roles</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4">
+                            <p class="text-xs uppercase text-slate-500">EMEA</p>
+                            <p class="mt-2 text-2xl font-semibold text-white">+9%</p>
+                            <p class="text-xs text-slate-400">Hiring velocity improvement</p>
+                          </div>
+                        </div>
+                        <ul class="mt-4 space-y-2 text-xs">
+                          <li>FinTech and SaaS sectors continue to outpace overall hiring demand.</li>
+                          <li>Competitors shifting focus to retention-led growth across key regions.</li>
+                        </ul>
                       </div>
-                      <div>
-                        <p class="text-xs uppercase text-slate-500">Variable</p>
-                        <p class="text-2xl font-semibold text-white">$52k</p>
-                      </div>
-                      <div>
-                        <p class="text-xs uppercase text-slate-500">Equity</p>
-                        <p class="text-2xl font-semibold text-white">0.45%</p>
-                      </div>
-                    </div>
-                    <p class="mt-4 text-xs text-slate-400">Benchmark generated from FinTech and SaaS cohorts across North America and APAC.</p>
-                  </div>
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Regional variations</h3>
-                    <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">North America</p>
-                        <p class="mt-2 text-xl font-semibold text-white">+12%</p>
-                        <p class="text-xs text-slate-400">High demand</p>
-                      </div>
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">EMEA</p>
-                        <p class="mt-2 text-xl font-semibold text-white">+5%</p>
-                        <p class="text-xs text-slate-400">Mature markets</p>
-                      </div>
-                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
-                        <p class="text-xs uppercase text-slate-500">APAC</p>
-                        <p class="mt-2 text-xl font-semibold text-white">-3%</p>
-                        <p class="text-xs text-slate-400">Emerging supply</p>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Hiring trends</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">6 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+6%</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">12 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+11%</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">24 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+17%</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Competitor intelligence reveals acceleration in PLG hiring, particularly across APAC GTM teams.</p>
                       </div>
                     </div>
-                    <p class="mt-4 text-xs text-slate-400">Seniority adjustments: Manager -8%, Director baseline, VP +18%.</p>
-                  </div>
-                </div>
-                <div class="space-y-4">
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Rationale & sources</h3>
-                    <ul class="mt-3 space-y-2 text-xs">
-                      <li>Aggregated from SmartRecruiters, Gemini market intelligence, and peer datasets.</li>
-                      <li>Adjusted for remote-first comp policies and PLG skill scarcity.</li>
-                      <li>Cross-referenced with outreach response rates.</li>
-                    </ul>
-                  </div>
-                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
-                    <h3 class="text-lg font-semibold text-white">Quick actions</h3>
-                    <div class="mt-3 flex flex-col gap-2 text-xs">
-                      <button data-screen="project-management" class="rounded-full border border-slate-700 px-3 py-1 text-left">Share with hiring manager</button>
-                      <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1 text-left">Attach to candidate profile</button>
-                      <button data-screen="verbal-script" class="rounded-full border border-slate-700 px-3 py-1 text-left">Sync talking points</button>
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Summary</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li>Talent availability strong across remote-first growth roles.</li>
+                          <li>Salary expectations trending +8% vs previous cycle.</li>
+                          <li>Recommend targeting FinTech competitors for outreach.</li>
+                        </ul>
+                        <button class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Download report</button>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Linked resources</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li><button data-screen="analytics" data-screen-tab="salary-benchmark" class="text-primary">Salary benchmark</button> updated 7d ago</li>
+                          <li><button data-screen="ai-sourcing" class="text-primary">AI sourcing job</button> queued for refresh</li>
+                          <li><button data-screen="verbal-script" class="text-primary">Verbal script</button> tailored for final interviews</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </section>
-          <section id="user-app-settings" class="screen">
-            <div class="rounded-3xl bg-[#062c3a] p-6 ring-1 ring-slate-800/60 text-slate-100">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs uppercase tracking-[0.3em] text-primary">User & App Settings</p>
-                  <h2 class="text-2xl font-semibold">Preferences & controls</h2>
-                  <p class="mt-2 text-sm text-slate-200">Manage personal information, application preferences, and system-level settings in one place.</p>
-                </div>
-                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Save</button>
-              </div>
-              <div class="mt-6 grid gap-6 lg:grid-cols-3">
-                <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
-                  <h3 class="text-lg font-semibold text-white">User profile settings</h3>
-                  <div class="mt-4 space-y-3 text-sm text-slate-100/80">
-                    <label class="block text-xs text-slate-200">Full name<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="Alex Morgan" type="text" /></label>
-                    <label class="block text-xs text-slate-200">Email<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="alex@recruitpro.ai" type="email" /></label>
-                    <label class="block text-xs text-slate-200">Password<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="••••••••" type="password" /></label>
-                    <label class="block text-xs text-slate-200">Notifications<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>All</option><option>Important only</option><option>Mute</option></select></label>
-                  </div>
-                </div>
-                <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
-                  <h3 class="text-lg font-semibold text-white">General application preferences</h3>
-                  <div class="mt-4 space-y-3 text-sm text-slate-100/80">
-                    <label class="block text-xs text-slate-200">Default view<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Dashboard</option><option>Candidate pipeline</option><option>AI sourcing</option></select></label>
-                    <label class="block text-xs text-slate-200">Language<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>English</option><option>Spanish</option><option>French</option></select></label>
-                    <label class="block text-xs text-slate-200">Theme<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Gemini Dark</option><option>Azure Light</option></select></label>
-                  </div>
-                </div>
-                <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
-                  <h3 class="text-lg font-semibold text-white">System settings</h3>
-                  <div class="mt-4 space-y-3 text-sm text-slate-100/80">
-                    <label class="block text-xs text-slate-200">Data export<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Weekly</option><option>Monthly</option><option>Manual</option></select></label>
-                    <label class="block text-xs text-slate-200">Privacy controls<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Strict</option><option>Standard</option><option>Custom</option></select></label>
-                    <label class="block text-xs text-slate-200">Audit log recipients<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="ops@recruitpro.ai" type="email" /></label>
+                <div id="analytics-salary-benchmark" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="analytics-tab-salary-benchmark" data-tab-group="analytics" data-tab-panel="salary-benchmark" aria-hidden="true">
+                  <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Role overview</h3>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Base</p>
+                            <p class="text-2xl font-semibold text-white">$168k</p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Variable</p>
+                            <p class="text-2xl font-semibold text-white">$52k</p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Equity</p>
+                            <p class="text-2xl font-semibold text-white">0.45%</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Benchmark generated from FinTech and SaaS cohorts across North America and APAC.</p>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Regional variations</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">North America</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+12%</p>
+                            <p class="text-xs text-slate-400">High demand</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">EMEA</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+5%</p>
+                            <p class="text-xs text-slate-400">Mature markets</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">APAC</p>
+                            <p class="mt-2 text-xl font-semibold text-white">-3%</p>
+                            <p class="text-xs text-slate-400">Emerging supply</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Seniority adjustments: Manager -8%, Director baseline, VP +18%.</p>
+                      </div>
+                    </div>
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Rationale &amp; sources</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li>Aggregated from SmartRecruiters, Gemini market intelligence, and peer datasets.</li>
+                          <li>Adjusted for remote-first comp policies and PLG skill scarcity.</li>
+                          <li>Cross-referenced with outreach response rates.</li>
+                        </ul>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Quick actions</h3>
+                        <div class="mt-3 flex flex-col gap-2 text-xs">
+                          <button data-screen="project-management" class="rounded-full border border-slate-700 px-3 py-1 text-left">Share with hiring manager</button>
+                          <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1 text-left">Attach to candidate profile</button>
+                          <button data-screen="verbal-script" class="rounded-full border border-slate-700 px-3 py-1 text-left">Sync talking points</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1323,7 +1309,7 @@
                   <h2 class="text-2xl font-semibold">Director, Lifecycle Marketing</h2>
                   <p class="mt-2 text-sm text-slate-200">Review key role information, trigger AI-powered job description generation, and connect directly to salary benchmarking.</p>
                 </div>
-                <button data-screen="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Open salary benchmark</button>
+                <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Open salary benchmark</button>
               </div>
               <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
                 <div class="space-y-4">
@@ -1365,7 +1351,7 @@
                     <h3 class="text-lg font-semibold text-white">Linked tools</h3>
                     <ul class="mt-3 space-y-2 text-xs text-slate-100/80">
                       <li><button data-screen="ai-sourcing" class="text-primary">Launch AI sourcing</button></li>
-                      <li><button data-screen="market-research" class="text-primary">View market research</button></li>
+                      <li><button data-screen="analytics" data-screen-tab="market-research" class="text-primary">View market research</button></li>
                       <li><button data-screen="verbal-script" class="text-primary">Generate verbal script</button></li>
                     </ul>
                   </div>
@@ -1559,13 +1545,21 @@
             { id: 'position-details', label: 'Role Detail' },
           ],
           candidates: [
-            { id: 'candidate-management-1', label: 'AI Screening' },
-            { id: 'candidate-management-2', label: 'Shortlist Builder' },
-            { id: 'candidate-management-3', label: 'Interview Console' },
+            { id: 'candidate-management', label: 'AI Screening', tab: 'ai-screening' },
+            { id: 'candidate-management', label: 'Shortlist Builder', tab: 'shortlist' },
+            { id: 'candidate-management', label: 'Interview Console', tab: 'interview' },
           ],
           'ai-sourcing': [
             { id: 'ai-sourcing', label: 'Sourcing Builder' },
             { id: 'ai-sourcing-results', label: 'Latest Results' },
+          ],
+          settings: [
+            { id: 'settings', label: 'Admin Controls', tab: 'admin' },
+            { id: 'settings', label: 'Workspace Setup', tab: 'workspace' },
+          ],
+          analytics: [
+            { id: 'analytics', label: 'Market Research', tab: 'market-research' },
+            { id: 'analytics', label: 'Salary Benchmarking', tab: 'salary-benchmark' },
           ],
         };
 
@@ -1584,22 +1578,16 @@
             breadcrumb: ['Workspace', 'Projects', 'Role Detail'],
             tabsGroup: 'projects',
           },
-          'candidate-management-1': {
-            breadcrumb: ['Workspace', 'Talent Workbench', 'AI Screening'],
-            tabsGroup: 'candidates',
-          },
-          'candidate-management-2': {
-            breadcrumb: ['Workspace', 'Talent Workbench', 'Shortlist Builder'],
-            tabsGroup: 'candidates',
-          },
-          'candidate-management-3': {
-            breadcrumb: ['Workspace', 'Talent Workbench', 'Interview Console'],
+          'candidate-management': {
+            breadcrumb: ['Workspace', 'Talent Workbench', 'Candidate Management'],
             tabsGroup: 'candidates',
           },
           'ai-tools': { breadcrumb: ['Workspace', 'Automation', 'AI Tools Hub'] },
           chatbot: { breadcrumb: ['Workspace', 'Automation', 'Assistant'] },
-          'admin-settings': { breadcrumb: ['Workspace', 'Settings', 'Admin'] },
-          'user-app-settings': { breadcrumb: ['Workspace', 'Settings', 'Workspace Setup'] },
+          settings: {
+            breadcrumb: ['Workspace', 'Settings', 'Control Center'],
+            tabsGroup: 'settings',
+          },
           'ai-sourcing': {
             breadcrumb: ['Workspace', 'AI Sourcing', 'Builder'],
             tabsGroup: 'ai-sourcing',
@@ -1609,13 +1597,22 @@
             tabsGroup: 'ai-sourcing',
           },
           'candidate-profile': { breadcrumb: ['Workspace', 'Profiles', 'Candidate Detail'] },
-          'market-research': { breadcrumb: ['Workspace', 'Insights', 'Market Research'] },
-          'salary-benchmark': { breadcrumb: ['Workspace', 'Insights', 'Compensation'] },
+          analytics: {
+            breadcrumb: ['Workspace', 'Insights', 'Analytics'],
+            tabsGroup: 'analytics',
+          },
           'verbal-script': { breadcrumb: ['Workspace', 'Enablement', 'Verbal Script'] },
         };
 
         const fallbackMetadata = { breadcrumb: ['Workspace', 'Dashboard'] };
         const boundButtons = new WeakSet();
+        const tabDefaults = {
+          candidates: 'ai-screening',
+          settings: 'admin',
+          analytics: 'market-research',
+        };
+        const tabState = { ...tabDefaults };
+        let activeScreenId = null;
 
         function bindScreenButton(button) {
           if (!button || boundButtons.has(button)) {
@@ -1624,13 +1621,84 @@
           button.addEventListener('click', () => {
             const target = button.getAttribute('data-screen');
             if (target) {
-              showScreen(target);
+              const tabTarget = button.getAttribute('data-screen-tab');
+              showScreen(target, { tab: tabTarget });
             }
           });
           boundButtons.add(button);
         }
 
         document.querySelectorAll('[data-screen]').forEach(bindScreenButton);
+
+        function ensureTabState(group) {
+          if (!group) {
+            return null;
+          }
+          if (!Object.prototype.hasOwnProperty.call(tabState, group)) {
+            const defaults = tabGroups[group];
+            if (defaults && defaults.length) {
+              const first = defaults[0];
+              tabState[group] = first.tab || first.id;
+            } else {
+              return null;
+            }
+          }
+          return tabState[group];
+        }
+
+        function activateTabGroup(group, tab, options = {}) {
+          if (!group || !tab) {
+            return;
+          }
+          tabState[group] = tab;
+          const buttons = document.querySelectorAll(`[data-tab-group="${group}"][data-tab-target]`);
+          buttons.forEach((button) => {
+            const target = button.getAttribute('data-tab-target');
+            const isActive = target === tab;
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            if (isActive) {
+              button.classList.add('border-primary/40', 'bg-primary/10', 'text-primary');
+              button.classList.remove('border-slate-700', 'text-slate-300');
+            } else {
+              button.classList.add('border-slate-700', 'text-slate-300');
+              button.classList.remove('border-primary/40', 'bg-primary/10', 'text-primary');
+            }
+          });
+          const panels = document.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`);
+          panels.forEach((panel) => {
+            const panelId = panel.getAttribute('data-tab-panel');
+            const isActive = panelId === tab;
+            panel.classList.toggle('hidden', !isActive);
+            panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+          });
+          if (!options.skipContextUpdate && activeScreenId) {
+            const meta = getScreenMetadata(activeScreenId);
+            if (meta?.tabsGroup === group) {
+              updateContextControls(activeScreenId);
+            }
+          }
+        }
+
+        document.querySelectorAll('[data-tab-group][data-tab-target]').forEach((button) => {
+          if (button.hasAttribute('data-screen')) {
+            return;
+          }
+          button.addEventListener('click', () => {
+            const group = button.getAttribute('data-tab-group');
+            const target = button.getAttribute('data-tab-target');
+            if (group && target) {
+              activateTabGroup(group, target);
+            }
+          });
+        });
+
+        Object.keys(tabGroups).forEach((group) => {
+          ensureTabState(group);
+        });
+
+        Object.entries(tabState).forEach(([group, tab]) => {
+          activateTabGroup(group, tab, { skipContextUpdate: true });
+        });
 
         function getScreenMetadata(id) {
           return screenMetadata[id] || fallbackMetadata;
@@ -1674,8 +1742,9 @@
           }
           contextTabsContainer.innerHTML = '';
           let tabs = Array.isArray(meta?.tabs) && meta.tabs.length ? meta.tabs : null;
-          if (!tabs && meta?.tabsGroup) {
-            tabs = tabGroups[meta.tabsGroup] || null;
+          const groupId = meta?.tabsGroup || null;
+          if (!tabs && groupId) {
+            tabs = tabGroups[groupId] || null;
           }
           if (!tabs || !tabs.length) {
             contextTabsContainer.classList.add('hidden');
@@ -1684,13 +1753,25 @@
           }
           contextTabsContainer.classList.remove('hidden');
           contextTabsContainer.setAttribute('aria-hidden', 'false');
-          tabs.forEach(({ id, label }) => {
+          const activeTab = groupId ? ensureTabState(groupId) : null;
+          tabs.forEach((tabConfig) => {
+            const { id, label, tab: tabId, screen: screenId } = tabConfig;
             const button = document.createElement('button');
             button.type = 'button';
-            button.setAttribute('data-screen', id);
+            const targetScreen = screenId || id;
+            const targetTab = tabId || null;
+            button.setAttribute('data-screen', targetScreen);
             button.setAttribute('role', 'tab');
-            button.setAttribute('aria-controls', id);
-            const isActive = id === activeId;
+            const controlsId = targetTab && groupId ? `${targetScreen}-${targetTab}` : targetScreen;
+            button.setAttribute('aria-controls', controlsId);
+            if (targetTab) {
+              button.setAttribute('data-screen-tab', targetTab);
+            } else {
+              button.removeAttribute('data-screen-tab');
+            }
+            const isActive = targetTab
+              ? groupId && activeTab === targetTab
+              : targetScreen === activeId;
             button.setAttribute('aria-selected', isActive ? 'true' : 'false');
             button.tabIndex = isActive ? 0 : -1;
             button.className = 'context-tab rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary';
@@ -1928,7 +2009,17 @@
         }
       }
 
-      function showScreen(id) {
+      function showScreen(id, options = {}) {
+        const meta = getScreenMetadata(id);
+        const groupId = meta?.tabsGroup || null;
+        const requestedTab = options?.tab || null;
+        if (groupId) {
+          if (requestedTab) {
+            tabState[groupId] = requestedTab;
+          } else {
+            ensureTabState(groupId);
+          }
+        }
         sections.forEach((section) => {
           section.classList.toggle('active', section.id === id);
         });
@@ -1937,7 +2028,14 @@
           link.classList.toggle('bg-slate-900/60', isActive);
           link.classList.toggle('text-primary', isActive);
         });
+        activeScreenId = id;
         updateContextControls(id);
+        if (groupId) {
+          const currentTab = ensureTabState(groupId);
+          if (currentTab) {
+            activateTabGroup(groupId, currentTab, { skipContextUpdate: true });
+          }
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 

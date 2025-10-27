@@ -93,36 +93,100 @@
               <p class="text-base font-semibold text-white">Unified Workspace</p>
             </div>
           </div>
-          <nav class="flex flex-col gap-1 px-3 text-sm">
-            <button data-screen="dashboard" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+          <nav class="flex flex-col gap-1 px-3 text-sm" role="tablist" aria-label="Workspace sections" aria-orientation="vertical">
+            <button
+              data-screen="dashboard"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="true"
+              aria-controls="dashboard"
+              tabindex="0"
+            >
               <span class="material-symbols-outlined text-xl">space_dashboard</span>
               Dashboard
             </button>
-            <button data-screen="project-management" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="project-management"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="project-management"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">folder_open</span>
               Projects
             </button>
-            <button data-screen="candidate-management" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="candidate-management"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="candidate-management"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">order_approve</span>
               Candidate Management
             </button>
-            <button data-screen="ai-sourcing" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="ai-sourcing"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="ai-sourcing"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">travel_explore</span>
               AI Sourcing
             </button>
-            <button data-screen="positions-overview" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="positions-overview"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="positions-overview"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">badge</span>
               Positions
             </button>
-            <button data-screen="activity" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="activity"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="activity"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">dynamic_feed</span>
               Activity
             </button>
-            <button data-screen="settings" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="settings"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="settings"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">settings</span>
               Settings
             </button>
-            <button data-screen="analytics" class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus:outline-none">
+            <button
+              data-screen="analytics"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="analytics"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">stacked_line_chart</span>
               Analytics
             </button>
@@ -153,7 +217,83 @@
               <button data-screen="chatbot" class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Launch Assistant</button>
             </div>
           </div>
-            <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+          <div class="mt-6 space-y-4">
+            <div class="relative">
+              <div class="w-full overflow-x-auto">
+                <nav
+                  id="primary-navigation"
+                  class="flex w-full flex-nowrap gap-2 pb-1 text-sm"
+                  role="tablist"
+                  aria-label="Primary console navigation"
+                  aria-orientation="horizontal"
+                >
+                  <button
+                    data-screen="dashboard"
+                    class="nav-link flex-shrink-0 rounded-full border border-primary/60 bg-primary/10 px-4 py-2 font-medium text-primary shadow-sm transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="dashboard"
+                    tabindex="0"
+                  >Overview</button>
+                  <button
+                    data-screen="project-management"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="project-management"
+                    tabindex="-1"
+                  >Projects</button>
+                  <button
+                    data-screen="candidate-management"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="candidate-management"
+                    tabindex="-1"
+                  >Talent</button>
+                  <button
+                    data-screen="ai-sourcing"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="ai-sourcing"
+                    tabindex="-1"
+                  >Automation</button>
+                  <button
+                    data-screen="analytics"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="analytics"
+                    tabindex="-1"
+                  >Insights</button>
+                  <button
+                    data-screen="activity"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="activity"
+                    tabindex="-1"
+                  >Operations</button>
+                  <button
+                    data-screen="settings"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="settings"
+                    tabindex="-1"
+                  >Settings</button>
+                </nav>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-4">
               <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                 <ol id="breadcrumb-trail" class="flex flex-wrap items-center gap-2">
                   <li class="flex items-center gap-2">
@@ -168,6 +308,7 @@
               </nav>
               <div id="context-tabs" class="flex flex-wrap gap-2 text-sm hidden" role="tablist" aria-label="Contextual sections" aria-orientation="horizontal" aria-hidden="true"></div>
             </div>
+          </div>
         </header>
         <div class="flex-1 overflow-y-auto px-8 py-8">
           <div
@@ -1534,9 +1675,74 @@
     </div>
     <script>
         const sections = document.querySelectorAll('.screen');
-        const navLinks = document.querySelectorAll('.nav-link');
+        const navLinks = Array.from(document.querySelectorAll('.nav-link'));
         const breadcrumbTrail = document.getElementById('breadcrumb-trail');
         const contextTabsContainer = document.getElementById('context-tabs');
+
+        function updateNavLinkState(link, isActive) {
+          if (!link) {
+            return;
+          }
+          const variant = link.dataset.navVariant || 'sidebar';
+          link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          link.tabIndex = isActive ? 0 : -1;
+          if (variant === 'primary') {
+            if (isActive) {
+              link.classList.add('border-primary/60', 'bg-primary/10', 'text-primary', 'shadow-sm');
+              link.classList.remove('border-slate-800/60', 'text-slate-300');
+            } else {
+              link.classList.remove('border-primary/60', 'bg-primary/10', 'text-primary', 'shadow-sm');
+              link.classList.add('border-slate-800/60', 'text-slate-300');
+            }
+          } else {
+            if (isActive) {
+              link.classList.add('bg-slate-900/60', 'text-primary', 'ring-1', 'ring-primary/40');
+              link.classList.remove('text-slate-200');
+            } else {
+              link.classList.remove('bg-slate-900/60', 'text-primary', 'ring-1', 'ring-primary/40');
+              link.classList.add('text-slate-200');
+            }
+          }
+        }
+
+        function handleTablistKeydown(event) {
+          const { key } = event;
+          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
+            return;
+          }
+          const currentTab = document.activeElement;
+          if (!currentTab || currentTab.getAttribute('role') !== 'tab') {
+            return;
+          }
+          const tablist = event.currentTarget;
+          const tabs = Array.from(tablist.querySelectorAll('[role="tab"]')).filter((tab) => !tab.disabled);
+          if (!tabs.length) {
+            return;
+          }
+          event.preventDefault();
+          let index = tabs.indexOf(currentTab);
+          if (index === -1) {
+            index = 0;
+          }
+          if (key === 'Home') {
+            index = 0;
+          } else if (key === 'End') {
+            index = tabs.length - 1;
+          } else if (key === 'ArrowRight' || key === 'ArrowDown') {
+            index = (index + 1) % tabs.length;
+          } else if (key === 'ArrowLeft' || key === 'ArrowUp') {
+            index = (index - 1 + tabs.length) % tabs.length;
+          }
+          const nextTab = tabs[index];
+          if (nextTab && nextTab !== currentTab) {
+            nextTab.focus({ preventScroll: true });
+            nextTab.click();
+          }
+        }
+
+        document.querySelectorAll('[role="tablist"]').forEach((tablist) => {
+          tablist.addEventListener('keydown', handleTablistKeydown);
+        });
 
         const tabGroups = {
           projects: [
@@ -2025,8 +2231,7 @@
         });
         navLinks.forEach((link) => {
           const isActive = link.getAttribute('data-screen') === id;
-          link.classList.toggle('bg-slate-900/60', isActive);
-          link.classList.toggle('text-primary', isActive);
+          updateNavLinkState(link, isActive);
         });
         activeScreenId = id;
         updateContextControls(id);

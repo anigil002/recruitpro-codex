@@ -4,12 +4,15 @@ import json
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
+import logging
+
 from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -42,6 +45,7 @@ from .models import (
     SourcingResult,
     User,
 )
+from .utils.errors import build_error_response
 from .utils.security import decode_token
 from .services.gemini import gemini
 from .services.integrations import (
@@ -59,6 +63,9 @@ async def lifespan(_: FastAPI):
 
     init_db()
     yield
+
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
@@ -83,6 +90,39 @@ except Exception:  # pragma: no cover - fallback if storage helper missing
     storage_path = settings.storage_path
 
 app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+
+
+@app.exception_handler(HTTPException)
+async def handle_http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+    """Return structured responses for FastAPI HTTP errors."""
+
+    payload = build_error_response(exc.detail, exc.status_code)
+    return JSONResponse(status_code=exc.status_code, content=payload, headers=getattr(exc, "headers", None))
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_exception(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Provide a readable response when request validation fails."""
+
+    payload = build_error_response(
+        "The request could not be validated.",
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        errors=exc.errors(),
+    )
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=payload)
+
+
+@app.exception_handler(Exception)
+async def handle_unexpected_exception(request: Request, exc: Exception) -> JSONResponse:  # pragma: no cover - safety net
+    """Catch any uncaught exceptions and provide a friendly error payload."""
+
+    logger.exception("Unhandled application error: %s", exc)
+    payload = build_error_response(
+        "An unexpected error occurred while processing your request.",
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+        code="server_error",
+    )
+    return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=payload)
 
 
 def _user_payload(user: User) -> dict[str, Any]:

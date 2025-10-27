@@ -54,9 +54,9 @@
         @apply block;
       }
 
-      .nav-pill-active {
-        @apply border-primary/60 text-primary;
-      }
+        .context-tab-active {
+          @apply border-primary/60 bg-primary/10 text-primary;
+        }
     </style>
   </head>
   <body class="min-h-screen font-display">
@@ -161,23 +161,21 @@
               <button data-screen="chatbot" class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Launch Assistant</button>
             </div>
           </div>
-          <div class="mt-6 flex flex-wrap gap-2">
-            <button data-screen="dashboard" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Dashboard</button>
-            <button data-screen="project-management" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Projects</button>
-            <button data-screen="candidate-management-1" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Candidate V1</button>
-            <button data-screen="candidate-management-2" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Candidate V2</button>
-            <button data-screen="candidate-management-3" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Candidate V3</button>
-            <button data-screen="ai-tools" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">AI Tools</button>
-            <button data-screen="ai-sourcing" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">AI Sourcing</button>
-            <button data-screen="ai-sourcing-results" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Sourcing Results</button>
-            <button data-screen="candidate-profile" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Candidate Profile</button>
-            <button data-screen="market-research" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Market Research</button>
-            <button data-screen="salary-benchmark" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Salary Benchmark</button>
-            <button data-screen="position-details" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Position Details</button>
-            <button data-screen="positions-overview" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Positions Overview</button>
-            <button data-screen="user-app-settings" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">User & App Settings</button>
-            <button data-screen="verbal-script" class="nav-pill rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary">Verbal Script</button>
-          </div>
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                <ol id="breadcrumb-trail" class="flex flex-wrap items-center gap-2">
+                  <li class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-slate-500">home</span>
+                    <span class="text-slate-300">Workspace</span>
+                  </li>
+                  <li class="flex items-center gap-2" aria-current="page">
+                    <span class="text-slate-600">/</span>
+                    <span class="font-semibold text-slate-100">Dashboard</span>
+                  </li>
+                </ol>
+              </nav>
+              <div id="context-tabs" class="flex flex-wrap gap-2 text-sm hidden" role="tablist" aria-label="Contextual sections" aria-orientation="horizontal" aria-hidden="true"></div>
+            </div>
         </header>
         <div class="flex-1 overflow-y-auto px-8 py-8">
           <div
@@ -1549,10 +1547,167 @@
       </main>
     </div>
     <script>
-      const sections = document.querySelectorAll('.screen');
-      const buttons = document.querySelectorAll('[data-screen]');
-      const navLinks = document.querySelectorAll('.nav-link');
-      const navPills = document.querySelectorAll('.nav-pill');
+        const sections = document.querySelectorAll('.screen');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const breadcrumbTrail = document.getElementById('breadcrumb-trail');
+        const contextTabsContainer = document.getElementById('context-tabs');
+
+        const tabGroups = {
+          projects: [
+            { id: 'project-management', label: 'Overview' },
+            { id: 'positions-overview', label: 'Positions' },
+            { id: 'position-details', label: 'Role Detail' },
+          ],
+          candidates: [
+            { id: 'candidate-management-1', label: 'AI Screening' },
+            { id: 'candidate-management-2', label: 'Shortlist Builder' },
+            { id: 'candidate-management-3', label: 'Interview Console' },
+          ],
+          'ai-sourcing': [
+            { id: 'ai-sourcing', label: 'Sourcing Builder' },
+            { id: 'ai-sourcing-results', label: 'Latest Results' },
+          ],
+        };
+
+        const screenMetadata = {
+          dashboard: { breadcrumb: ['Workspace', 'Dashboard'] },
+          activity: { breadcrumb: ['Workspace', 'Operations', 'Activity'] },
+          'project-management': {
+            breadcrumb: ['Workspace', 'Projects', 'Overview'],
+            tabsGroup: 'projects',
+          },
+          'positions-overview': {
+            breadcrumb: ['Workspace', 'Projects', 'Positions'],
+            tabsGroup: 'projects',
+          },
+          'position-details': {
+            breadcrumb: ['Workspace', 'Projects', 'Role Detail'],
+            tabsGroup: 'projects',
+          },
+          'candidate-management-1': {
+            breadcrumb: ['Workspace', 'Talent Workbench', 'AI Screening'],
+            tabsGroup: 'candidates',
+          },
+          'candidate-management-2': {
+            breadcrumb: ['Workspace', 'Talent Workbench', 'Shortlist Builder'],
+            tabsGroup: 'candidates',
+          },
+          'candidate-management-3': {
+            breadcrumb: ['Workspace', 'Talent Workbench', 'Interview Console'],
+            tabsGroup: 'candidates',
+          },
+          'ai-tools': { breadcrumb: ['Workspace', 'Automation', 'AI Tools Hub'] },
+          chatbot: { breadcrumb: ['Workspace', 'Automation', 'Assistant'] },
+          'admin-settings': { breadcrumb: ['Workspace', 'Settings', 'Admin'] },
+          'user-app-settings': { breadcrumb: ['Workspace', 'Settings', 'Workspace Setup'] },
+          'ai-sourcing': {
+            breadcrumb: ['Workspace', 'AI Sourcing', 'Builder'],
+            tabsGroup: 'ai-sourcing',
+          },
+          'ai-sourcing-results': {
+            breadcrumb: ['Workspace', 'AI Sourcing', 'Results'],
+            tabsGroup: 'ai-sourcing',
+          },
+          'candidate-profile': { breadcrumb: ['Workspace', 'Profiles', 'Candidate Detail'] },
+          'market-research': { breadcrumb: ['Workspace', 'Insights', 'Market Research'] },
+          'salary-benchmark': { breadcrumb: ['Workspace', 'Insights', 'Compensation'] },
+          'verbal-script': { breadcrumb: ['Workspace', 'Enablement', 'Verbal Script'] },
+        };
+
+        const fallbackMetadata = { breadcrumb: ['Workspace', 'Dashboard'] };
+        const boundButtons = new WeakSet();
+
+        function bindScreenButton(button) {
+          if (!button || boundButtons.has(button)) {
+            return;
+          }
+          button.addEventListener('click', () => {
+            const target = button.getAttribute('data-screen');
+            if (target) {
+              showScreen(target);
+            }
+          });
+          boundButtons.add(button);
+        }
+
+        document.querySelectorAll('[data-screen]').forEach(bindScreenButton);
+
+        function getScreenMetadata(id) {
+          return screenMetadata[id] || fallbackMetadata;
+        }
+
+        function renderBreadcrumb(meta) {
+          if (!breadcrumbTrail) {
+            return;
+          }
+          const crumbs = Array.isArray(meta?.breadcrumb) && meta.breadcrumb.length
+            ? meta.breadcrumb
+            : fallbackMetadata.breadcrumb;
+          breadcrumbTrail.innerHTML = '';
+          crumbs.forEach((label, index) => {
+            const item = document.createElement('li');
+            item.className = 'flex items-center gap-2';
+            if (index === 0) {
+              item.innerHTML = `
+                <span class="material-symbols-outlined text-base text-slate-500">home</span>
+                <span class="text-slate-300">${label}</span>
+              `.trim();
+            } else {
+              const divider = document.createElement('span');
+              divider.className = 'text-slate-600';
+              divider.textContent = '/';
+              const text = document.createElement('span');
+              text.textContent = label;
+              text.className = index === crumbs.length - 1 ? 'font-semibold text-slate-100' : 'text-slate-300';
+              item.append(divider, text);
+              if (index === crumbs.length - 1) {
+                item.setAttribute('aria-current', 'page');
+              }
+            }
+            breadcrumbTrail.appendChild(item);
+          });
+        }
+
+        function renderContextTabs(meta, activeId) {
+          if (!contextTabsContainer) {
+            return;
+          }
+          contextTabsContainer.innerHTML = '';
+          let tabs = Array.isArray(meta?.tabs) && meta.tabs.length ? meta.tabs : null;
+          if (!tabs && meta?.tabsGroup) {
+            tabs = tabGroups[meta.tabsGroup] || null;
+          }
+          if (!tabs || !tabs.length) {
+            contextTabsContainer.classList.add('hidden');
+            contextTabsContainer.setAttribute('aria-hidden', 'true');
+            return;
+          }
+          contextTabsContainer.classList.remove('hidden');
+          contextTabsContainer.setAttribute('aria-hidden', 'false');
+          tabs.forEach(({ id, label }) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.setAttribute('data-screen', id);
+            button.setAttribute('role', 'tab');
+            button.setAttribute('aria-controls', id);
+            const isActive = id === activeId;
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.tabIndex = isActive ? 0 : -1;
+            button.className = 'context-tab rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary';
+            button.textContent = label;
+            if (isActive) {
+              button.classList.add('context-tab-active');
+            }
+            contextTabsContainer.appendChild(button);
+            bindScreenButton(button);
+          });
+        }
+
+        function updateContextControls(screenId) {
+          const meta = getScreenMetadata(screenId);
+          renderBreadcrumb(meta);
+          renderContextTabs(meta, screenId);
+        }
 
       const TOKEN_STORAGE_KEY = 'recruitpro.token';
       const TOKEN_TYPE_STORAGE_KEY = 'recruitpro.tokenType';
@@ -1778,24 +1933,15 @@
           section.classList.toggle('active', section.id === id);
         });
         navLinks.forEach((link) => {
-          link.classList.toggle('bg-slate-900/60', link.getAttribute('data-screen') === id);
-          link.classList.toggle('text-primary', link.getAttribute('data-screen') === id);
+          const isActive = link.getAttribute('data-screen') === id;
+          link.classList.toggle('bg-slate-900/60', isActive);
+          link.classList.toggle('text-primary', isActive);
         });
-        navPills.forEach((pill) => {
-          const isActive = pill.getAttribute('data-screen') === id;
-          pill.classList.toggle('nav-pill-active', isActive);
-        });
+        updateContextControls(id);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      buttons.forEach((button) => {
-        button.addEventListener('click', () => {
-          const target = button.getAttribute('data-screen');
-          if (target) {
-            showScreen(target);
-          }
-        });
-      });
+      showScreen('dashboard');
 
       function getToastContainer() {
         let container = document.getElementById('toast-root');

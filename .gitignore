@@ -6,6 +6,7 @@ __pycache__/
 storage/
 .pytest_cache/
 .poetry/
+*.egg-info/
 desktop/node_modules/
 desktop/dist/
 desktop/out/

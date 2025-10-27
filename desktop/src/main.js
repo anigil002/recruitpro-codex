@@ -758,6 +758,114 @@ function showNotification(title, body) {
   notification.show();
 }
 
+function escapeHtml(value) {
+  if (value == null) {
+    return '';
+  }
+
+  return String(value).replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return character;
+    }
+  });
+}
+
+function buildBackendErrorPage(message, targetUrl) {
+  const safeMessage = escapeHtml(message);
+  const safeTargetUrl = escapeHtml(targetUrl);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RecruitPro Desktop</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+
+      main {
+        max-width: 480px;
+        padding: 32px;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.85);
+        box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 1.5rem;
+      }
+
+      p {
+        line-height: 1.5;
+        margin: 12px 0 0;
+      }
+
+      pre {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.6);
+        color: #f8fafc;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.85rem;
+      }
+
+      button {
+        margin-top: 24px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        background: #38bdf8;
+        color: #0f172a;
+      }
+
+      button:hover {
+        background: #0ea5e9;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>RecruitPro Desktop</h1>
+      <p>We couldn't reach the RecruitPro backend service.</p>
+      <p>
+        Please ensure the application can start its backend process and then choose
+        <strong>Retry</strong>. If the problem persists, close and reopen the desktop app.
+      </p>
+      ${safeMessage ? `<pre>${safeMessage}</pre>` : ''}
+      <button type="button" onclick="window.location.href='${safeTargetUrl}'">Retry</button>
+    </main>
+  </body>
+</html>`;
+}
+
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1360,
@@ -805,7 +913,24 @@ async function createWindow() {
   // Load the application from the backend server instead of local files
   // This ensures we use the templates/ folder as the single source of truth
   const appUrl = `${getBackendUrl()}/app`;
-  await mainWindow.loadURL(appUrl);
+  try {
+    await mainWindow.loadURL(appUrl);
+  } catch (error) {
+    log.error('Failed to load application UI from backend', error);
+
+    if (!backendStartupError && error instanceof Error) {
+      backendStartupError = error;
+    }
+
+    const fallbackMessage =
+      backendStartupError?.message || (error instanceof Error ? error.message : 'Backend failed to start.');
+    const fallbackHtml = buildBackendErrorPage(fallbackMessage, appUrl);
+    await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(fallbackHtml)}`);
+
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+  }
 }
 
 function createTray() {

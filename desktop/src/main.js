@@ -802,8 +802,10 @@ async function createWindow() {
     }
   });
 
-  const rendererPath = path.join(__dirname, '..', 'renderer', 'recruitpro_ats.html');
-  await mainWindow.loadFile(rendererPath);
+  // Load the application from the backend server instead of local files
+  // This ensures we use the templates/ folder as the single source of truth
+  const appUrl = `${getBackendUrl()}/app`;
+  await mainWindow.loadURL(appUrl);
 }
 
 function createTray() {

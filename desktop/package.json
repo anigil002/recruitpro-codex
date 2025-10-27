@@ -31,7 +31,6 @@
     },
     "files": [
       "src/**/*",
-      "renderer/**/*",
       "scripts/**/*",
       "preload.js",
       "package.json",

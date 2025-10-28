@@ -365,9 +365,15 @@
                 </div>
               </div>
               <p class="text-xs text-slate-500" data-integration-description="google">
-                <span class="{{ '' if google.configured else 'hidden' }}" data-visible-when="configured">
-                  Current API key:
-                  <span class="font-semibold text-slate-200" data-integration-masked="google_api_key">{{ google.masked }}</span>.
+                <span class="{{ '' if google.configured else 'hidden' }} space-y-1" data-visible-when="configured">
+                  <span class="block">
+                    Current API key:
+                    <span class="font-semibold text-slate-200" data-google-status="api_key">{{ google.api_key_masked }}</span>
+                  </span>
+                  <span class="block">
+                    Custom Search Engine ID:
+                    <span class="font-semibold text-slate-200" data-google-status="cse_id">{{ google.search_engine_id_masked }}</span>
+                  </span>
                 </span>
                 <span class="{{ 'hidden' if google.configured else '' }}" data-visible-when="missing">
                   Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
@@ -744,6 +750,33 @@
         }
       }
 
+      function updateGoogleDescription(keyStatus, cseStatus, configuredFlag) {
+        const container = document.querySelector('[data-integration-description="google"]');
+        if (!container) {
+          return;
+        }
+        const configured =
+          typeof configuredFlag === "boolean"
+            ? configuredFlag
+            : Boolean((keyStatus && keyStatus.configured) && (cseStatus && cseStatus.configured));
+        const configuredEl = container.querySelector('[data-visible-when="configured"]');
+        const missingEl = container.querySelector('[data-visible-when="missing"]');
+        if (configuredEl) {
+          configuredEl.classList.toggle("hidden", !configured);
+        }
+        if (missingEl) {
+          missingEl.classList.toggle("hidden", configured);
+        }
+        const apiSpan = container.querySelector('[data-google-status="api_key"]');
+        if (apiSpan && Object.prototype.hasOwnProperty.call(keyStatus || {}, "masked")) {
+          apiSpan.textContent = keyStatus.masked || "";
+        }
+        const cseSpan = container.querySelector('[data-google-status="cse_id"]');
+        if (cseSpan && Object.prototype.hasOwnProperty.call(cseStatus || {}, "masked")) {
+          cseSpan.textContent = cseStatus.masked || "";
+        }
+      }
+
       function updateSmartRecruitersDetails(form, status) {
         if (!form) {
           return;
@@ -784,7 +817,7 @@
           const cseStatus = integration.google_cse_id || {};
           const configured = Boolean(keyStatus.configured && cseStatus.configured);
           applyBadge("google", configured);
-          updateDescription("google", { ...keyStatus, configured });
+          updateGoogleDescription(keyStatus, cseStatus, configured);
           const apiField = form.querySelector('[name="google_api_key"]');
           if (apiField) {
             apiField.value = "";

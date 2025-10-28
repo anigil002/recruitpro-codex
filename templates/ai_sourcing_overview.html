@@ -115,13 +115,9 @@
               <span class="material-symbols-outlined">dashboard</span>
               <p class="text-sm font-medium leading-normal">Dashboard</p>
             </a>
-            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="{% if projects %}/project-overview?project_id={{ projects[0].project_id }}{% if token %}&token={{ token }}{% endif %}{% else %}#{% endif %}">
-              <span class="material-symbols-outlined">work</span>
-              <p class="text-sm font-medium leading-normal">Projects</p>
-            </a>
-            <a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary" href="#">
+            <a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary" href="/ai/sourcing-overview{{ token_query }}">
               <span class="material-symbols-outlined">auto_awesome</span>
-              <p class="text-sm font-medium leading-normal">AI sourcing</p>
+              <p class="text-sm font-medium leading-normal">AI Sourcing</p>
             </a>
             <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/settings{{ token_query }}">
               <span class="material-symbols-outlined">settings</span>

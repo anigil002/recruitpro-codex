@@ -105,25 +105,39 @@
               <span class="material-symbols-outlined text-slate-400">dashboard</span>
               Dashboard
             </a>
-            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="{% if project %}/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}{% else %}#{% endif %}">
-              <span class="material-symbols-outlined text-slate-400">folder</span>
-              Project overview
-            </a>
-            <a class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-white" href="#">
-              <span class="material-symbols-outlined">assignment</span>
-              Positions
-            </a>
             <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/ai/sourcing-overview{% if token %}?token={{ token }}{% endif %}">
               <span class="material-symbols-outlined text-slate-400">auto_awesome</span>
-              AI sourcing
+              AI Sourcing
+            </a>
+            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/settings{{ token_query }}">
+              <span class="material-symbols-outlined text-slate-400">settings</span>
+              Settings
             </a>
           </div>
+          {% if project %}
+          <div class="mt-4 px-3 py-2 border-t border-slate-700 pt-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wide mb-2">Current Project</p>
+            <p class="text-sm font-medium text-white mb-3">{{ project.name }}</p>
+            <div class="flex flex-col gap-1">
+              <a
+                class="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-slate-300 hover:bg-slate-800 transition-colors"
+                href="/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}"
+              >
+                <span class="material-symbols-outlined text-base">folder</span>
+                Overview
+              </a>
+              <a
+                class="flex items-center gap-2 px-2 py-1.5 rounded bg-primary/20 text-xs text-white"
+                href="/project-positions?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}"
+              >
+                <span class="material-symbols-outlined text-base">assignment</span>
+                Positions
+              </a>
+            </div>
+          </div>
+          {% endif %}
         </div>
-        <div class="flex flex-col gap-1">
-          <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="/settings{{ token_query }}">
-            <span class="material-symbols-outlined text-slate-400">settings</span>
-            Settings
-          </a>
+        <div class="flex flex-col gap-1 border-t border-slate-700 pt-4">
           <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800" href="https://github.com/">
             <span class="material-symbols-outlined text-slate-400">help</span>
             Help Center

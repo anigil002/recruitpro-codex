@@ -38,6 +38,9 @@ def system_config() -> Dict[str, object]:
         "app_name": settings.app_name,
         "environment": getattr(settings, "environment", "production"),
         "storage_path": str(settings.storage_path),
+        "database_path": str(settings.resolved_database_path)
+        if settings.resolved_database_path
+        else None,
         "gemini_enabled": bool(settings.gemini_api_key_value),
         "smartrecruiters_enabled": bool(settings.smartrecruiters_email),
         "auto_updates": bool(getattr(settings, "auto_updates_enabled", True)),

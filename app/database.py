@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from .config import get_settings
+from .config import APP_ROOT, get_settings
 
 settings = get_settings()
 
@@ -22,7 +22,7 @@ if url.get_backend_name() == "sqlite":
     if database_path not in ("", ":memory:"):
         raw_path = Path(database_path)
         if not raw_path.is_absolute():
-            raw_path = (Path.cwd() / raw_path).resolve()
+            raw_path = (APP_ROOT / raw_path).resolve()
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         url = url.set(database=str(raw_path))
     engine_kwargs["connect_args"] = connect_args

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RecruitPro Console</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <script>
@@ -13,414 +13,2892 @@
         theme: {
           extend: {
             colors: {
-              primary: "#38bdf8",
-              surface: "#0f172a",
-              surfaceMuted: "#1e293b",
+              primary: "#2bd1f0",
+              primaryMuted: "#132c3a",
+              surface: "#102532",
+              surfaceMuted: "#0b1f2b",
+              emerald: "#15d58a",
             },
             fontFamily: {
               display: ["Inter", "ui-sans-serif", "system-ui"],
+            },
+            boxShadow: {
+              card: "0 28px 80px -48px rgba(39, 216, 255, 0.55)",
             },
           },
         },
       };
     </script>
-    <style>
+    <style type="text/tailwindcss">
       :root {
         color-scheme: dark;
       }
 
       body {
-        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100;
       }
 
       .material-symbols-outlined {
-        font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 500,
+          "GRAD" 0,
+          "opsz" 24;
       }
+
+      .screen {
+        @apply hidden;
+      }
+
+      .screen.active {
+        @apply block;
+      }
+
+        .context-tab-active {
+          @apply border-primary/60 bg-primary/10 text-primary;
+        }
     </style>
   </head>
-  <body class="min-h-screen bg-slate-950 font-display text-slate-100">
-    {% set token_query = '' %}
-    {% if token %}
-    {% set token_query = '?token=' + token %}
-    {% endif %}
-    <div class="flex min-h-screen">
-      <aside class="hidden w-64 flex-col justify-between border-r border-slate-800/60 bg-slate-950/80 px-6 py-8 lg:flex">
-        <div class="space-y-8">
-          <div class="flex items-center gap-3">
-            <span class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary"
-              >RP</span
-            >
+  <body class="min-h-screen font-display">
+    <div
+      id="global-loading-overlay"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+      aria-live="polite"
+      aria-busy="false"
+    >
+      <div class="flex flex-col items-center gap-4 text-slate-200" role="status">
+        <svg
+          class="size-12 animate-spin text-primary"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 4.418 3.134 8.166 7.292 8.944l.708-3.653z"
+            fill="currentColor"
+          ></path>
+        </svg>
+        <p id="global-loading-label" class="text-sm font-medium text-slate-100"></p>
+      </div>
+    </div>
+    <div class="mx-auto flex min-h-screen max-w-[1400px] gap-6 px-4 py-6 lg:px-8">
+      <aside class="flex w-[250px] shrink-0 flex-col justify-between rounded-3xl bg-slate-950/80 ring-1 ring-slate-800/60 backdrop-blur">
+        <div>
+          <div class="flex items-center gap-3 px-6 py-6">
+            <span class="flex size-12 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">RP</span>
             <div>
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">RecruitPro</p>
-              <p class="text-base font-semibold text-white">{{ workspace_name or "Workspace" }}</p>
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">RecruitPro</p>
+              <p class="text-base font-semibold text-white">Unified Workspace</p>
             </div>
           </div>
-          <nav class="space-y-2 text-sm text-slate-300">
-            <a class="flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-2 font-medium text-white" href="/app{{ token_query }}">
+          <nav class="flex flex-col gap-1 px-3 text-sm" role="tablist" aria-label="Workspace sections" aria-orientation="vertical">
+            <button
+              data-screen="dashboard"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="true"
+              aria-controls="dashboard"
+              tabindex="0"
+            >
               <span class="material-symbols-outlined text-xl">space_dashboard</span>
-              Console
-            </a>
-            <a class="flex items-center gap-3 rounded-2xl px-4 py-2 transition hover:bg-slate-900/60" href="/ai/sourcing-overview{{ token_query }}">
+              Dashboard
+            </button>
+            <button
+              data-screen="project-management"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="project-management"
+              tabindex="-1"
+            >
+              <span class="material-symbols-outlined text-xl">folder_open</span>
+              Projects
+            </button>
+            <button
+              data-screen="candidate-management"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="candidate-management"
+              tabindex="-1"
+            >
+              <span class="material-symbols-outlined text-xl">order_approve</span>
+              Candidate Management
+            </button>
+            <button
+              data-screen="ai-sourcing"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="ai-sourcing"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">travel_explore</span>
-              AI sourcing
-            </a>
-            <a class="flex items-center gap-3 rounded-2xl px-4 py-2 transition hover:bg-slate-900/60" href="/settings{{ token_query }}">
+              AI Sourcing
+            </button>
+            <button
+              data-screen="positions-overview"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="positions-overview"
+              tabindex="-1"
+            >
+              <span class="material-symbols-outlined text-xl">badge</span>
+              Positions
+            </button>
+            <button
+              data-screen="activity"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="activity"
+              tabindex="-1"
+            >
+              <span class="material-symbols-outlined text-xl">dynamic_feed</span>
+              Activity
+            </button>
+            <button
+              data-screen="settings"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="settings"
+              tabindex="-1"
+            >
               <span class="material-symbols-outlined text-xl">settings</span>
               Settings
-            </a>
+            </button>
+            <button
+              data-screen="analytics"
+              class="nav-link flex items-center gap-3 rounded-2xl px-4 py-3 text-left font-medium text-slate-200 transition hover:bg-slate-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+              data-nav-variant="sidebar"
+              role="tab"
+              aria-selected="false"
+              aria-controls="analytics"
+              tabindex="-1"
+            >
+              <span class="material-symbols-outlined text-xl">stacked_line_chart</span>
+              Analytics
+            </button>
           </nav>
         </div>
-        <div class="flex items-center gap-3 rounded-2xl border border-slate-800/60 bg-slate-900/60 px-4 py-3 text-sm">
-          <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-            {{ (user.initials if user else 'RP') }}
-          </div>
-          <div>
-            <p class="font-medium text-white">{{ user.name if user else 'Guest' }}</p>
-            <p class="text-xs text-slate-400">{{ user.email if user else 'Authenticate to load data' }}</p>
-          </div>
+        <div class="space-y-3 px-6 py-6 text-sm text-slate-300">
+          <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Shortcuts</p>
+          <button data-screen="ai-tools" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">AI Tools Hub</button>
+          <button data-screen="chatbot" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">Gemini Assistant</button>
+          <button data-screen="verbal-script" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">Verbal Script</button>
         </div>
       </aside>
-      <main class="flex-1 overflow-y-auto">
-        <div class="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8">
-          <header class="space-y-2">
-            <p class="text-xs uppercase tracking-[0.3em] text-primary">{{ workspace_name or "RecruitPro" }}</p>
-            <h1 class="text-3xl font-semibold text-white">Workspace console</h1>
-            {% if user %}
-            <p class="text-sm text-slate-400">Signed in as {{ user.email }}</p>
-            {% else %}
-            <p class="text-sm text-slate-400">Authenticate with a valid token to view live workspace data.</p>
-            {% endif %}
-          </header>
-
-          {% if error %}
-          <div class="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">{{ error }}</div>
-          {% endif %}
-
-          {% if not user %}
-          <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6 text-sm text-slate-300">
-            <h2 class="text-lg font-semibold text-white">No workspace data loaded</h2>
-            <p class="mt-2">
-              Use the login page to obtain an access token, then refresh this page with
-              <code class="rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">?token=&lt;your-token&gt;</code> to connect to your
-              workspace.
-            </p>
-          </section>
-          {% else %}
-
-          <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-            <header class="flex flex-wrap items-center justify-between gap-3">
-              <h2 class="text-lg font-semibold text-white">Workspace snapshot</h2>
-            </header>
-            <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {% for card in stats %}
-              <article class="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">{{ card.label }}</p>
-                <p class="mt-2 text-3xl font-semibold text-white">{{ card.value }}</p>
-                {% if card.caption %}
-                <p class="mt-1 text-sm text-slate-400">{{ card.caption }}</p>
-                {% endif %}
-              </article>
-              {% endfor %}
+      <main class="flex flex-1 flex-col overflow-hidden rounded-[32px] bg-slate-950/60 ring-1 ring-slate-800/60 backdrop-blur">
+        <header class="border-b border-slate-800/60 px-8 py-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-primary">RecruitPro 360</p>
+              <h1 class="text-2xl font-semibold text-white">Talent Intelligence Operations</h1>
             </div>
-          </section>
-
-          <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Projects</h2>
-              </header>
-              {% if projects %}
-              <ul class="mt-4 divide-y divide-slate-800/60">
-                {% for project in projects %}
-                <li class="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p class="text-base font-semibold text-white">{{ project.name }}</p>
-                    <p class="text-sm text-slate-400">
-                      {{ project.status|title }}{% if project.client %} • {{ project.client }}{% endif %}
-                      {% if project.location_region %} • {{ project.location_region }}{% endif %}
-                    </p>
-                    <p class="text-xs text-slate-500">
-                      Created {{ project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at else '—' }}
-                    </p>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-                    <span>Open positions: {{ project.open_positions }}</span>
-                    <span>Total roles: {{ project.positions_count }}</span>
-                    <span>Candidates: {{ project.candidate_count }}</span>
-                    <a
-                      class="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-medium text-primary"
-                      href="/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}"
-                    >
-                      Open
-                    </a>
-                  </div>
-                </li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">
-                No projects yet. Create one using the API or admin utilities to populate this list.
-              </p>
-              {% endif %}
-            </section>
-
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Candidate pipeline</h2>
-              </header>
-              {% if candidate_status %}
-              <ul class="mt-4 grid gap-3 sm:grid-cols-2">
-                {% for item in candidate_status %}
-                <li class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">{{ item.status|title }}</p>
-                  <p class="mt-2 text-2xl font-semibold text-white">{{ item.count }}</p>
-                </li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">No candidates tracked yet. Add candidates to your projects to see pipeline activity.</p>
-              {% endif %}
-            </section>
-          </div>
-
-          <div class="grid gap-6 lg:grid-cols-[3fr,2fr]">
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Positions</h2>
-                <a class="text-sm text-primary hover:underline" href="/project-positions{{ token_query }}">View all</a>
-              </header>
-              {% if positions %}
-              <div class="mt-4 overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-800 text-sm">
-                  <thead class="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-400">
-                    <tr>
-                      <th class="px-4 py-3 text-left">Position</th>
-                      <th class="px-4 py-3 text-left">Project</th>
-                      <th class="px-4 py-3 text-left">Status</th>
-                      <th class="px-4 py-3 text-left">Applicants</th>
-                      <th class="px-4 py-3 text-left">Created</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-800/70 text-slate-300">
-                    {% for position in positions %}
-                    <tr class="hover:bg-slate-900/70">
-                      <td class="px-4 py-4">
-                        <div>
-                          <p class="font-medium text-white">{{ position.title }}</p>
-                          <p class="text-xs text-slate-400">
-                            {{ position.department or 'Department TBD' }}{% if position.location %} • {{ position.location }}{% endif %}
-                          </p>
-                        </div>
-                      </td>
-                      <td class="px-4 py-4 text-sm">{{ position.project_name or '—' }}</td>
-                      <td class="px-4 py-4">
-                        <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                          {{ position.status|title }}
-                        </span>
-                      </td>
-                      <td class="px-4 py-4 text-sm">{{ position.applicants_count }}</td>
-                      <td class="px-4 py-4 text-sm">
-                        {{ position.created_at.strftime('%Y-%m-%d') if position.created_at else '—' }}
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
+            <div class="flex items-center gap-3">
+              <div class="hidden items-center gap-2 rounded-full border border-slate-800/80 bg-slate-900/80 px-4 py-2 text-sm text-slate-300 lg:flex">
+                <span class="material-symbols-outlined text-base text-slate-500">search</span>
+                <input class="w-52 bg-transparent focus:outline-none" placeholder="Search projects, candidates, tools" type="search" />
               </div>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">No positions captured yet. Add positions to your projects to populate this table.</p>
-              {% endif %}
-            </section>
-
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Recent candidates</h2>
-              </header>
-              {% if recent_candidates %}
-              <ul class="mt-4 space-y-3 text-sm">
-                {% for candidate in recent_candidates %}
-                <li class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                  <div class="flex items-start justify-between gap-3">
+              <button class="rounded-full border border-slate-800/80 bg-slate-900/80 p-2 text-slate-300 transition hover:text-primary">
+                <span class="material-symbols-outlined">notifications_active</span>
+              </button>
+              <button data-screen="chatbot" class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Launch Assistant</button>
+            </div>
+          </div>
+          <div class="mt-6 space-y-4">
+            <div class="relative">
+              <div class="w-full overflow-x-auto">
+                <nav
+                  id="primary-navigation"
+                  class="flex w-full flex-nowrap gap-2 pb-1 text-sm"
+                  role="tablist"
+                  aria-label="Primary console navigation"
+                  aria-orientation="horizontal"
+                >
+                  <button
+                    data-screen="dashboard"
+                    class="nav-link flex-shrink-0 rounded-full border border-primary/60 bg-primary/10 px-4 py-2 font-medium text-primary shadow-sm transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="dashboard"
+                    tabindex="0"
+                  >Overview</button>
+                  <button
+                    data-screen="project-management"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="project-management"
+                    tabindex="-1"
+                  >Projects</button>
+                  <button
+                    data-screen="candidate-management"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="candidate-management"
+                    tabindex="-1"
+                  >Talent</button>
+                  <button
+                    data-screen="ai-sourcing"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="ai-sourcing"
+                    tabindex="-1"
+                  >Automation</button>
+                  <button
+                    data-screen="analytics"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="analytics"
+                    tabindex="-1"
+                  >Insights</button>
+                  <button
+                    data-screen="activity"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="activity"
+                    tabindex="-1"
+                  >Operations</button>
+                  <button
+                    data-screen="settings"
+                    class="nav-link flex-shrink-0 rounded-full border border-slate-800/60 px-4 py-2 font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/40"
+                    data-nav-variant="primary"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="settings"
+                    tabindex="-1"
+                  >Settings</button>
+                </nav>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                <ol id="breadcrumb-trail" class="flex flex-wrap items-center gap-2">
+                  <li class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-slate-500">home</span>
+                    <span class="text-slate-300">Workspace</span>
+                  </li>
+                  <li class="flex items-center gap-2" aria-current="page">
+                    <span class="text-slate-600">/</span>
+                    <span class="font-semibold text-slate-100">Dashboard</span>
+                  </li>
+                </ol>
+              </nav>
+              <div id="context-tabs" class="flex flex-wrap gap-2 text-sm hidden" role="tablist" aria-label="Contextual sections" aria-orientation="horizontal" aria-hidden="true"></div>
+            </div>
+          </div>
+        </header>
+        <div class="flex-1 overflow-y-auto px-8 py-8">
+          <div
+            id="initialization-status"
+            class="mb-6 hidden rounded-3xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100"
+            role="status"
+            aria-live="polite"
+          ></div>
+          <section id="dashboard" class="screen active">
+            <div class="grid gap-6 lg:grid-cols-4">
+              <div class="col-span-2 rounded-3xl bg-surface/90 p-6 shadow-card ring-1 ring-slate-800/60">
+                <p class="text-sm text-slate-400">Active projects</p>
+                <h2 class="mt-1 text-3xl font-semibold text-white">18 engagements</h2>
+                <p class="mt-4 text-sm text-slate-300">Monitor pipelines, AI sourcing progress, and market intelligence from one control center.</p>
+                <div class="mt-6 flex flex-wrap gap-3">
+                  <button data-screen="project-management" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Open project workspace</button>
+                  <button data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:border-primary/60 hover:text-primary">Start AI search</button>
+                </div>
+              </div>
+              <div class="col-span-2 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-3xl bg-surface/80 p-4 ring-1 ring-slate-800/60">
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Avg AI score</p>
+                  <p class="mt-2 text-2xl font-semibold text-white">92</p>
+                  <p class="text-xs text-slate-400">Across 142 screened profiles</p>
+                </div>
+                <div class="rounded-3xl bg-surface/80 p-4 ring-1 ring-slate-800/60">
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Time to offer</p>
+                  <p class="mt-2 text-2xl font-semibold text-white">21 days</p>
+                  <p class="text-xs text-emerald">+18% faster vs. last quarter</p>
+                </div>
+                <div class="rounded-3xl bg-surface/80 p-4 ring-1 ring-slate-800/60">
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Offers out</p>
+                  <p class="mt-2 text-2xl font-semibold text-white">7</p>
+                  <p class="text-xs text-slate-400">4 pending acceptance</p>
+                </div>
+                <div class="rounded-3xl bg-surface/80 p-4 ring-1 ring-slate-800/60">
+                  <p class="text-xs uppercase tracking-wide text-slate-400">Alerts</p>
+                  <p class="mt-2 text-2xl font-semibold text-white">3</p>
+                  <p class="text-xs text-amber-300">Critical role velocity risk</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-8 grid gap-6 lg:grid-cols-3">
+              <div class="space-y-4 rounded-3xl bg-surface/80 p-6 ring-1 ring-slate-800/60">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg font-semibold text-white">Recent activity</h3>
+                  <button data-screen="activity" class="text-sm text-primary">View stream</button>
+                </div>
+                <ul class="space-y-4 text-sm text-slate-300">
+                  <li class="flex gap-3">
+                    <span class="mt-1 size-9 rounded-full bg-primary/10 text-center text-sm font-semibold text-primary">JD</span>
                     <div>
-                      <p class="text-base font-semibold text-white">{{ candidate.name }}</p>
-                      <p class="text-xs text-slate-400">
-                        {{ candidate.project_name or 'Unassigned project' }}{% if candidate.position_title %} • {{ candidate.position_title }}{% endif %}
-                      </p>
-                      <p class="text-xs text-slate-500">
-                        Source {{ candidate.source or 'Unknown' }} •
-                        {{ candidate.created_at.strftime('%Y-%m-%d %H:%M') if candidate.created_at else '—' }}
-                      </p>
+                      <p><strong>JD automation</strong> completed Competitive Intelligence Analyst brief.</p>
+                      <p class="text-xs text-slate-500">2m ago • Shared with hiring manager</p>
                     </div>
-                    <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{{ candidate.status|title }}</span>
-                  </div>
-                  <div class="mt-3 text-xs">
-                    <a
-                      class="text-primary hover:underline"
-                      href="/candidate-profile?candidate_id={{ candidate.candidate_id }}{% if token %}&token={{ token }}{% endif %}"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View profile
-                    </a>
-                  </div>
-                </li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">No recent candidates yet.</p>
-              {% endif %}
-            </section>
-          </div>
-
-          <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-            <header class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 class="text-lg font-semibold text-white">AI sourcing</h2>
-                <p class="text-sm text-slate-400">Summary of sourcing jobs across your workspace.</p>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-1 size-9 rounded-full bg-primary/10 text-center text-sm font-semibold text-primary">AI</span>
+                    <div>
+                      <p><strong>Gemini assistant</strong> suggested 5 outreach sequences.</p>
+                      <p class="text-xs text-slate-500">18m ago • Outreach automation</p>
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="mt-1 size-9 rounded-full bg-primary/10 text-center text-sm font-semibold text-primary">MR</span>
+                    <div>
+                      <p><strong>Market research automation</strong> triggered for FinTech expansion search.</p>
+                      <p class="text-xs text-slate-500">45m ago • Results ready</p>
+                    </div>
+                  </li>
+                </ul>
               </div>
-              <a class="text-sm text-primary hover:underline" href="/ai/sourcing-overview{{ token_query }}">Open overview</a>
-            </header>
-            <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <article class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Total jobs</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ sourcing.summary.total_jobs }}</p>
-              </article>
-              <article class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Active</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ sourcing.summary.active_jobs }}</p>
-              </article>
-              <article class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Profiles generated</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ sourcing.summary.total_profiles }}</p>
-              </article>
-              <article class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Projects tracked</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ sourcing.summary.tracked_projects }}</p>
-              </article>
-            </div>
-            {% if sourcing.jobs %}
-            <ul class="mt-4 divide-y divide-slate-800/60 text-sm">
-              {% for job in sourcing.jobs %}
-              <li class="flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p class="font-medium text-white">{{ job.position_title }}</p>
-                  <p class="text-xs text-slate-400">{{ job.project_name }} • Profiles {{ job.found_count }} • Progress {{ job.progress }}%</p>
-                  <p class="text-xs text-slate-500">
-                    Started {{ job.created_at.strftime('%Y-%m-%d %H:%M') if job.created_at else '—' }}{% if job.updated_at %} • Updated {{ job.updated_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
-                  </p>
-                </div>
-                <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{{ job.status|title }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-            {% else %}
-            <p class="mt-4 text-sm text-slate-400">No sourcing jobs yet. Launch one to see progress here.</p>
-            {% endif %}
-          </section>
-
-          <div class="grid gap-6 lg:grid-cols-2">
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Recent activity</h2>
-              </header>
-              {% if activity %}
-              <ul class="mt-4 space-y-3 text-sm">
-                {% for item in activity %}
-                <li class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                  <p class="text-slate-200">{{ item.message }}</p>
-                  <p class="text-xs text-slate-500">
-                    {{ item.event_type|replace('_', ' ')|title }}
-                    {% if item.project_name %}• {{ item.project_name }}{% endif %}
-                    • {{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '—' }}
-                  </p>
-                </li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">No activity recorded for your projects yet.</p>
-              {% endif %}
-            </section>
-
-            <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-              <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">Latest documents</h2>
-              </header>
-              {% if documents %}
-              <ul class="mt-4 space-y-3 text-sm">
-                {% for doc in documents %}
-                <li class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                  <p class="font-medium text-white">{{ doc.filename }}</p>
-                  <p class="text-xs text-slate-400">
-                    {{ doc.project_name or 'Workspace' }} • {{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') if doc.uploaded_at else 'recently' }}
-                  </p>
-                  <a class="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline" href="{{ doc.file_url }}" target="_blank" rel="noreferrer">
-                    Open file
-                    <span class="material-symbols-outlined text-sm">open_in_new</span>
-                  </a>
-                </li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="mt-4 text-sm text-slate-400">Upload project documents to see them here.</p>
-              {% endif %}
-            </section>
-          </div>
-
-          <section class="rounded-3xl border border-slate-800/60 bg-slate-900/60 p-6">
-            <header class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-white">Upcoming interviews</h2>
-            </header>
-            {% if interviews %}
-            <ul class="mt-4 space-y-3 text-sm">
-              {% for interview in interviews %}
-              <li class="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p class="font-semibold text-white">{{ interview.candidate_name }}</p>
-                    <p class="text-xs text-slate-400">
-                      {{ interview.position_title or 'Role TBD' }}{% if interview.project_name %} • {{ interview.project_name }}{% endif %}
-                    </p>
+              <div class="space-y-4 rounded-3xl bg-surface/80 p-6 ring-1 ring-slate-800/60">
+                <h3 class="text-lg font-semibold text-white">Project health</h3>
+                <div class="space-y-3 text-sm text-slate-300">
+                  <div class="rounded-2xl bg-surfaceMuted/80 p-4">
+                    <p class="font-semibold text-white">Project Atlas</p>
+                    <p class="text-xs text-slate-400">42 candidates in pipeline • AI sourcing refresh in 3h</p>
                   </div>
-                  <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                    {{ interview.scheduled_at.strftime('%Y-%m-%d %H:%M') if interview.scheduled_at else 'Scheduled' }}
-                  </span>
+                  <div class="rounded-2xl bg-surfaceMuted/80 p-4">
+                    <p class="font-semibold text-white">Executive Product Search</p>
+                    <p class="text-xs text-slate-400">Interview panel ready • 2 offers outstanding</p>
+                  </div>
+                  <div class="rounded-2xl bg-surfaceMuted/80 p-4">
+                    <p class="font-semibold text-white">APAC GTM Expansion</p>
+                    <p class="text-xs text-slate-400">Market mapping + salary benchmark delivered</p>
+                  </div>
                 </div>
-                {% if interview.location or interview.mode %}
-                <p class="mt-2 text-xs text-slate-500">
-                  {{ interview.mode or 'Mode TBD' }}{% if interview.location %} • {{ interview.location }}{% endif %}
-                </p>
-                {% endif %}
-                {% if interview.notes %}
-                <p class="mt-2 text-xs text-slate-400">{{ interview.notes }}</p>
-                {% endif %}
-              </li>
-              {% endfor %}
-            </ul>
-            {% else %}
-            <p class="mt-4 text-sm text-slate-400">No interviews scheduled yet.</p>
-            {% endif %}
+              </div>
+              <div class="space-y-4 rounded-3xl bg-surface/80 p-6 ring-1 ring-slate-800/60">
+                <h3 class="text-lg font-semibold text-white">Notifications</h3>
+                <div class="space-y-3 text-sm text-slate-300">
+                  <div class="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4">3 candidates ready for final feedback review.</div>
+                  <div class="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4">Salary benchmark refresh due for VP Sales role.</div>
+                  <div class="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4">Gemini assistant logged 6 tasks for tomorrow.</div>
+                </div>
+              </div>
+            </div>
           </section>
-
-          {% endif %}
+          <section id="project-management" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Project Command</p>
+                  <h2 class="text-2xl font-semibold text-white">Project Management & Collaboration</h2>
+                </div>
+                <button type="button" data-action="create-project" class="rounded-full border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Create project</button>
+              </div>
+              <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <p class="text-sm text-slate-400">Active positions</p>
+                  <p class="mt-2 text-3xl font-semibold text-white">38</p>
+                  <p class="mt-3 text-sm text-slate-300">Track lifecycle, dependencies, and team ownership.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <p class="text-sm text-slate-400">Collaboration</p>
+                  <p class="mt-2 text-3xl font-semibold text-white">12 teams</p>
+                  <p class="mt-3 text-sm text-slate-300">Real-time notes, approvals, and interview prep in one place.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <p class="text-sm text-slate-400">Automation coverage</p>
+                  <p class="mt-2 text-3xl font-semibold text-white">86%</p>
+                  <p class="mt-3 text-sm text-slate-300">Market research, sourcing, and JD drafting triggered automatically.</p>
+                </div>
+              </div>
+              <div class="mt-8 grid gap-6 lg:grid-cols-2">
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Market Research automation</h3>
+                    <span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">Auto-triggered</span>
+                  </div>
+                  <p class="text-sm text-slate-300">Surface regional talent intelligence, hiring velocity, and competitor signals instantly.</p>
+                  <div class="space-y-4 text-sm text-slate-300">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <div class="flex items-center justify-between text-sm">
+                        <p class="font-semibold text-white">FinTech GTM expansion</p>
+                        <span class="text-xs text-primary">Ready • 12 min ago</span>
+                      </div>
+                      <p class="mt-2 text-xs text-slate-400">Generated from opportunity brief + competitor alerts.</p>
+                      <div class="mt-4 flex flex-wrap gap-3 text-xs">
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Add context</button>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-primary">View report</button>
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Share</button>
+                      </div>
+                    </div>
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <div class="flex items-center justify-between text-sm">
+                        <p class="font-semibold text-white">Healthcare leadership</p>
+                        <span class="text-xs text-primary">Processing</span>
+                      </div>
+                      <label class="mt-3 block text-xs text-slate-400">
+                        Additional context
+                        <textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-sm" placeholder="Target companies, certifications, or notable trends"></textarea>
+                      </label>
+                      <button class="mt-3 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20">Queue refresh</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Salary benchmarking</h3>
+                    <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Open benchmark hub</button>
+                  </div>
+                  <p class="text-sm text-slate-300">Launch manual analysis or review AI-generated benchmarks aligned to project context.</p>
+                  <div class="space-y-4 text-sm text-slate-300">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <p class="font-semibold text-white">Director, Customer Success</p>
+                          <p class="text-xs text-slate-400">North America • SaaS</p>
+                        </div>
+                        <button class="rounded-full border border-slate-700 px-3 py-1 text-xs">View results</button>
+                      </div>
+                      <div class="mt-4 grid grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <p class="text-slate-400">Base</p>
+                          <p class="text-white">$168k</p>
+                        </div>
+                        <div>
+                          <p class="text-slate-400">Variable</p>
+                          <p class="text-white">$52k</p>
+                        </div>
+                        <div>
+                          <p class="text-slate-400">Refresh</p>
+                          <p class="text-white">7d ago</p>
+                        </div>
+                      </div>
+                    </div>
+                    <form id="salary-benchmark-form" class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm" novalidate>
+                      <p class="font-semibold text-white">Trigger manual benchmark</p>
+                      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                        <label class="text-xs text-slate-400">Role<input id="salary-title" name="title" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2" placeholder="VP Product" type="text" required /></label>
+                        <label class="text-xs text-slate-400">Region<select id="salary-region" name="region" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2" required><option value="">Select region</option><option value="north-america">North America</option><option value="emea">EMEA</option><option value="apac">APAC</option><option value="latam">LATAM</option></select></label>
+                        <label class="text-xs text-slate-400">Sector<select id="salary-sector" name="sector" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option value="">All sectors</option><option value="saas">SaaS</option><option value="fintech">FinTech</option><option value="healthcare">Healthcare</option><option value="industrial">Industrial</option></select></label>
+                        <label class="text-xs text-slate-400">Seniority<select id="salary-seniority" name="seniority" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option value="">All levels</option><option value="director">Director</option><option value="vp">VP</option><option value="manager">Manager</option><option value="ic">IC</option></select></label>
+                      </div>
+                      <button type="submit" class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20">Run benchmark</button>
+                      <div id="salary-benchmark-result" class="mt-4 hidden rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-slate-200">
+                        <p class="font-semibold text-white">Benchmark ready</p>
+                        <p class="mt-1 text-slate-300">Submit the form to see Gemini's latest salary range and sourcing guidance.</p>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="candidate-management" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Command</p>
+                  <h2 class="text-2xl font-semibold text-white">Candidate Management Hub</h2>
+                  <p class="mt-2 text-sm text-slate-300">Unify AI screening, shortlist orchestration, and interview execution without leaving the workspace.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Candidate management views">
+                  <button type="button" id="candidate-management-tab-ai-screening" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="ai-screening" role="tab" aria-selected="true" aria-controls="candidate-management-ai-screening">
+                    AI Screening
+                  </button>
+                  <button type="button" id="candidate-management-tab-shortlist" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="shortlist" role="tab" aria-selected="false" aria-controls="candidate-management-shortlist">
+                    Shortlist Builder
+                  </button>
+                  <button type="button" id="candidate-management-tab-interview" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="candidate-management" data-tab-target="interview" role="tab" aria-selected="false" aria-controls="candidate-management-interview">
+                    Interview Console
+                  </button>
+                </div>
+              </div>
+              <div class="mt-6 space-y-6">
+                <div id="candidate-management-ai-screening" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-ai-screening" data-tab-group="candidate-management" data-tab-panel="ai-screening" aria-hidden="false">
+                  <div class="grid gap-6 lg:grid-cols-4">
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">New</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">36</p>
+                      <p class="text-xs text-slate-400">Awaiting screening</p>
+                    </div>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Screening</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">24</p>
+                      <p class="text-xs text-slate-400">AI-first evaluation</p>
+                    </div>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Interview</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">18</p>
+                      <p class="text-xs text-slate-400">Panel coordination</p>
+                    </div>
+                    <div class="rounded-3xl bg-surfaceMuted/80 p-4 ring-1 ring-slate-800/60">
+                      <p class="text-xs uppercase tracking-wide text-slate-400">Offer / Hired</p>
+                      <p class="mt-2 text-2xl font-semibold text-white">9</p>
+                      <p class="text-xs text-slate-400">Ready for onboarding</p>
+                    </div>
+                  </div>
+                  <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="space-y-4">
+                      <h3 class="text-lg font-semibold text-white">Pipeline board</h3>
+                      <div class="grid gap-4 lg:grid-cols-4">
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">New</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Maya Chen • Product Marketing</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Alexei Morozov • ML Engineer</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Screening</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Priya Patel • RevOps</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Samuel Osei • Data Strategy</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Interview</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Helena Kaur • Finance Ops</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Ben Torres • AI PM</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="text-sm font-semibold text-white">Offer</p>
+                          <ul class="mt-3 space-y-2 text-xs text-slate-400">
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Chloe Singh • Director CS</li>
+                            <li class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">Daniel Reed • Staff Engineer</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="space-y-4">
+                      <h3 class="text-lg font-semibold text-white">Bulk actions & smart filters</h3>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-5 text-sm text-slate-300">
+                        <div class="flex flex-wrap items-center gap-3">
+                          <label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Select all</label>
+                          <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1 text-xs"><option>Move to Interview</option><option>Add to Project</option><option>Send Outreach</option></select>
+                          <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Apply</button>
+                        </div>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                          <label class="text-xs text-slate-400">AI score<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>90+</option><option>80+</option><option>70+</option></select></label>
+                          <label class="text-xs text-slate-400">Location<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Remote</option><option>Onsite</option><option>Hybrid</option></select></label>
+                          <label class="text-xs text-slate-400">Source<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Gemini</option><option>Referral</option><option>Manual</option></select></label>
+                          <label class="text-xs text-slate-400">Tags<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Leadership</option><option>Diversity</option><option>Top performer</option></select></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Rating matrix</h3>
+                      <div class="flex items-center gap-2 text-xs">
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export CSV</button>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Sync ATS</button>
+                      </div>
+                    </div>
+                    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Relevance</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">91%</p>
+                        <p class="text-xs text-slate-400">Weighted by skills match & experience.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Impact</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">87%</p>
+                        <p class="text-xs text-slate-400">Projected business contribution.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-3 text-3xl font-semibold text-emerald">High</p>
+                        <p class="text-xs text-slate-400">Outreach sentiment & notes.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="candidate-management-shortlist" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-shortlist" data-tab-group="candidate-management" data-tab-panel="shortlist" aria-hidden="true">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p class="text-sm text-slate-400">Interview coordination</p>
+                        <h3 class="text-xl font-semibold text-white">Pipeline tracking</h3>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-3 text-xs">
+                        <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>All projects</option><option>Atlas</option><option>GTM Expansion</option></select>
+                        <select class="rounded-full border border-slate-800 bg-slate-950/80 px-3 py-1"><option>Stage</option><option>Panel ready</option><option>Offer review</option></select>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk actions</button>
+                      </div>
+                    </div>
+                    <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800/60">
+                      <table class="min-w-full divide-y divide-slate-800/80 text-sm">
+                        <thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
+                          <tr>
+                            <th class="px-4 py-3 text-left">Candidate</th>
+                            <th class="px-4 py-3 text-left">Role</th>
+                            <th class="px-4 py-3 text-left">Stage</th>
+                            <th class="px-4 py-3 text-left">AI rating</th>
+                            <th class="px-4 py-3 text-left">Notes</th>
+                            <th class="px-4 py-3 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Sophia Reyes</p>
+                              <p class="text-xs text-slate-500">Referral • Diversity flag</p>
+                            </td>
+                            <td class="px-4 py-4">Director of Lifecycle Marketing</td>
+                            <td class="px-4 py-4">Panel interview</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">94</span></td>
+                            <td class="px-4 py-4 text-xs">High alignment on growth. Prepare salary benchmark.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1">Profile</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Rate</button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Noah Williams</p>
+                              <p class="text-xs text-slate-500">Gemini sourced</p>
+                            </td>
+                            <td class="px-4 py-4">Head of Enterprise Sales</td>
+                            <td class="px-4 py-4">Offer</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">89</span></td>
+                            <td class="px-4 py-4 text-xs">Pending references. Salary benchmark attached.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Feedback</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Move stage</button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="px-4 py-4">
+                              <p class="font-semibold text-white">Amelia Tan</p>
+                              <p class="text-xs text-slate-500">Outbound sequence</p>
+                            </td>
+                            <td class="px-4 py-4">Principal Data Scientist</td>
+                            <td class="px-4 py-4">Screening</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">97</span></td>
+                            <td class="px-4 py-4 text-xs">Recommend panel scheduling & outreach automation.</td>
+                            <td class="px-4 py-4">
+                              <div class="flex gap-2 text-xs">
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Schedule</button>
+                                <button class="rounded-full border border-slate-700 px-3 py-1">Send doc</button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-lg font-semibold text-white">Candidate radar</h3>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Analytics</button>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-400">Gemini highlights readiness, motivations, and risk signals.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Ready</p>
+                        <p class="mt-2 text-2xl font-semibold text-white">14</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-2 text-2xl font-semibold text-emerald">High</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                        <p class="text-xs uppercase text-slate-500">Risk</p>
+                        <p class="mt-2 text-2xl font-semibold text-amber-300">Low</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <h3 class="text-lg font-semibold text-white">Bulk outreach</h3>
+                    <p class="mt-2 text-xs text-slate-400">Trigger multi-platform outreach sequences.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                      <label class="text-xs text-slate-400">Select cohort<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Top AI scores</option><option>Passive prospects</option><option>Warm referrals</option></select></label>
+                      <label class="text-xs text-slate-400">Outreach template<select class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2"><option>Executive outreach</option><option>Technical follow-up</option><option>Market insight invite</option></select></label>
+                    </div>
+                    <textarea class="mt-4 h-28 w-full rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-xs" placeholder="Personalized intro with AI suggestions"></textarea>
+                    <div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary">Launch outreach</button>
+                      <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Save as template</label>
+                    </div>
+                  </div>
+                </div>
+                <div id="candidate-management-interview" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="candidate-management-tab-interview" data-tab-group="candidate-management" data-tab-panel="interview" aria-hidden="true">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Pipeline board with ratings</h3>
+                      <div class="flex flex-wrap items-center gap-3 text-xs">
+                        <label class="inline-flex items-center gap-2"><input type="checkbox" class="rounded border-slate-700 bg-slate-950/80" /> Show AI insights</label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Bulk move</button>
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export</button>
+                      </div>
+                    </div>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-5">
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>New</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">12</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Dylan Ortiz</p>
+                            <p class="text-[10px] text-slate-400">AI score 88 • UX Lead</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Rate</button>
+                          </div>
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Leah Moritz</p>
+                            <p class="text-[10px] text-slate-400">AI score 80 • Ops</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Send brief</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Screening</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">16</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Sasha Petrov</p>
+                            <p class="text-[10px] text-slate-400">AI score 92 • DevOps</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Schedule</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Notes</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Interview</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">10</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Grace Lin</p>
+                            <p class="text-[10px] text-slate-400">AI score 95 • Product Ops</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Panel</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Share</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Offer</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">6</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Zara Kim</p>
+                            <p class="text-[10px] text-slate-400">AI score 93 • Revenue Ops</p>
+                            <div class="mt-2 flex gap-2">
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Offer</button>
+                              <button class="rounded-full border border-slate-700 px-2 py-1">Benchmark</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                          <p>Hired</p>
+                          <span class="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px]">5</span>
+                        </div>
+                        <div class="mt-3 space-y-3 text-xs text-slate-300">
+                          <div class="rounded-xl border border-slate-800/60 bg-slate-950/80 p-3">
+                            <p class="font-semibold text-white">Kai Turner</p>
+                            <p class="text-[10px] text-slate-400">Start date • 12 Jun</p>
+                            <button class="mt-2 rounded-full border border-slate-700 px-2 py-1">Onboarding</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Rating matrix</h3>
+                      <div class="flex items-center gap-2 text-xs">
+                        <button class="rounded-full border border-slate-700 px-3 py-1">Export CSV</button>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-semibold text-primary">Sync ATS</button>
+                      </div>
+                    </div>
+                    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Relevance</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">91%</p>
+                        <p class="text-xs text-slate-400">Weighted by skills match & experience.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Impact</p>
+                        <p class="mt-3 text-3xl font-semibold text-white">87%</p>
+                        <p class="text-xs text-slate-400">Projected business contribution.</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-950/70 p-4">
+                        <p class="text-xs uppercase text-slate-500">Motivation</p>
+                        <p class="mt-3 text-3xl font-semibold text-emerald">High</p>
+                        <p class="text-xs text-slate-400">Outreach sentiment & notes.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="ai-tools" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">AI Hub</p>
+                  <h2 class="text-2xl font-semibold text-white">AI Tools & Features</h2>
+                  <p class="mt-2 text-sm text-slate-300">Access Gemini-powered capabilities for screening, sourcing, research, and outreach.</p>
+                </div>
+                <button data-screen="chatbot" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Ask Gemini</button>
+              </div>
+              <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">AI-powered screening</h3>
+                  <p class="mt-2 text-sm text-slate-300">Score candidates on skills, impact, and motivation with explainable outputs.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">Intelligent document processing</h3>
+                  <p class="mt-2 text-sm text-slate-300">Parse resumes, scorecards, and NDAs with structured insights.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">Market research automation</h3>
+                  <p class="mt-2 text-sm text-slate-300">Auto-trigger talent maps, hiring trends, and competitor intel.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">Salary benchmarking</h3>
+                  <p class="mt-2 text-sm text-slate-300">Manual or automated benchmarks with rationale and sources.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">Job description generation</h3>
+                  <p class="mt-2 text-sm text-slate-300">Generate JD drafts aligned to market data and salary outputs.</p>
+                </div>
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <h3 class="text-lg font-semibold text-white">Outreach automation</h3>
+                  <p class="mt-2 text-sm text-slate-300">Personalize multi-channel campaigns with AI-crafted messaging.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="chatbot" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Conversational AI</p>
+                  <h2 class="text-2xl font-semibold text-white">Gemini-powered Assistant</h2>
+                  <p class="mt-2 text-sm text-slate-300">Perform complex recruitment tasks with natural language and smart suggestions.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                  <span class="material-symbols-outlined text-primary">bolt</span>
+                  Suggests relevant tools or actions as you type
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <div class="flex flex-col rounded-3xl bg-slate-950/70 p-6 ring-1 ring-slate-800/60">
+                  <div class="flex-1 space-y-4 overflow-y-auto text-sm text-slate-300" id="chat-stream">
+                    <div class="space-y-2">
+                      <p class="text-xs uppercase tracking-wide text-slate-500">Today • 09:14</p>
+                      <div class="rounded-2xl bg-primaryMuted/80 p-4 text-slate-200">
+                        <p class="font-semibold text-white">Assistant</p>
+                        <p class="mt-2">Hello! I can orchestrate sourcing, draft outreach, generate scripts, or summarize market research. How can I help?</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-6 flex items-end gap-3">
+                    <textarea class="min-h-[80px] flex-1 rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-sm" placeholder="Ask Gemini to launch salary benchmarking for the Director, Customer Success role"></textarea>
+                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">Send</button>
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-slate-950/70 p-5 ring-1 ring-slate-800/60">
+                    <h3 class="text-lg font-semibold text-white">Suggested actions</h3>
+                    <ul class="mt-3 space-y-3 text-sm text-slate-300">
+                      <li class="rounded-2xl border border-slate-800/60 bg-slate-900/80 p-3">Trigger AI search for "Director, Lifecycle Marketing"</li>
+                      <li class="rounded-2xl border border-slate-800/60 bg-slate-900/80 p-3">Draft outreach for APAC GTM expansion shortlist</li>
+                      <li class="rounded-2xl border border-slate-800/60 bg-slate-900/80 p-3">Summarize latest market research in 5 bullets</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-3xl bg-slate-950/70 p-5 ring-1 ring-slate-800/60">
+                    <h3 class="text-lg font-semibold text-white">Connected tools</h3>
+                    <p class="mt-2 text-sm text-slate-300">AI Screening • AI Sourcing • JD Generation • Outreach • Salary Benchmarking • Market Research automation</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="settings" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Unified Settings</p>
+                  <h2 class="text-2xl font-semibold text-white">Workspace &amp; Admin Controls</h2>
+                  <p class="mt-2 text-sm text-slate-300">Configure governance, integrations, and personal preferences from a single control center.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Settings views">
+                  <button type="button" id="settings-tab-admin" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="settings" data-tab-target="admin" role="tab" aria-selected="true" aria-controls="settings-admin">
+                    Admin Controls
+                  </button>
+                  <button type="button" id="settings-tab-workspace" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="settings" data-tab-target="workspace" role="tab" aria-selected="false" aria-controls="settings-workspace">
+                    Workspace Setup
+                  </button>
+                </div>
+              </div>
+              <div class="mt-6 space-y-6">
+                <div id="settings-admin" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="settings-tab-admin" data-tab-group="settings" data-tab-panel="admin" aria-hidden="false">
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.3em] text-primary">Administration</p>
+                      <h3 class="text-xl font-semibold text-white">Admin Settings</h3>
+                      <p class="mt-2 text-sm text-slate-300">Control system-wide features, manage AI prompt packs, and configure external integrations.</p>
+                    </div>
+                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Save changes</button>
+                  </div>
+                  <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                      <h4 class="text-lg font-semibold text-white">AI Prompt Packs</h4>
+                      <div class="space-y-3 text-sm text-slate-300">
+                        <label class="block text-xs text-slate-400">Create prompt pack<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Executive outreach pack" type="text" /></label>
+                        <label class="block text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Guidelines for executive-level outreach"></textarea></label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Add prompt pack</button>
+                      </div>
+                      <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 text-sm text-slate-300">
+                        <p class="font-semibold text-white">Available packs</p>
+                        <p class="mt-2 text-xs text-slate-400">Screening essentials • Sales leadership • Product strategy • DEI narratives</p>
+                      </div>
+                    </div>
+                    <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                      <h4 class="text-lg font-semibold text-white">Embedding indexes &amp; External APIs</h4>
+                      <div class="space-y-3 text-sm text-slate-300">
+                        <label class="text-xs text-slate-400">Index name<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="RecruitPro-Knowledge" type="text" /></label>
+                        <label class="text-xs text-slate-400">Description<textarea class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="2" placeholder="Content available to Gemini"></textarea></label>
+                        <label class="text-xs text-slate-400">Gemini API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
+                        <label class="text-xs text-slate-400">Google Search API Key<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="••••••••" type="password" /></label>
+                        <label class="text-xs text-slate-400">Custom Engine ID<input class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="search-engine-id" type="text" /></label>
+                        <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Register integrations</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="settings-workspace" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="settings-tab-workspace" data-tab-group="settings" data-tab-panel="workspace" aria-hidden="true">
+                  <div class="rounded-3xl bg-[#062c3a] p-6 ring-1 ring-slate-800/60 text-slate-100">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p class="text-xs uppercase tracking-[0.3em] text-primary">User &amp; App Settings</p>
+                        <h3 class="text-2xl font-semibold">Preferences &amp; controls</h3>
+                        <p class="mt-2 text-sm text-slate-200">Manage personal information, application preferences, and system-level settings in one place.</p>
+                      </div>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Save</button>
+                    </div>
+                    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">User profile settings</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Full name<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="Alex Morgan" type="text" /></label>
+                          <label class="block text-xs text-slate-200">Email<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="alex@recruitpro.ai" type="email" /></label>
+                          <label class="block text-xs text-slate-200">Password<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="••••••••" type="password" /></label>
+                          <label class="block text-xs text-slate-200">Notifications<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>All</option><option>Important only</option><option>Mute</option></select></label>
+                        </div>
+                      </div>
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">Application preferences</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Default view<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Dashboard</option><option>Candidate pipeline</option><option>AI sourcing</option></select></label>
+                          <label class="block text-xs text-slate-200">Language<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>English</option><option>Spanish</option><option>French</option></select></label>
+                          <label class="block text-xs text-slate-200">Theme<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Gemini Dark</option><option>Azure Light</option></select></label>
+                        </div>
+                      </div>
+                      <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10">
+                        <h4 class="text-lg font-semibold text-white">System controls</h4>
+                        <div class="mt-4 space-y-3 text-sm text-slate-100/80">
+                          <label class="block text-xs text-slate-200">Data export<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Weekly</option><option>Monthly</option><option>Manual</option></select></label>
+                          <label class="block text-xs text-slate-200">Privacy controls<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Strict</option><option>Standard</option><option>Custom</option></select></label>
+                          <label class="block text-xs text-slate-200">Audit log recipients<input class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" placeholder="ops@recruitpro.ai" type="email" /></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="ai-sourcing" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">AI Sourcing</p>
+                  <h2 class="text-2xl font-semibold text-white">Launch AI search</h2>
+                  <p class="mt-2 text-sm text-slate-300">Select a project and platform, add filters, and let Gemini run sourcing across SmartRecruiters and more.</p>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-slate-300">
+                  <span class="material-symbols-outlined text-primary">schedule</span>
+                  <span id="sourcing-next-refresh">Next refresh in 3h</span>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="ai-sourcing-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="text-xs text-slate-400">Project<select id="sourcing-project" name="project_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                        <option value="">Select project</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Position<select id="sourcing-position" name="position_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                        <option value="">Select position</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Search platforms<select id="sourcing-platforms" name="platforms" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" multiple>
+                        <option value="smartrecruiters" selected>SmartRecruiters</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="angellist">AngelList</option>
+                        <option value="github">GitHub</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Seniority<select id="sourcing-seniority" name="seniority" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">All</option>
+                        <option value="director">Director</option>
+                        <option value="vp">VP</option>
+                        <option value="senior-ic">Senior IC</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Location<select id="sourcing-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">Any location</option>
+                        <option value="remote">Remote - Global</option>
+                        <option value="north-america">North America</option>
+                        <option value="emea">EMEA</option>
+                        <option value="apac">APAC</option>
+                      </select></label>
+                    <label class="text-xs text-slate-400">Keywords<input id="sourcing-keywords" name="keywords" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Demand gen, PLG, retention" type="text" /></label>
+                  </div>
+                  <label class="block text-xs text-slate-400">Additional context<textarea id="sourcing-context" name="context" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" rows="3" placeholder="Highlight target companies, target backgrounds, or certification requirements"></textarea></label>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Start AI search</button>
+                    <div class="flex items-center gap-2 text-xs text-slate-400"><span class="material-symbols-outlined text-primary">sync</span>Auto-refresh enabled</div>
+                  </div>
+                  <p id="ai-sourcing-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Progress</h3>
+                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                    <p class="text-xs uppercase text-slate-500">Search status</p>
+                    <p id="sourcing-status-label" class="mt-2 text-lg font-semibold text-white">No active sourcing jobs</p>
+                    <div class="mt-3 h-2 rounded-full bg-slate-800">
+                      <div id="sourcing-progress-bar" class="h-full rounded-full bg-primary" style="width: 0%"></div>
+                    </div>
+                    <p id="sourcing-status-meta" class="mt-2 text-xs text-slate-400">Start a search to track Gemini's progress.</p>
+                  </div>
+                  <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                    <p class="text-xs uppercase text-slate-500">Recent runs</p>
+                    <ul id="sourcing-recent-list" class="mt-3 space-y-2 text-xs">
+                      <li class="text-slate-500">Run AI sourcing to see real-time activity.</li>
+                    </ul>
+                  </div>
+                  <button data-screen="ai-sourcing-results" class="w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">View sourcing results</button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="ai-sourcing-results" class="screen">
+            <div class="rounded-3xl bg-slate-900 p-6 ring-1 ring-slate-800/70">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">AI Sourcing Results</p>
+                  <h2 class="text-2xl font-semibold text-white">Shortlisted candidates</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
+                  <select class="rounded-full border border-slate-700 bg-slate-950 px-3 py-1"><option>All statuses</option><option>New</option><option>Screening</option><option>Interview</option></select>
+                  <select class="rounded-full border border-slate-700 bg-slate-950 px-3 py-1"><option>Sort by AI score</option><option>Experience</option><option>Last activity</option></select>
+                  <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Export</button>
+                </div>
+              </div>
+              <div class="mt-6 rounded-3xl border border-slate-800/70 bg-slate-950/80">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-slate-400">
+                  <div class="flex items-center gap-2">
+                    <input type="checkbox" class="rounded border-slate-700 bg-slate-950" />
+                    Select all
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button class="rounded-full border border-slate-700 px-3 py-1">Bulk add to project</button>
+                    <button class="rounded-full border border-slate-700 px-3 py-1">Send outreach</button>
+                    <button class="rounded-full border border-slate-700 px-3 py-1">Move to screening</button>
+                  </div>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-slate-800 text-sm">
+                    <thead class="bg-slate-950/80 text-xs uppercase tracking-wide text-slate-400">
+                      <tr>
+                        <th class="px-4 py-3 text-left">Candidate</th>
+                        <th class="px-4 py-3 text-left">AI score</th>
+                        <th class="px-4 py-3 text-left">Skills / experience match</th>
+                        <th class="px-4 py-3 text-left">Pipeline status</th>
+                        <th class="px-4 py-3 text-left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                      <tr>
+                        <td class="px-4 py-4">
+                          <p class="font-semibold text-white">Aurora James</p>
+                          <p class="text-xs text-slate-500">Director, Lifecycle Marketing</p>
+                        </td>
+                        <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">96</span></td>
+                        <td class="px-4 py-4 text-xs">Retention programs, PLG funnels, team leadership</td>
+                        <td class="px-4 py-4 text-xs">Screening</td>
+                        <td class="px-4 py-4">
+                          <button data-screen="candidate-profile" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">View profile</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4">
+                          <p class="font-semibold text-white">Luca Moretti</p>
+                          <p class="text-xs text-slate-500">Head of PLG Analytics</p>
+                        </td>
+                        <td class="px-4 py-4"><span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">91</span></td>
+                        <td class="px-4 py-4 text-xs">Lifecycle modeling, experimentation, GTM strategy</td>
+                        <td class="px-4 py-4 text-xs">New</td>
+                        <td class="px-4 py-4">
+                          <button class="rounded-full border border-slate-700 px-3 py-1 text-xs">Add note</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4">
+                          <p class="font-semibold text-white">Fiona Marsh</p>
+                          <p class="text-xs text-slate-500">Senior Director, Retention</p>
+                        </td>
+                        <td class="px-4 py-4"><span class="rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald">94</span></td>
+                        <td class="px-4 py-4 text-xs">Global lifecycle programs, AI-driven experimentation</td>
+                        <td class="px-4 py-4 text-xs">Interview</td>
+                        <td class="px-4 py-4">
+                          <button class="rounded-full border border-slate-700 px-3 py-1 text-xs">Move stage</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="candidate-profile" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Profile</p>
+                  <h2 class="text-2xl font-semibold text-white">Aurora James • Director, Lifecycle Marketing</h2>
+                  <p class="mt-2 text-sm text-slate-300">Comprehensive profile including resume, screening scores, contact details, and collaboration tools.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                  <button class="rounded-full border border-slate-700 px-3 py-1">Add to project</button>
+                  <button class="rounded-full border border-slate-700 px-3 py-1">Move to pipeline</button>
+                  <button class="rounded-full border border-slate-700 px-3 py-1">Share profile</button>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <div class="space-y-6">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p class="text-sm text-slate-400">AI screening scores</p>
+                        <div class="mt-2 flex flex-wrap gap-3 text-xs">
+                          <span class="rounded-full bg-emerald/10 px-3 py-1 font-semibold text-emerald">Relevance 94</span>
+                          <span class="rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary">Impact 91</span>
+                          <span class="rounded-full bg-amber-300/20 px-3 py-1 font-semibold text-amber-200">Motivation 89</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3 text-xs">
+                        <button class="flex size-10 items-center justify-center rounded-full border border-slate-700 text-slate-200" title="Edit candidate">
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="flex size-10 items-center justify-center rounded-full border border-slate-700 text-slate-200" title="Verbal script generation" data-screen="verbal-script">
+                          <span class="material-symbols-outlined">record_voice_over</span>
+                        </button>
+                        <button class="flex size-10 items-center justify-center rounded-full border border-slate-700 text-slate-200" title="Outreach email">
+                          <span class="material-symbols-outlined">mail</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-2 text-sm text-slate-300">
+                      <div>
+                        <h3 class="text-sm font-semibold text-white">Contact</h3>
+                        <p class="mt-2 text-xs">aurora.james@email.com • 415-555-9812</p>
+                        <p class="mt-1 text-xs text-slate-400">San Francisco • Remote</p>
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-semibold text-white">Work history</h3>
+                        <ul class="mt-2 space-y-2 text-xs text-slate-300">
+                          <li><strong>VP Lifecycle Marketing</strong> • GlowTech • 2020-Current</li>
+                          <li><strong>Director Growth</strong> • SaaSCo • 2016-2020</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-semibold text-white">Education</h3>
+                        <p class="mt-2 text-xs">MBA • Kellogg School of Management</p>
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-semibold text-white">Resume</h3>
+                        <p class="mt-2 text-xs text-primary">View uploaded PDF</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Notes & interview feedback</h3>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Add note</button>
+                    </div>
+                    <ul class="mt-4 space-y-3 text-xs">
+                      <li class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">Great alignment on experimentation frameworks; highlight retention metrics.</li>
+                      <li class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">Request salary benchmark prior to offer discussion.</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                    <h3 class="text-lg font-semibold text-white">Pipeline</h3>
+                    <div class="mt-3 space-y-2 text-xs">
+                      <p>Stage: <span class="font-semibold text-primary">Screening</span></p>
+                      <p>Project: Project Atlas</p>
+                      <p>Owner: Alex Morgan</p>
+                    </div>
+                    <button class="mt-4 w-full rounded-full border border-slate-700 px-4 py-2 text-xs">Change stage</button>
+                  </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                    <h3 class="text-lg font-semibold text-white">Linked insights</h3>
+                    <ul class="mt-3 space-y-2 text-xs">
+                      <li>Salary benchmark ready • <button data-screen="analytics" data-screen-tab="salary-benchmark" class="text-primary">View</button></li>
+                      <li>Market research summary attached • <button data-screen="analytics" data-screen-tab="market-research" class="text-primary">Open</button></li>
+                      <li>Outreach email queued • <span class="text-emerald">Scheduled</span></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="analytics" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Insights</p>
+                  <h2 class="text-2xl font-semibold text-white">Analytics &amp; Market Intelligence</h2>
+                  <p class="mt-2 text-sm text-slate-300">Surface regional signals, competitor activity, and compensation trends to guide hiring decisions.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300" role="tablist" aria-label="Analytics views">
+                  <button type="button" id="analytics-tab-market-research" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="analytics" data-tab-target="market-research" role="tab" aria-selected="true" aria-controls="analytics-market-research">
+                    Market Research
+                  </button>
+                  <button type="button" id="analytics-tab-salary-benchmark" class="tab-trigger rounded-full border border-slate-700 px-3 py-1 font-semibold text-slate-300 transition" data-tab-group="analytics" data-tab-target="salary-benchmark" role="tab" aria-selected="false" aria-controls="analytics-salary-benchmark">
+                    Salary Benchmarking
+                  </button>
+                </div>
+              </div>
+              <div class="mt-6 space-y-6">
+                <div id="analytics-market-research" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="analytics-tab-market-research" data-tab-group="analytics" data-tab-panel="market-research" aria-hidden="false">
+                  <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Regional talent analysis</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                          <div class="rounded-2xl bg-slate-950/70 p-4">
+                            <p class="text-xs uppercase text-slate-500">North America</p>
+                            <p class="mt-2 text-2xl font-semibold text-white">+14%</p>
+                            <p class="text-xs text-slate-400">YoY growth in lifecycle leadership roles</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4">
+                            <p class="text-xs uppercase text-slate-500">EMEA</p>
+                            <p class="mt-2 text-2xl font-semibold text-white">+9%</p>
+                            <p class="text-xs text-slate-400">Hiring velocity improvement</p>
+                          </div>
+                        </div>
+                        <ul class="mt-4 space-y-2 text-xs">
+                          <li>FinTech and SaaS sectors continue to outpace overall hiring demand.</li>
+                          <li>Competitors shifting focus to retention-led growth across key regions.</li>
+                        </ul>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Hiring trends</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">6 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+6%</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">12 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+11%</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">24 months</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+17%</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Competitor intelligence reveals acceleration in PLG hiring, particularly across APAC GTM teams.</p>
+                      </div>
+                    </div>
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Summary</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li>Talent availability strong across remote-first growth roles.</li>
+                          <li>Salary expectations trending +8% vs previous cycle.</li>
+                          <li>Recommend targeting FinTech competitors for outreach.</li>
+                        </ul>
+                        <button class="mt-4 w-full rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Download report</button>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Linked resources</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li><button data-screen="analytics" data-screen-tab="salary-benchmark" class="text-primary">Salary benchmark</button> updated 7d ago</li>
+                          <li><button data-screen="ai-sourcing" class="text-primary">AI sourcing job</button> queued for refresh</li>
+                          <li><button data-screen="verbal-script" class="text-primary">Verbal script</button> tailored for final interviews</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="analytics-salary-benchmark" class="candidate-panel hidden space-y-6" role="tabpanel" aria-labelledby="analytics-tab-salary-benchmark" data-tab-group="analytics" data-tab-panel="salary-benchmark" aria-hidden="true">
+                  <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Role overview</h3>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Base</p>
+                            <p class="text-2xl font-semibold text-white">$168k</p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Variable</p>
+                            <p class="text-2xl font-semibold text-white">$52k</p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase text-slate-500">Equity</p>
+                            <p class="text-2xl font-semibold text-white">0.45%</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Benchmark generated from FinTech and SaaS cohorts across North America and APAC.</p>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Regional variations</h3>
+                        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">North America</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+12%</p>
+                            <p class="text-xs text-slate-400">High demand</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">EMEA</p>
+                            <p class="mt-2 text-xl font-semibold text-white">+5%</p>
+                            <p class="text-xs text-slate-400">Mature markets</p>
+                          </div>
+                          <div class="rounded-2xl bg-slate-950/70 p-4 text-center">
+                            <p class="text-xs uppercase text-slate-500">APAC</p>
+                            <p class="mt-2 text-xl font-semibold text-white">-3%</p>
+                            <p class="text-xs text-slate-400">Emerging supply</p>
+                          </div>
+                        </div>
+                        <p class="mt-4 text-xs text-slate-400">Seniority adjustments: Manager -8%, Director baseline, VP +18%.</p>
+                      </div>
+                    </div>
+                    <div class="space-y-4">
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Rationale &amp; sources</h3>
+                        <ul class="mt-3 space-y-2 text-xs">
+                          <li>Aggregated from SmartRecruiters, Gemini market intelligence, and peer datasets.</li>
+                          <li>Adjusted for remote-first comp policies and PLG skill scarcity.</li>
+                          <li>Cross-referenced with outreach response rates.</li>
+                        </ul>
+                      </div>
+                      <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                        <h3 class="text-lg font-semibold text-white">Quick actions</h3>
+                        <div class="mt-3 flex flex-col gap-2 text-xs">
+                          <button data-screen="project-management" class="rounded-full border border-slate-700 px-3 py-1 text-left">Share with hiring manager</button>
+                          <button data-screen="candidate-profile" class="rounded-full border border-slate-700 px-3 py-1 text-left">Attach to candidate profile</button>
+                          <button data-screen="verbal-script" class="rounded-full border border-slate-700 px-3 py-1 text-left">Sync talking points</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="position-details" class="screen">
+            <div class="rounded-3xl bg-[#062c3a] p-6 ring-1 ring-slate-800/60 text-slate-100">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Position Details</p>
+                  <h2 class="text-2xl font-semibold">Director, Lifecycle Marketing</h2>
+                  <p class="mt-2 text-sm text-slate-200">Review key role information, trigger AI-powered job description generation, and connect directly to salary benchmarking.</p>
+                </div>
+                <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Open salary benchmark</button>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm">
+                    <h3 class="text-lg font-semibold text-white">Role summary</h3>
+                    <ul class="mt-3 space-y-2 text-xs text-slate-100/80">
+                      <li>Build retention and lifecycle programs for PLG motion.</li>
+                      <li>Partner with data science to drive experimentation.</li>
+                      <li>Lead a team of 12 growth specialists across regions.</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <h3 class="text-lg font-semibold text-white">Job description generation</h3>
+                      <button class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Generate JD</button>
+                    </div>
+                    <label class="mt-4 block text-xs text-slate-200">Key priorities<textarea class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3" rows="3" placeholder="Highlight business goals, success metrics, required competencies"></textarea></label>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2 text-xs text-slate-100/80">
+                      <label>Audience tone<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Executive</option><option>Inclusive</option><option>Technical</option></select></label>
+                      <label>Format<select class="mt-1 w-full rounded-xl border border-white/20 bg-[#0a4c63] p-3"><option>Full JD</option><option>Highlights</option><option>Social post</option></select></label>
+                    </div>
+                    <div class="mt-4 space-y-2 rounded-2xl border border-white/10 bg-[#0a4c63] p-4 text-xs">
+                      <p class="font-semibold text-white">Draft preview</p>
+                      <p>Gemini is ready to produce a tailored JD with responsibilities, requirements, and EVP messaging.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm">
+                    <h3 class="text-lg font-semibold text-white">Position metadata</h3>
+                    <ul class="mt-3 space-y-2 text-xs text-slate-100/80">
+                      <li>Location: Remote (North America)</li>
+                      <li>Seniority: Director</li>
+                      <li>Hiring manager: Taylor Reed</li>
+                      <li>Openings: 1</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm">
+                    <h3 class="text-lg font-semibold text-white">Linked tools</h3>
+                    <ul class="mt-3 space-y-2 text-xs text-slate-100/80">
+                      <li><button data-screen="ai-sourcing" class="text-primary">Launch AI sourcing</button></li>
+                      <li><button data-screen="analytics" data-screen-tab="market-research" class="text-primary">View market research</button></li>
+                      <li><button data-screen="verbal-script" class="text-primary">Generate verbal script</button></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="positions-overview" class="screen">
+            <div class="rounded-3xl bg-[#062c3a] p-6 ring-1 ring-slate-800/60 text-slate-100">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Positions Management</p>
+                  <h2 class="text-2xl font-semibold">All positions overview</h2>
+                  <p class="mt-2 text-sm text-slate-200">Create new positions, track status, view applicant counters, and organize by tags.</p>
+                </div>
+                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Create position</button>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm text-slate-100/80">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                      <select class="rounded-full border border-white/20 bg-[#0a4c63] px-3 py-1"><option>All projects</option><option>Atlas</option><option>GTM Expansion</option></select>
+                      <select class="rounded-full border border-white/20 bg-[#0a4c63] px-3 py-1"><option>Status</option><option>Open</option><option>Closed</option><option>Draft</option></select>
+                      <input class="rounded-full border border-white/20 bg-[#0a4c63] px-3 py-1" placeholder="Search positions" type="search" />
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                      <button class="rounded-full border border-white/20 bg-[#0a4c63] px-3 py-1">Filter</button>
+                      <button class="rounded-full border border-white/20 bg-[#0a4c63] px-3 py-1">Sort</button>
+                    </div>
+                  </div>
+                  <div class="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0a4c63]">
+                    <table class="min-w-full divide-y divide-white/10 text-xs">
+                      <thead class="bg-white/5 text-[11px] uppercase tracking-wide text-slate-200">
+                        <tr>
+                          <th class="px-4 py-3 text-left">Position</th>
+                          <th class="px-4 py-3 text-left">Project</th>
+                          <th class="px-4 py-3 text-left">Status</th>
+                          <th class="px-4 py-3 text-left">Applicants</th>
+                          <th class="px-4 py-3 text-left">Tags</th>
+                          <th class="px-4 py-3 text-left">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-white/10 text-slate-100/80">
+                        <tr>
+                          <td class="px-4 py-4">
+                            <p class="font-semibold text-white">Director, Lifecycle Marketing</p>
+                            <p class="text-[11px] text-slate-300">Remote • North America</p>
+                          </td>
+                          <td class="px-4 py-4">Project Atlas</td>
+                          <td class="px-4 py-4"><span class="rounded-full bg-emerald/20 px-3 py-1 text-[11px] text-emerald">Open</span></td>
+                          <td class="px-4 py-4">42</td>
+                          <td class="px-4 py-4 text-[11px]">PLG, retention, marketing</td>
+                          <td class="px-4 py-4">
+                            <button data-screen="position-details" class="rounded-full border border-white/20 bg-transparent px-3 py-1 text-[11px] text-white">View</button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-4">
+                            <p class="font-semibold text-white">VP Sales, Enterprise</p>
+                            <p class="text-[11px] text-slate-300">Hybrid • Chicago</p>
+                          </td>
+                          <td class="px-4 py-4">Executive Product Search</td>
+                          <td class="px-4 py-4"><span class="rounded-full bg-amber-200/20 px-3 py-1 text-[11px] text-amber-200">Offer</span></td>
+                          <td class="px-4 py-4">25</td>
+                          <td class="px-4 py-4 text-[11px]">Enterprise, SaaS</td>
+                          <td class="px-4 py-4"><button class="rounded-full border border-white/20 bg-transparent px-3 py-1 text-[11px] text-white">View</button></td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-4">
+                            <p class="font-semibold text-white">Principal Data Scientist</p>
+                            <p class="text-[11px] text-slate-300">Remote • Global</p>
+                          </td>
+                          <td class="px-4 py-4">APAC GTM Expansion</td>
+                          <td class="px-4 py-4"><span class="rounded-full bg-primary/20 px-3 py-1 text-[11px] text-primary">Interview</span></td>
+                          <td class="px-4 py-4">38</td>
+                          <td class="px-4 py-4 text-[11px]">AI, analytics</td>
+                          <td class="px-4 py-4"><button class="rounded-full border border-white/20 bg-transparent px-3 py-1 text-[11px] text-white">View</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm text-slate-100/80">
+                    <h3 class="text-lg font-semibold text-white">Tags & organization</h3>
+                    <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span class="rounded-full bg-[#0a4c63] px-3 py-1">Executive</span>
+                      <span class="rounded-full bg-[#0a4c63] px-3 py-1">Product</span>
+                      <span class="rounded-full bg-[#0a4c63] px-3 py-1">Data</span>
+                      <span class="rounded-full bg-[#0a4c63] px-3 py-1">Priority</span>
+                    </div>
+                  </div>
+                  <div class="rounded-3xl bg-[#084255] p-6 ring-1 ring-white/10 text-sm text-slate-100/80">
+                    <h3 class="text-lg font-semibold text-white">Quick stats</h3>
+                    <ul class="mt-3 space-y-2 text-xs">
+                      <li>Open positions: 18</li>
+                      <li>In review: 9</li>
+                      <li>On hold: 3</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="verbal-script" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Verbal Script Generation</p>
+                  <h2 class="text-2xl font-semibold text-white">Role-specific screening scripts</h2>
+                  <p class="mt-2 text-sm text-slate-300">Input role details to generate structured scripts covering relevance, impact, and motivation questions.</p>
+                </div>
+                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Save script</button>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="call-script-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <div class="grid gap-4 lg:grid-cols-2">
+                    <label class="text-xs text-slate-400">Candidate name<input id="call-candidate-name" name="candidate_name" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Taylor Reed" type="text" required /></label>
+                    <label class="text-xs text-slate-400">Role title<input id="call-role-title" name="title" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Director, Lifecycle Marketing" type="text" required /></label>
+                    <label class="text-xs text-slate-400">Location<input id="call-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Remote - North America" type="text" /></label>
+                    <label class="text-xs text-slate-400">Conversation style<select id="call-script-format" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option value="structured">Structured Q&A</option><option value="briefing">Panel briefing</option><option value="phone">Phone screen</option></select></label>
+                  </div>
+                  <div class="grid gap-4 lg:grid-cols-3">
+                    <label class="text-xs text-slate-400">Value prop 1<textarea id="call-value-prop-1" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Key experiences, team scale, tools"></textarea></label>
+                    <label class="text-xs text-slate-400">Value prop 2<textarea id="call-value-prop-2" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Results delivered, metrics owned"></textarea></label>
+                    <label class="text-xs text-slate-400">Value prop 3<textarea id="call-value-prop-3" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Why now, what excites them"></textarea></label>
+                  </div>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Generate script</button>
+                  <p id="call-script-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Generated script</h3>
+                  <div id="call-script-output" class="space-y-3 text-xs">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <p class="font-semibold text-white">Relevance</p>
+                      <p class="mt-2">Submit the form to generate a tailored call script for your candidate.</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-copy">Copy</button>
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-download">Download</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="activity" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Activity</p>
+                  <h2 class="text-2xl font-semibold text-white">Live collaboration feed</h2>
+                  <p class="mt-2 text-sm text-slate-300">Monitor every key update across sourcing, interviews, market research, and analytics in real time.</p>
+                </div>
+                <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Pause stream</button>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span class="material-symbols-outlined text-primary">play_arrow</span>
+                    Streaming updates • Last synced 2m ago
+                  </div>
+                  <ul class="space-y-3 text-sm">
+                    <li class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">Gemini queued outreach automation for APAC GTM expansion shortlist.</li>
+                    <li class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">Market research automation delivered competitor salary adjustments for FinTech cohort.</li>
+                    <li class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">Interview feedback submitted by Taylor Reed • Candidate rated 4.7/5.</li>
+                  </ul>
+                </div>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Filters</h3>
+                  <label class="block text-xs text-slate-400">Event types<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>All</option><option>Sourcing</option><option>Interview</option><option>Automation</option></select></label>
+                  <label class="block text-xs text-slate-400">Projects<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>All</option><option>Atlas</option><option>GTM Expansion</option></select></label>
+                  <label class="block text-xs text-slate-400">Notifications<select class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3"><option>Critical only</option><option>Standard</option></select></label>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </div>
     <script>
-      const TOKEN_STORAGE_KEY = "recruitpro.token";
-      document.addEventListener("DOMContentLoaded", () => {
-        try {
-          const stored = window.localStorage?.getItem(TOKEN_STORAGE_KEY);
-          if (stored) {
-            const url = new URL(window.location.href);
-            if (!url.searchParams.get("token")) {
-              url.searchParams.set("token", stored);
-              window.location.replace(url.toString());
+        const sections = document.querySelectorAll('.screen');
+        const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+        const breadcrumbTrail = document.getElementById('breadcrumb-trail');
+        const contextTabsContainer = document.getElementById('context-tabs');
+
+        function updateNavLinkState(link, isActive) {
+          if (!link) {
+            return;
+          }
+          const variant = link.dataset.navVariant || 'sidebar';
+          link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          link.tabIndex = isActive ? 0 : -1;
+          if (variant === 'primary') {
+            if (isActive) {
+              link.classList.add('border-primary/60', 'bg-primary/10', 'text-primary', 'shadow-sm');
+              link.classList.remove('border-slate-800/60', 'text-slate-300');
+            } else {
+              link.classList.remove('border-primary/60', 'bg-primary/10', 'text-primary', 'shadow-sm');
+              link.classList.add('border-slate-800/60', 'text-slate-300');
+            }
+          } else {
+            if (isActive) {
+              link.classList.add('bg-slate-900/60', 'text-primary', 'ring-1', 'ring-primary/40');
+              link.classList.remove('text-slate-200');
+            } else {
+              link.classList.remove('bg-slate-900/60', 'text-primary', 'ring-1', 'ring-primary/40');
+              link.classList.add('text-slate-200');
             }
           }
-        } catch (err) {
-          console.warn("Unable to synchronise stored token", err);
         }
-      });
+
+        function handleTablistKeydown(event) {
+          const { key } = event;
+          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
+            return;
+          }
+          const currentTab = document.activeElement;
+          if (!currentTab || currentTab.getAttribute('role') !== 'tab') {
+            return;
+          }
+          const tablist = event.currentTarget;
+          const tabs = Array.from(tablist.querySelectorAll('[role="tab"]')).filter((tab) => !tab.disabled);
+          if (!tabs.length) {
+            return;
+          }
+          event.preventDefault();
+          let index = tabs.indexOf(currentTab);
+          if (index === -1) {
+            index = 0;
+          }
+          if (key === 'Home') {
+            index = 0;
+          } else if (key === 'End') {
+            index = tabs.length - 1;
+          } else if (key === 'ArrowRight' || key === 'ArrowDown') {
+            index = (index + 1) % tabs.length;
+          } else if (key === 'ArrowLeft' || key === 'ArrowUp') {
+            index = (index - 1 + tabs.length) % tabs.length;
+          }
+          const nextTab = tabs[index];
+          if (nextTab && nextTab !== currentTab) {
+            nextTab.focus({ preventScroll: true });
+            nextTab.click();
+          }
+        }
+
+        document.querySelectorAll('[role="tablist"]').forEach((tablist) => {
+          tablist.addEventListener('keydown', handleTablistKeydown);
+        });
+
+        const tabGroups = {
+          projects: [
+            { id: 'project-management', label: 'Overview' },
+            { id: 'positions-overview', label: 'Positions' },
+            { id: 'position-details', label: 'Role Detail' },
+          ],
+          candidates: [
+            { id: 'candidate-management', label: 'AI Screening', tab: 'ai-screening' },
+            { id: 'candidate-management', label: 'Shortlist Builder', tab: 'shortlist' },
+            { id: 'candidate-management', label: 'Interview Console', tab: 'interview' },
+          ],
+          'ai-sourcing': [
+            { id: 'ai-sourcing', label: 'Sourcing Builder' },
+            { id: 'ai-sourcing-results', label: 'Latest Results' },
+          ],
+          settings: [
+            { id: 'settings', label: 'Admin Controls', tab: 'admin' },
+            { id: 'settings', label: 'Workspace Setup', tab: 'workspace' },
+          ],
+          analytics: [
+            { id: 'analytics', label: 'Market Research', tab: 'market-research' },
+            { id: 'analytics', label: 'Salary Benchmarking', tab: 'salary-benchmark' },
+          ],
+        };
+
+        const screenMetadata = {
+          dashboard: { breadcrumb: ['Workspace', 'Dashboard'] },
+          activity: { breadcrumb: ['Workspace', 'Operations', 'Activity'] },
+          'project-management': {
+            breadcrumb: ['Workspace', 'Projects', 'Overview'],
+            tabsGroup: 'projects',
+          },
+          'positions-overview': {
+            breadcrumb: ['Workspace', 'Projects', 'Positions'],
+            tabsGroup: 'projects',
+          },
+          'position-details': {
+            breadcrumb: ['Workspace', 'Projects', 'Role Detail'],
+            tabsGroup: 'projects',
+          },
+          'candidate-management': {
+            breadcrumb: ['Workspace', 'Talent Workbench', 'Candidate Management'],
+            tabsGroup: 'candidates',
+          },
+          'ai-tools': { breadcrumb: ['Workspace', 'Automation', 'AI Tools Hub'] },
+          chatbot: { breadcrumb: ['Workspace', 'Automation', 'Assistant'] },
+          settings: {
+            breadcrumb: ['Workspace', 'Settings', 'Control Center'],
+            tabsGroup: 'settings',
+          },
+          'ai-sourcing': {
+            breadcrumb: ['Workspace', 'AI Sourcing', 'Builder'],
+            tabsGroup: 'ai-sourcing',
+          },
+          'ai-sourcing-results': {
+            breadcrumb: ['Workspace', 'AI Sourcing', 'Results'],
+            tabsGroup: 'ai-sourcing',
+          },
+          'candidate-profile': { breadcrumb: ['Workspace', 'Profiles', 'Candidate Detail'] },
+          analytics: {
+            breadcrumb: ['Workspace', 'Insights', 'Analytics'],
+            tabsGroup: 'analytics',
+          },
+          'verbal-script': { breadcrumb: ['Workspace', 'Enablement', 'Verbal Script'] },
+        };
+
+        const fallbackMetadata = { breadcrumb: ['Workspace', 'Dashboard'] };
+        const boundButtons = new WeakSet();
+        const tabDefaults = {
+          candidates: 'ai-screening',
+          settings: 'admin',
+          analytics: 'market-research',
+        };
+        const tabState = { ...tabDefaults };
+        let activeScreenId = null;
+
+        function bindScreenButton(button) {
+          if (!button || boundButtons.has(button)) {
+            return;
+          }
+          button.addEventListener('click', () => {
+            const target = button.getAttribute('data-screen');
+            if (target) {
+              const tabTarget = button.getAttribute('data-screen-tab');
+              showScreen(target, { tab: tabTarget });
+            }
+          });
+          boundButtons.add(button);
+        }
+
+        document.querySelectorAll('[data-screen]').forEach(bindScreenButton);
+
+        function ensureTabState(group) {
+          if (!group) {
+            return null;
+          }
+          if (!Object.prototype.hasOwnProperty.call(tabState, group)) {
+            const defaults = tabGroups[group];
+            if (defaults && defaults.length) {
+              const first = defaults[0];
+              tabState[group] = first.tab || first.id;
+            } else {
+              return null;
+            }
+          }
+          return tabState[group];
+        }
+
+        function activateTabGroup(group, tab, options = {}) {
+          if (!group || !tab) {
+            return;
+          }
+          tabState[group] = tab;
+          const buttons = document.querySelectorAll(`[data-tab-group="${group}"][data-tab-target]`);
+          buttons.forEach((button) => {
+            const target = button.getAttribute('data-tab-target');
+            const isActive = target === tab;
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            if (isActive) {
+              button.classList.add('border-primary/40', 'bg-primary/10', 'text-primary');
+              button.classList.remove('border-slate-700', 'text-slate-300');
+            } else {
+              button.classList.add('border-slate-700', 'text-slate-300');
+              button.classList.remove('border-primary/40', 'bg-primary/10', 'text-primary');
+            }
+          });
+          const panels = document.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`);
+          panels.forEach((panel) => {
+            const panelId = panel.getAttribute('data-tab-panel');
+            const isActive = panelId === tab;
+            panel.classList.toggle('hidden', !isActive);
+            panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+          });
+          if (!options.skipContextUpdate && activeScreenId) {
+            const meta = getScreenMetadata(activeScreenId);
+            if (meta?.tabsGroup === group) {
+              updateContextControls(activeScreenId);
+            }
+          }
+        }
+
+        document.querySelectorAll('[data-tab-group][data-tab-target]').forEach((button) => {
+          if (button.hasAttribute('data-screen')) {
+            return;
+          }
+          button.addEventListener('click', () => {
+            const group = button.getAttribute('data-tab-group');
+            const target = button.getAttribute('data-tab-target');
+            if (group && target) {
+              activateTabGroup(group, target);
+            }
+          });
+        });
+
+        Object.keys(tabGroups).forEach((group) => {
+          ensureTabState(group);
+        });
+
+        Object.entries(tabState).forEach(([group, tab]) => {
+          activateTabGroup(group, tab, { skipContextUpdate: true });
+        });
+
+        function getScreenMetadata(id) {
+          return screenMetadata[id] || fallbackMetadata;
+        }
+
+        function renderBreadcrumb(meta) {
+          if (!breadcrumbTrail) {
+            return;
+          }
+          const crumbs = Array.isArray(meta?.breadcrumb) && meta.breadcrumb.length
+            ? meta.breadcrumb
+            : fallbackMetadata.breadcrumb;
+          breadcrumbTrail.innerHTML = '';
+          crumbs.forEach((label, index) => {
+            const item = document.createElement('li');
+            item.className = 'flex items-center gap-2';
+            if (index === 0) {
+              item.innerHTML = `
+                <span class="material-symbols-outlined text-base text-slate-500">home</span>
+                <span class="text-slate-300">${label}</span>
+              `.trim();
+            } else {
+              const divider = document.createElement('span');
+              divider.className = 'text-slate-600';
+              divider.textContent = '/';
+              const text = document.createElement('span');
+              text.textContent = label;
+              text.className = index === crumbs.length - 1 ? 'font-semibold text-slate-100' : 'text-slate-300';
+              item.append(divider, text);
+              if (index === crumbs.length - 1) {
+                item.setAttribute('aria-current', 'page');
+              }
+            }
+            breadcrumbTrail.appendChild(item);
+          });
+        }
+
+        function renderContextTabs(meta, activeId) {
+          if (!contextTabsContainer) {
+            return;
+          }
+          contextTabsContainer.innerHTML = '';
+          let tabs = Array.isArray(meta?.tabs) && meta.tabs.length ? meta.tabs : null;
+          const groupId = meta?.tabsGroup || null;
+          if (!tabs && groupId) {
+            tabs = tabGroups[groupId] || null;
+          }
+          if (!tabs || !tabs.length) {
+            contextTabsContainer.classList.add('hidden');
+            contextTabsContainer.setAttribute('aria-hidden', 'true');
+            return;
+          }
+          contextTabsContainer.classList.remove('hidden');
+          contextTabsContainer.setAttribute('aria-hidden', 'false');
+          const activeTab = groupId ? ensureTabState(groupId) : null;
+          tabs.forEach((tabConfig) => {
+            const { id, label, tab: tabId, screen: screenId } = tabConfig;
+            const button = document.createElement('button');
+            button.type = 'button';
+            const targetScreen = screenId || id;
+            const targetTab = tabId || null;
+            button.setAttribute('data-screen', targetScreen);
+            button.setAttribute('role', 'tab');
+            const controlsId = targetTab && groupId ? `${targetScreen}-${targetTab}` : targetScreen;
+            button.setAttribute('aria-controls', controlsId);
+            if (targetTab) {
+              button.setAttribute('data-screen-tab', targetTab);
+            } else {
+              button.removeAttribute('data-screen-tab');
+            }
+            const isActive = targetTab
+              ? groupId && activeTab === targetTab
+              : targetScreen === activeId;
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            button.tabIndex = isActive ? 0 : -1;
+            button.className = 'context-tab rounded-full border border-slate-800/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-primary/60 hover:text-primary';
+            button.textContent = label;
+            if (isActive) {
+              button.classList.add('context-tab-active');
+            }
+            contextTabsContainer.appendChild(button);
+            bindScreenButton(button);
+          });
+        }
+
+        function updateContextControls(screenId) {
+          const meta = getScreenMetadata(screenId);
+          renderBreadcrumb(meta);
+          renderContextTabs(meta, screenId);
+        }
+
+      const TOKEN_STORAGE_KEY = 'recruitpro.token';
+      const TOKEN_TYPE_STORAGE_KEY = 'recruitpro.tokenType';
+      let unauthorizedNotified = false;
+
+      class HttpError extends Error {
+        constructor(message, status, payload) {
+          super(message);
+          this.name = 'HttpError';
+          this.status = status;
+          this.payload = payload;
+        }
+      }
+
+      const state = {
+        projects: [],
+        positions: [],
+        sourcingOverview: null,
+        callScriptText: '',
+      };
+
+      const initializationIssues = new Map();
+
+      function setButtonLoading(button, label) {
+        if (!button) {
+          return () => {};
+        }
+        const originalHtml = button.innerHTML;
+        const originalAriaBusy = button.getAttribute('aria-busy');
+        const wasDisabled = button.disabled;
+        const hadCursorWait = button.classList.contains('cursor-wait');
+        const originalMinWidth = button.style.minWidth;
+        const { width } = button.getBoundingClientRect();
+        if (width) {
+          button.style.minWidth = `${Math.ceil(width)}px`;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.classList.add('cursor-wait');
+        const text = label || 'Working…';
+        button.innerHTML = `
+          <span class="flex items-center justify-center gap-2">
+            <svg class="size-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 4.418 3.134 8.166 7.292 8.944l.708-3.653z" fill="currentColor"></path>
+            </svg>
+            <span>${text}</span>
+          </span>
+        `.trim();
+        return () => {
+          button.innerHTML = originalHtml;
+          if (originalAriaBusy !== null) {
+            button.setAttribute('aria-busy', originalAriaBusy);
+          } else {
+            button.removeAttribute('aria-busy');
+          }
+          if (!hadCursorWait) {
+            button.classList.remove('cursor-wait');
+          }
+          button.style.minWidth = originalMinWidth;
+          button.disabled = wasDisabled;
+        };
+      }
+
+      const loadingManager = (() => {
+        const overlay = document.getElementById('global-loading-overlay');
+        const label = document.getElementById('global-loading-label');
+        const messages = new Map();
+        let idCounter = 0;
+
+        function updateOverlay() {
+          if (!overlay) {
+            return;
+          }
+          if (messages.size) {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            overlay.setAttribute('aria-busy', 'true');
+            if (label) {
+              const lastMessage = Array.from(messages.values()).pop() || 'Processing…';
+              label.textContent = lastMessage;
+            }
+          } else {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            overlay.setAttribute('aria-busy', 'false');
+            if (label) {
+              label.textContent = '';
+            }
+          }
+        }
+
+        function start(message) {
+          const id = ++idCounter;
+          messages.set(id, message || 'Processing…');
+          updateOverlay();
+          return () => {
+            if (messages.delete(id)) {
+              updateOverlay();
+            }
+          };
+        }
+
+        async function wrap(task, options = {}) {
+          const { message, button, buttonLabel } = options;
+          const stopOverlay = message ? start(message) : null;
+          const stopButton = button ? setButtonLoading(button, buttonLabel || message) : null;
+          try {
+            return await task();
+          } finally {
+            if (typeof stopButton === 'function') {
+              stopButton();
+            }
+            if (typeof stopOverlay === 'function') {
+              stopOverlay();
+            }
+          }
+        }
+
+        return {
+          start,
+          wrap,
+        };
+      })();
+
+      function getStoredAuthHeader() {
+        try {
+          const token = window.localStorage?.getItem(TOKEN_STORAGE_KEY);
+          if (!token) {
+            return null;
+          }
+          const tokenType = window.localStorage?.getItem(TOKEN_TYPE_STORAGE_KEY) || 'Bearer';
+          return `${tokenType} ${token}`.trim();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function clearStoredAuth() {
+        try {
+          window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage?.removeItem(TOKEN_TYPE_STORAGE_KEY);
+        } catch (error) {
+          // Ignore storage cleanup issues.
+        }
+      }
+
+      function handleUnauthorized(message) {
+        if (unauthorizedNotified) {
+          return;
+        }
+        unauthorizedNotified = true;
+        showToast(message || 'Your session has expired. Please sign in again.', 'error');
+        const current = `${window.location.pathname}${window.location.search}`;
+        window.setTimeout(() => {
+          window.location.href = `/login?next=${encodeURIComponent(current)}`;
+        }, 1200);
+      }
+
+      const elements = {
+        initializationStatus: document.getElementById('initialization-status'),
+        salaryForm: document.getElementById('salary-benchmark-form'),
+        salaryResult: document.getElementById('salary-benchmark-result'),
+        aiSourcingForm: document.getElementById('ai-sourcing-form'),
+        sourcingProject: document.getElementById('sourcing-project'),
+        sourcingPosition: document.getElementById('sourcing-position'),
+        sourcingPlatforms: document.getElementById('sourcing-platforms'),
+        sourcingSeniority: document.getElementById('sourcing-seniority'),
+        sourcingLocation: document.getElementById('sourcing-location'),
+        sourcingKeywords: document.getElementById('sourcing-keywords'),
+        sourcingContext: document.getElementById('sourcing-context'),
+        aiSourcingMessage: document.getElementById('ai-sourcing-message'),
+        sourcingStatusLabel: document.getElementById('sourcing-status-label'),
+        sourcingStatusMeta: document.getElementById('sourcing-status-meta'),
+        sourcingProgressBar: document.getElementById('sourcing-progress-bar'),
+        sourcingRecentList: document.getElementById('sourcing-recent-list'),
+        sourcingNextRefresh: document.getElementById('sourcing-next-refresh'),
+        callScriptForm: document.getElementById('call-script-form'),
+        callCandidateName: document.getElementById('call-candidate-name'),
+        callRoleTitle: document.getElementById('call-role-title'),
+        callLocation: document.getElementById('call-location'),
+        callValueProp1: document.getElementById('call-value-prop-1'),
+        callValueProp2: document.getElementById('call-value-prop-2'),
+        callValueProp3: document.getElementById('call-value-prop-3'),
+        callScriptMessage: document.getElementById('call-script-message'),
+        callScriptOutput: document.getElementById('call-script-output'),
+        callScriptCopy: document.getElementById('call-script-copy'),
+        callScriptDownload: document.getElementById('call-script-download'),
+      };
+
+      function updateInitializationStatus() {
+        const banner = elements.initializationStatus;
+        if (!banner) {
+          return;
+        }
+        if (!initializationIssues.size) {
+          banner.classList.add('hidden');
+          banner.textContent = '';
+          return;
+        }
+        const messages = Array.from(initializationIssues.values());
+        const summary = `We couldn't load some console data. ${messages.join(' ')}`;
+        banner.textContent = summary;
+        banner.classList.remove('hidden');
+      }
+
+      function setInitializationIssue(key, label, message) {
+        if (!message) {
+          return;
+        }
+        initializationIssues.set(key, `${label}: ${message}`);
+        updateInitializationStatus();
+      }
+
+      function clearInitializationIssue(key) {
+        if (initializationIssues.delete(key)) {
+          updateInitializationStatus();
+        }
+      }
+
+      function showScreen(id, options = {}) {
+        const meta = getScreenMetadata(id);
+        const groupId = meta?.tabsGroup || null;
+        const requestedTab = options?.tab || null;
+        if (groupId) {
+          if (requestedTab) {
+            tabState[groupId] = requestedTab;
+          } else {
+            ensureTabState(groupId);
+          }
+        }
+        sections.forEach((section) => {
+          section.classList.toggle('active', section.id === id);
+        });
+        navLinks.forEach((link) => {
+          const isActive = link.getAttribute('data-screen') === id;
+          updateNavLinkState(link, isActive);
+        });
+        activeScreenId = id;
+        updateContextControls(id);
+        if (groupId) {
+          const currentTab = ensureTabState(groupId);
+          if (currentTab) {
+            activateTabGroup(groupId, currentTab, { skipContextUpdate: true });
+          }
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      showScreen('dashboard');
+
+      function getToastContainer() {
+        let container = document.getElementById('toast-root');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'toast-root';
+          container.className = 'pointer-events-none fixed right-6 top-6 z-50 flex max-w-sm flex-col gap-2';
+          document.body.appendChild(container);
+        }
+        return container;
+      }
+
+      function showToast(message, tone = 'info') {
+        if (!message) return;
+        const container = getToastContainer();
+        const toast = document.createElement('div');
+        const toneClass = tone === 'success'
+          ? 'bg-emerald-500/10 text-emerald-200 ring-emerald-500/30'
+          : tone === 'error'
+            ? 'bg-rose-500/10 text-rose-200 ring-rose-500/30'
+            : 'bg-slate-900/90 text-slate-100 ring-slate-700/50';
+        toast.className = `pointer-events-auto rounded-2xl px-4 py-3 text-sm shadow-lg ring-1 ${toneClass}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.remove();
+        }, 4000);
+      }
+
+      function setMessage(element, message, tone = 'info') {
+        if (!element) return;
+        element.textContent = message || '';
+        element.classList.remove('text-emerald-400', 'text-red-400');
+        if (!message) {
+          element.classList.add('text-slate-400');
+          return;
+        }
+        if (tone === 'success') {
+          element.classList.add('text-emerald-400');
+          element.classList.remove('text-slate-400');
+        } else if (tone === 'error') {
+          element.classList.add('text-red-400');
+          element.classList.remove('text-slate-400');
+        } else {
+          element.classList.add('text-slate-400');
+        }
+      }
+
+      async function apiFetch(path, options = {}) {
+        const {
+          loadingMessage,
+          loadingButton,
+          loadingButtonLabel,
+          suppressGlobalLoading,
+          ...fetchOptions
+        } = options;
+        const init = { credentials: 'include', ...fetchOptions };
+        init.headers = new Headers(init.headers || {});
+        const authHeader = getStoredAuthHeader();
+        if (authHeader && !init.headers.has('Authorization')) {
+          init.headers.set('Authorization', authHeader);
+        }
+        if (init.body && typeof init.body === 'object' && !(init.body instanceof FormData)) {
+          init.headers.set('Content-Type', 'application/json');
+          init.body = JSON.stringify(init.body);
+        }
+        if (!init.headers.has('Accept')) {
+          init.headers.set('Accept', 'application/json');
+        }
+        const stopOverlay = loadingMessage && !suppressGlobalLoading
+          ? loadingManager.start(loadingMessage)
+          : null;
+        const stopButton = loadingButton
+          ? setButtonLoading(loadingButton, loadingButtonLabel || loadingMessage)
+          : null;
+        try {
+          const response = await fetch(path, init);
+          const text = await response.text();
+          let data = null;
+          if (text) {
+            try {
+              data = JSON.parse(text);
+            } catch (error) {
+              data = text;
+            }
+          }
+          if (!response.ok) {
+            const detail = typeof data === 'string' ? data : data?.detail || data?.message;
+            if (response.status === 401) {
+              clearStoredAuth();
+              handleUnauthorized(detail || 'Authentication required.');
+            }
+            throw new HttpError(detail || `Request failed with status ${response.status}`, response.status, data);
+          }
+          return data;
+        } finally {
+          if (typeof stopButton === 'function') {
+            stopButton();
+          }
+          if (typeof stopOverlay === 'function') {
+            stopOverlay();
+          }
+        }
+      }
+
+      function formatNumber(value) {
+        const number = Number(value) || 0;
+        return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(number);
+      }
+
+      function formatRelativeTime(value) {
+        if (!value) return '';
+        const timestamp = new Date(value);
+        if (Number.isNaN(timestamp.getTime())) {
+          return '';
+        }
+        const diffSeconds = Math.floor((Date.now() - timestamp.getTime()) / 1000);
+        if (diffSeconds < 60) {
+          return `${Math.max(1, diffSeconds)}s ago`;
+        }
+        if (diffSeconds < 3600) {
+          return `${Math.floor(diffSeconds / 60)}m ago`;
+        }
+        if (diffSeconds < 86400) {
+          return `${Math.floor(diffSeconds / 3600)}h ago`;
+        }
+        return `${Math.floor(diffSeconds / 86400)}d ago`;
+      }
+
+      function toTitleCase(value) {
+        if (!value) return '';
+        return value
+          .toString()
+          .replace(/[_-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/^(.)|\s+(.)/g, (match) => match.toUpperCase());
+      }
+
+      function populateProjectOptions() {
+        const select = elements.sourcingProject;
+        if (!select) return;
+        const previous = select.value;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select project';
+        select.appendChild(placeholder);
+        state.projects.forEach((project) => {
+          const option = document.createElement('option');
+          option.value = project.project_id;
+          option.textContent = project.name || 'Untitled project';
+          select.appendChild(option);
+        });
+        if (previous && state.projects.some((project) => project.project_id === previous)) {
+          select.value = previous;
+        } else if (!previous && state.projects.length === 1) {
+          select.value = state.projects[0].project_id;
+        }
+        populatePositionOptions(select.value || '');
+      }
+
+      function populatePositionOptions(projectId) {
+        const select = elements.sourcingPosition;
+        if (!select) return;
+        const previous = select.value;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select position';
+        select.appendChild(placeholder);
+        const rows = state.positions.filter((position) => {
+          if (!projectId) {
+            return true;
+          }
+          return position.project_id === projectId;
+        });
+        rows.forEach((position) => {
+          const option = document.createElement('option');
+          option.value = position.position_id;
+          option.textContent = position.title || 'Untitled position';
+          select.appendChild(option);
+        });
+        if (previous && rows.some((position) => position.position_id === previous)) {
+          select.value = previous;
+        } else if (!select.value && rows.length === 1) {
+          select.value = rows[0].position_id;
+        }
+      }
+
+      function renderSalaryBenchmark(result) {
+        const container = elements.salaryResult;
+        if (!container) return;
+        container.innerHTML = '';
+        if (!result) {
+          container.classList.add('hidden');
+          return;
+        }
+        container.classList.remove('hidden');
+        const headline = document.createElement('p');
+        headline.className = 'font-semibold text-white';
+        headline.textContent = `${result.currency || 'USD'} ${formatNumber(result.annual_mid || 0)}`;
+        const range = document.createElement('p');
+        range.className = 'mt-1 text-slate-300';
+        range.textContent = `Range: ${formatNumber(result.annual_min || 0)} - ${formatNumber(result.annual_max || 0)}`;
+        container.appendChild(headline);
+        container.appendChild(range);
+        if (result.rationale) {
+          const rationale = document.createElement('p');
+          rationale.className = 'mt-2 text-slate-400';
+          rationale.textContent = result.rationale;
+          container.appendChild(rationale);
+        }
+        if (Array.isArray(result.sources) && result.sources.length) {
+          const summary = document.createElement('p');
+          summary.className = 'mt-2 text-slate-500';
+          const sources = result.sources
+            .map((source) => source.name || source.url)
+            .filter(Boolean)
+            .slice(0, 5)
+            .join(', ');
+          summary.textContent = `Sources: ${sources}`;
+          container.appendChild(summary);
+        }
+      }
+
+      function updateSourcingOverview(data) {
+        state.sourcingOverview = data;
+        const jobs = Array.isArray(data?.jobs) ? data.jobs : [];
+        const activeJob = jobs.find((job) => {
+          const status = (job.status || '').toLowerCase();
+          return status && !['completed', 'failed'].includes(status);
+        }) || jobs[0];
+
+        if (elements.sourcingStatusLabel && elements.sourcingProgressBar && elements.sourcingStatusMeta) {
+          if (activeJob) {
+            elements.sourcingStatusLabel.textContent = toTitleCase(activeJob.status || 'In progress');
+            const progressValue = Math.min(100, Math.max(0, Math.round(activeJob.progress ?? 0)));
+            elements.sourcingProgressBar.style.width = `${progressValue}%`;
+            if (typeof activeJob.found_count === 'number' && activeJob.found_count > 0) {
+              elements.sourcingStatusMeta.textContent = `${activeJob.found_count} profiles found • ${progressValue}% complete`;
+            } else if (activeJob.updated_at) {
+              elements.sourcingStatusMeta.textContent = `Updated ${formatRelativeTime(activeJob.updated_at)}`;
+            } else {
+              elements.sourcingStatusMeta.textContent = `${progressValue}% complete`;
+            }
+          } else {
+            elements.sourcingStatusLabel.textContent = 'No active sourcing jobs';
+            elements.sourcingProgressBar.style.width = '0%';
+            elements.sourcingStatusMeta.textContent = 'Start a search to track Gemini\'s progress.';
+          }
+        }
+
+        if (elements.sourcingNextRefresh) {
+          if (activeJob && (activeJob.updated_at || activeJob.created_at)) {
+            elements.sourcingNextRefresh.textContent = `Updated ${formatRelativeTime(activeJob.updated_at || activeJob.created_at)}`;
+          } else {
+            elements.sourcingNextRefresh.textContent = jobs.length ? 'Monitoring recent sourcing jobs' : 'No active jobs';
+          }
+        }
+
+        if (elements.sourcingRecentList) {
+          elements.sourcingRecentList.innerHTML = '';
+          if (!jobs.length) {
+            const empty = document.createElement('li');
+            empty.className = 'text-slate-500';
+            empty.textContent = 'Run AI sourcing to see real-time activity.';
+            elements.sourcingRecentList.appendChild(empty);
+          } else {
+            jobs.slice(0, 5).forEach((job) => {
+              const item = document.createElement('li');
+              const parts = [job.position_title || job.project_name || 'Sourcing job'];
+              if (job.status) {
+                parts.push(toTitleCase(job.status));
+              }
+              if (typeof job.found_count === 'number' && job.found_count > 0) {
+                parts.push(`${job.found_count} profiles`);
+              }
+              if (job.updated_at || job.created_at) {
+                parts.push(formatRelativeTime(job.updated_at || job.created_at));
+              }
+              item.textContent = parts.filter(Boolean).join(' • ');
+              elements.sourcingRecentList.appendChild(item);
+            });
+          }
+        }
+      }
+
+      async function refreshSourcingOverview() {
+        try {
+          const overview = await apiFetch('/api/sourcing/overview');
+          clearInitializationIssue('sourcing');
+          if (overview) {
+            updateSourcingOverview(overview);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to refresh sourcing overview.';
+          setInitializationIssue('sourcing', 'Sourcing overview', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
+        }
+      }
+
+      async function loadProjects() {
+        try {
+          const projects = await apiFetch('/api/projects');
+          if (Array.isArray(projects)) {
+            state.projects = projects;
+            populateProjectOptions();
+          }
+          clearInitializationIssue('projects');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to load projects.';
+          setInitializationIssue('projects', 'Projects', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
+        }
+      }
+
+      async function loadPositions() {
+        try {
+          const positions = await apiFetch('/api/positions');
+          if (Array.isArray(positions)) {
+            state.positions = positions;
+            populatePositionOptions(elements.sourcingProject?.value || '');
+          }
+          clearInitializationIssue('positions');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to load positions.';
+          setInitializationIssue('positions', 'Positions', message);
+          if (!(error instanceof HttpError && error.status === 401)) {
+            showToast(message, 'error');
+          }
+        }
+      }
+
+      async function initializeConsole() {
+        const stopLoading = loadingManager.start('Loading console data…');
+        try {
+          await Promise.all([loadProjects(), loadPositions(), refreshSourcingOverview()]);
+        } finally {
+          stopLoading?.();
+        }
+      }
+
+      if (elements.sourcingProject) {
+        elements.sourcingProject.addEventListener('change', (event) => {
+          populatePositionOptions(event.target.value || '');
+        });
+      }
+
+      if (elements.salaryForm) {
+        elements.salaryForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.salaryForm);
+          const title = formData.get('title');
+          const region = formData.get('region');
+          if (!title || !region) {
+            showToast('Role and region are required for benchmarking.', 'error');
+            return;
+          }
+          const payload = { title, region };
+          const sector = formData.get('sector');
+          const seniority = formData.get('seniority');
+          if (sector) {
+            payload.sector = sector;
+          }
+          if (seniority) {
+            payload.seniority = seniority;
+          }
+          const submitButton = elements.salaryForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/api/research/salary-benchmark', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Fetching salary benchmark…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Fetching…',
+            });
+            renderSalaryBenchmark(result);
+            showToast('Salary benchmark ready.', 'success');
+          } catch (error) {
+            renderSalaryBenchmark(null);
+            showToast(error.message || 'Unable to fetch salary benchmark.', 'error');
+          }
+        });
+      }
+
+      if (elements.aiSourcingForm) {
+        elements.aiSourcingForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.aiSourcingForm);
+          const projectId = formData.get('project_id');
+          const positionId = formData.get('position_id');
+          if (!projectId || !positionId) {
+            setMessage(elements.aiSourcingMessage, 'Select a project and position before starting a search.', 'error');
+            return;
+          }
+          setMessage(elements.aiSourcingMessage, 'Queuing AI sourcing job...');
+          const platforms = formData.getAll('platforms').map((value) => value.trim()).filter(Boolean);
+          const keywordsRaw = formData.get('keywords') || '';
+          const keywords = keywordsRaw
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          const payload = {
+            project_id: projectId,
+            position_id: positionId,
+            platforms,
+          };
+          const seniority = formData.get('seniority');
+          const location = formData.get('location');
+          const context = formData.get('context');
+          if (seniority) {
+            payload.seniority = seniority;
+          }
+          if (location) {
+            payload.location = location;
+          }
+          if (keywords.length) {
+            payload.keywords = keywords;
+          }
+          if (context) {
+            payload.context = context;
+          }
+          const submitButton = elements.aiSourcingForm.querySelector('[type="submit"]');
+          try {
+            await apiFetch('/api/ai/source-candidates', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Queuing AI sourcing job…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Queuing…',
+            });
+            setMessage(elements.aiSourcingMessage, 'AI sourcing job queued. Tracking progress...', 'success');
+            showToast('AI sourcing job queued.', 'success');
+            refreshSourcingOverview();
+          } catch (error) {
+            setMessage(elements.aiSourcingMessage, error.message || 'Unable to start AI sourcing.', 'error');
+            showToast(error.message || 'Unable to start AI sourcing.', 'error');
+          }
+        });
+      }
+
+      function renderCallScript(script) {
+        const container = elements.callScriptOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        state.callScriptText = '';
+        if (!script) {
+          const empty = document.createElement('div');
+          empty.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          empty.innerHTML = '<p class="font-semibold text-white">Call script</p><p class="mt-2">Submit the form to generate a tailored call script for your candidate.</p>';
+          container.appendChild(empty);
+          return;
+        }
+        const headerLines = [];
+        if (script.candidate || script.role) {
+          headerLines.push(`${script.candidate || 'Candidate'} — ${script.role || 'Role'}`);
+        }
+        if (script.location) {
+          headerLines.push(`Location: ${script.location}`);
+        }
+        if (Array.isArray(script.value_props) && script.value_props.length) {
+          headerLines.push('Value props:');
+          script.value_props.forEach((value) => {
+            headerLines.push(`- ${value}`);
+          });
+        }
+        const textLines = headerLines.slice();
+
+        if (headerLines.length) {
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const title = document.createElement('p');
+          title.className = 'font-semibold text-white';
+          title.textContent = 'Overview';
+          card.appendChild(title);
+          headerLines.forEach((line) => {
+            const paragraph = document.createElement('p');
+            paragraph.className = 'mt-2 text-slate-300';
+            paragraph.textContent = line;
+            card.appendChild(paragraph);
+          });
+          container.appendChild(card);
+        }
+
+        const sections = script.sections && typeof script.sections === 'object' ? script.sections : {};
+        Object.entries(sections).forEach(([key, value]) => {
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const title = document.createElement('p');
+          title.className = 'font-semibold text-white';
+          title.textContent = toTitleCase(key);
+          card.appendChild(title);
+          const lines = Array.isArray(value)
+            ? value
+            : typeof value === 'string'
+              ? [value]
+              : Object.values(value || {});
+          lines.forEach((line) => {
+            const paragraph = document.createElement('p');
+            paragraph.className = 'mt-2 text-slate-300';
+            paragraph.textContent = line;
+            card.appendChild(paragraph);
+          });
+          container.appendChild(card);
+          textLines.push('', toTitleCase(key));
+          lines.forEach((line) => {
+            textLines.push(line);
+          });
+        });
+        state.callScriptText = textLines.join('\n');
+      }
+
+      if (elements.callScriptForm) {
+        elements.callScriptForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.callScriptForm);
+          const candidateName = formData.get('candidate_name');
+          const title = formData.get('title');
+          if (!candidateName || !title) {
+            setMessage(elements.callScriptMessage, 'Candidate name and role title are required.', 'error');
+            return;
+          }
+          setMessage(elements.callScriptMessage, 'Generating script...');
+          const valueProps = [
+            elements.callValueProp1?.value,
+            elements.callValueProp2?.value,
+            elements.callValueProp3?.value,
+          ]
+            .map((value) => value?.trim())
+            .filter(Boolean);
+          const payload = {
+            candidate_name: candidateName,
+            title,
+          };
+          const location = formData.get('location');
+          if (location) {
+            payload.location = location;
+          }
+          if (valueProps.length) {
+            payload.value_props = valueProps;
+          }
+          const submitButton = elements.callScriptForm.querySelector('[type="submit"]');
+          try {
+            const script = await apiFetch('/api/ai/call-script', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Generating call script…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Generating…',
+            });
+            renderCallScript(script);
+            setMessage(elements.callScriptMessage, 'Script generated successfully.', 'success');
+            showToast('Call script ready.', 'success');
+          } catch (error) {
+            setMessage(elements.callScriptMessage, error.message || 'Unable to generate script.', 'error');
+            showToast(error.message || 'Unable to generate script.', 'error');
+          }
+        });
+      }
+
+      if (elements.callScriptCopy) {
+        elements.callScriptCopy.addEventListener('click', () => {
+          if (!state.callScriptText) {
+            showToast('Generate a script before copying.', 'info');
+            return;
+          }
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(state.callScriptText).then(() => {
+              showToast('Script copied to clipboard.', 'success');
+            }).catch(() => {
+              showToast('Unable to copy to clipboard.', 'error');
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = state.callScriptText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+              document.execCommand('copy');
+              showToast('Script copied to clipboard.', 'success');
+            } catch (error) {
+              showToast('Unable to copy to clipboard.', 'error');
+            }
+            document.body.removeChild(textarea);
+          }
+        });
+      }
+
+      if (elements.callScriptDownload) {
+        elements.callScriptDownload.addEventListener('click', () => {
+          if (!state.callScriptText) {
+            showToast('Generate a script before downloading.', 'info');
+            return;
+          }
+          const blob = new Blob([state.callScriptText], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'recruitpro-call-script.txt';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('Script downloaded.', 'success');
+        });
+      }
+
+      const createProjectButton = document.querySelector('[data-action="create-project"]');
+      if (createProjectButton) {
+        createProjectButton.addEventListener('click', async () => {
+          const name = (window.prompt('Project name?') || '').trim();
+          if (!name) {
+            return;
+          }
+          const client = (window.prompt('Client (optional)?') || '').trim();
+          const region = (window.prompt('Region (optional)?') || '').trim();
+          const summary = (window.prompt('Summary (optional)?') || '').trim();
+          const payload = {
+            name,
+          };
+          if (client) {
+            payload.client = client;
+          }
+          if (region) {
+            payload.location_region = region;
+          }
+          if (summary) {
+            payload.summary = summary;
+          }
+          try {
+            const project = await apiFetch('/api/projects', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Creating project…',
+              loadingButton: createProjectButton,
+              loadingButtonLabel: 'Creating…',
+            });
+            showToast(`Project “${project.name}” created.`, 'success');
+            await loadProjects();
+          } catch (error) {
+            showToast(error.message || 'Unable to create project.', 'error');
+          }
+        });
+      }
+
+      initializeConsole();
+      showScreen('dashboard');
     </script>
   </body>
 </html>

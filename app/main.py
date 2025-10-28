@@ -2,6 +2,7 @@
 
 import json
 import logging
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
@@ -38,6 +39,7 @@ from .models import (
     ActivityFeed,
     AIJob,
     Candidate,
+    Interview,
     Position,
     Project,
     ProjectDocument,
@@ -395,6 +397,294 @@ def _build_sourcing_overview(
         "results": result_payload,
     }
 
+
+def _build_workspace_dashboard(db: Session, user: User) -> dict[str, Any]:
+    """Aggregate workspace data for the main console view."""
+
+    projects = (
+        db.query(Project)
+        .filter(Project.created_by == user.user_id)
+        .order_by(Project.created_at.desc())
+        .all()
+    )
+    project_ids = [project.project_id for project in projects]
+    project_names = {project.project_id: project.name for project in projects}
+
+    positions: list[Position] = []
+    if project_ids:
+        positions = (
+            db.query(Position)
+            .filter(Position.project_id.in_(project_ids))
+            .order_by(Position.created_at.desc())
+            .all()
+        )
+    positions_by_project: dict[str, list[Position]] = defaultdict(list)
+    for position in positions:
+        positions_by_project[position.project_id].append(position)
+
+    closed_statuses = {"closed", "filled", "archived", "cancelled", "canceled", "inactive"}
+    open_positions = sum(
+        1
+        for position in positions
+        if (position.status or "").lower() not in closed_statuses
+    )
+
+    candidate_total = 0
+    candidate_status_rows: list[tuple[Optional[str], int]] = []
+    candidate_by_project: dict[str, int] = {}
+    if project_ids:
+        candidate_total = (
+            db.query(func.count(Candidate.candidate_id))
+            .join(Project, Candidate.project_id == Project.project_id)
+            .filter(Project.created_by == user.user_id)
+            .scalar()
+            or 0
+        )
+        candidate_status_rows = (
+            db.query(Candidate.status, func.count(Candidate.candidate_id))
+            .join(Project, Candidate.project_id == Project.project_id)
+            .filter(Project.created_by == user.user_id)
+            .group_by(Candidate.status)
+            .all()
+        )
+        candidate_by_project = dict(
+            db.query(Candidate.project_id, func.count(Candidate.candidate_id))
+            .join(Project, Candidate.project_id == Project.project_id)
+            .filter(Project.created_by == user.user_id)
+            .group_by(Candidate.project_id)
+            .all()
+        )
+
+    recent_candidates_rows = []
+    if project_ids:
+        recent_candidates_rows = (
+            db.query(
+                Candidate.candidate_id,
+                Candidate.name,
+                Candidate.status,
+                Candidate.source,
+                Candidate.created_at,
+                Candidate.project_id,
+                Candidate.position_id,
+                Project.name.label("project_name"),
+                Position.title.label("position_title"),
+            )
+            .join(Project, Candidate.project_id == Project.project_id)
+            .outerjoin(Position, Candidate.position_id == Position.position_id)
+            .filter(Project.created_by == user.user_id)
+            .order_by(Candidate.created_at.desc())
+            .limit(8)
+            .all()
+        )
+
+    activity_rows = []
+    if project_ids:
+        activity_rows = (
+            db.query(
+                ActivityFeed.activity_id,
+                ActivityFeed.message,
+                ActivityFeed.event_type,
+                ActivityFeed.created_at,
+                ActivityFeed.project_id,
+            )
+            .filter(ActivityFeed.project_id.in_(project_ids))
+            .order_by(ActivityFeed.created_at.desc())
+            .limit(6)
+            .all()
+        )
+
+    sourcing_overview = _build_sourcing_overview(db, user)
+    sourcing_jobs = sourcing_overview.get("jobs", [])[:5]
+    sourcing_summary = sourcing_overview.get("summary", {})
+
+    documents_rows = []
+    if project_ids:
+        documents_rows = (
+            db.query(
+                ProjectDocument.doc_id,
+                ProjectDocument.filename,
+                ProjectDocument.file_url,
+                ProjectDocument.uploaded_at,
+                ProjectDocument.project_id,
+            )
+            .filter(ProjectDocument.project_id.in_(project_ids))
+            .order_by(ProjectDocument.uploaded_at.desc())
+            .limit(5)
+            .all()
+        )
+
+    interviews_rows = []
+    if project_ids:
+        interviews_rows = (
+            db.query(
+                Interview.interview_id,
+                Interview.scheduled_at,
+                Interview.mode,
+                Interview.location,
+                Interview.notes,
+                Project.project_id.label("project_id"),
+                Candidate.name.label("candidate_name"),
+                Position.title.label("position_title"),
+            )
+            .join(Position, Interview.position_id == Position.position_id)
+            .join(Project, Position.project_id == Project.project_id)
+            .join(Candidate, Interview.candidate_id == Candidate.candidate_id)
+            .filter(Project.created_by == user.user_id)
+            .order_by(Interview.scheduled_at.asc())
+            .limit(5)
+            .all()
+        )
+
+    stats_cards = []
+    project_count = len(projects)
+    active_projects = sum(
+        1
+        for project in projects
+        if (project.status or "").lower() not in {"closed", "completed", "archived"}
+    )
+    stats_cards.append(
+        {
+            "label": "Projects",
+            "value": project_count,
+            "caption": f"{active_projects} active" if project_count else "No projects yet",
+        }
+    )
+    stats_cards.append(
+        {
+            "label": "Open positions",
+            "value": open_positions,
+            "caption": f"{len(positions)} total roles",
+        }
+    )
+    top_status = None
+    if candidate_status_rows:
+        top_status = max(candidate_status_rows, key=lambda row: row[1])[0] or "unspecified"
+    stats_cards.append(
+        {
+            "label": "Candidates",
+            "value": candidate_total,
+            "caption": f"Top status: {top_status}" if top_status else "No candidates tracked",
+        }
+    )
+    stats_cards.append(
+        {
+            "label": "Active sourcing jobs",
+            "value": sourcing_summary.get("active_jobs", 0),
+            "caption": "{total} total • {profiles} profiles".format(
+                total=sourcing_summary.get("total_jobs", 0),
+                profiles=sourcing_summary.get("total_profiles", 0),
+            ),
+        }
+    )
+
+    projects_payload = []
+    for project in projects[:6]:
+        project_positions = positions_by_project.get(project.project_id, [])
+        open_count = sum(
+            1
+            for position in project_positions
+            if (position.status or "").lower() not in closed_statuses
+        )
+        projects_payload.append(
+            {
+                "project_id": project.project_id,
+                "name": project.name,
+                "status": project.status or "unspecified",
+                "client": project.client,
+                "location_region": project.location_region,
+                "created_at": project.created_at,
+                "open_positions": open_count,
+                "positions_count": len(project_positions),
+                "candidate_count": candidate_by_project.get(project.project_id, 0),
+            }
+        )
+
+    positions_payload = []
+    for position in positions[:8]:
+        positions_payload.append(
+            {
+                "position_id": position.position_id,
+                "title": position.title,
+                "status": position.status or "unspecified",
+                "location": position.location,
+                "department": position.department,
+                "openings": position.openings or 0,
+                "applicants_count": position.applicants_count or 0,
+                "created_at": position.created_at,
+                "project_id": position.project_id,
+                "project_name": project_names.get(position.project_id),
+            }
+        )
+
+    candidate_status_payload = [
+        {"status": (status or "unspecified"), "count": count}
+        for status, count in candidate_status_rows
+    ]
+    candidate_status_payload.sort(key=lambda item: item["count"], reverse=True)
+
+    recent_candidates_payload = [
+        {
+            "candidate_id": row.candidate_id,
+            "name": row.name,
+            "status": row.status or "unspecified",
+            "source": row.source,
+            "created_at": row.created_at,
+            "project_id": row.project_id,
+            "project_name": row.project_name,
+            "position_title": row.position_title,
+        }
+        for row in recent_candidates_rows
+    ]
+
+    activity_payload = [
+        {
+            "activity_id": row.activity_id,
+            "message": row.message,
+            "event_type": row.event_type,
+            "created_at": row.created_at,
+            "project_name": project_names.get(row.project_id),
+        }
+        for row in activity_rows
+    ]
+
+    documents_payload = [
+        {
+            "doc_id": row.doc_id,
+            "filename": row.filename,
+            "file_url": row.file_url,
+            "uploaded_at": row.uploaded_at,
+            "project_name": project_names.get(row.project_id),
+        }
+        for row in documents_rows
+    ]
+
+    interviews_payload = [
+        {
+            "interview_id": row.interview_id,
+            "scheduled_at": row.scheduled_at,
+            "mode": row.mode,
+            "location": row.location,
+            "notes": row.notes,
+            "project_name": project_names.get(row.project_id),
+            "candidate_name": row.candidate_name,
+            "position_title": row.position_title,
+        }
+        for row in interviews_rows
+    ]
+
+    return {
+        "stats": stats_cards,
+        "projects": projects_payload,
+        "positions": positions_payload,
+        "candidate_status": candidate_status_payload,
+        "recent_candidates": recent_candidates_payload,
+        "activity": activity_payload,
+        "sourcing": {"summary": sourcing_summary, "jobs": sourcing_jobs},
+        "documents": documents_payload,
+        "interviews": interviews_payload,
+    }
+
+
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(candidates.router)
@@ -427,10 +717,50 @@ async def docs_alias() -> HTMLResponse:
 
 
 @app.get("/app", response_class=HTMLResponse)
-async def application_shell(request: Request) -> HTMLResponse:
+async def application_shell(
+    request: Request,
+    token: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> HTMLResponse:
     """Serve the interactive RecruitPro console."""
 
-    return templates.TemplateResponse("recruitpro_ats.html", {"request": request})
+    context: dict[str, Any] = {
+        "request": request,
+        "workspace_name": settings.app_name,
+        "token": token,
+        "user": None,
+        "error": None,
+        "stats": [],
+        "projects": [],
+        "positions": [],
+        "candidate_status": [],
+        "recent_candidates": [],
+        "activity": [],
+        "sourcing": {
+            "summary": {
+                "total_jobs": 0,
+                "active_jobs": 0,
+                "total_profiles": 0,
+                "tracked_projects": 0,
+            },
+            "jobs": [],
+        },
+        "documents": [],
+        "interviews": [],
+    }
+
+    user, user_payload, user_error = _resolve_user(db, token)
+    if user_payload:
+        context["user"] = user_payload
+    if user_error:
+        context["error"] = user_error
+
+    if user:
+        context.update(_build_workspace_dashboard(db, user))
+    else:
+        context["error"] = context["error"] or "Sign in to view workspace data."
+
+    return templates.TemplateResponse("recruitpro_ats.html", context)
 
 
 @app.get("/login", response_class=HTMLResponse)

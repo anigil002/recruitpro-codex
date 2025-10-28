@@ -110,7 +110,7 @@
           <nav class="flex flex-col gap-2">
             <a
               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
-              href="/app"
+              href="/app{% if token %}?token={{ token }}{% endif %}"
             >
               <span class="material-symbols-outlined text-white text-2xl">dashboard</span>
               <p class="text-white text-sm font-medium leading-normal">Dashboard</p>
@@ -138,7 +138,7 @@
             </a>
             <a
               class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#233648] transition-colors"
-              href="/settings"
+              href="/settings{% if token %}?token={{ token }}{% endif %}"
             >
               <span class="material-symbols-outlined text-white text-2xl">settings</span>
               <p class="text-white text-sm font-medium leading-normal">Settings</p>
@@ -148,7 +148,7 @@
         <div class="flex flex-col gap-4">
           <a
             class="rp-button flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            href="/app"
+            href="/app{% if token %}?token={{ token }}{% endif %}"
           >
             <span class="truncate">Open console</span>
           </a>

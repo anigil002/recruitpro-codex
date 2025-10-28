@@ -179,9 +179,13 @@
 
       {% else %}
       <div class="empty">
-        <p>No candidate selected yet. Return to the <a href="/app" style="color: var(--accent);">local console</a> and open a profile link.</p>
+        <p>No candidate selected yet. Return to the <a href="/app{% if token %}?token={{ token }}{% endif %}" style="color: var(--accent);">local console</a> and open a profile link.</p>
       </div>
       {% endif %}
+
+      <footer style="text-align: center; padding-top: 16px; border-top: 1px solid var(--border);">
+        <a href="/app{% if token %}?token={{ token }}{% endif %}" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">← Back to Console</a>
+      </footer>
     </main>
   </body>
 </html>

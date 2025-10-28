@@ -94,6 +94,10 @@
     </script>
   </head>
   <body class="antialiased font-display bg-background-light dark:bg-background-dark">
+    {% set token_query = '' %}
+    {% if token %}
+    {% set token_query = '?token=' + token %}
+    {% endif %}
     <div class="relative flex min-h-screen w-full flex-row">
       <!-- Side Navigation -->
       <aside class="sticky top-0 flex h-screen flex-col justify-between border-r border-border-light bg-container-light p-4 dark:border-border-dark dark:bg-container-dark">
@@ -107,7 +111,7 @@
             </h1>
           </div>
           <div class="flex flex-col gap-2 pt-4">
-            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/app">
+            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/app{{ token_query }}">
               <span class="material-symbols-outlined">dashboard</span>
               <p class="text-sm font-medium leading-normal">Dashboard</p>
             </a>
@@ -119,7 +123,7 @@
               <span class="material-symbols-outlined">auto_awesome</span>
               <p class="text-sm font-medium leading-normal">AI sourcing</p>
             </a>
-            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/settings">
+            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/settings{{ token_query }}">
               <span class="material-symbols-outlined">settings</span>
               <p class="text-sm font-medium leading-normal">Settings</p>
             </a>
@@ -173,7 +177,7 @@
                 {% endfor %}
               </select>
             </form>
-            <a class="text-sm font-medium text-primary hover:underline" href="/app">Create new sourcing job</a>
+            <a class="text-sm font-medium text-primary hover:underline" href="/app{{ token_query }}">Create new sourcing job</a>
           </section>
 
           <section class="grid gap-4 md:grid-cols-4">

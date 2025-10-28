@@ -933,8 +933,9 @@ async def settings_page(request: Request, db: Session = Depends(get_db)) -> HTML
 
     google_card = {
         "configured": bool(google_key_status.get("configured") and google_cse_status.get("configured")),
-        "masked": google_key_status.get("masked", ""),
+        "api_key_masked": google_key_status.get("masked", ""),
         "search_engine_id": get_integration_value("google_cse_id", session=db),
+        "search_engine_id_masked": google_cse_status.get("masked", ""),
         "learn_more_url": "https://developers.google.com/custom-search/v1/overview",
     }
 

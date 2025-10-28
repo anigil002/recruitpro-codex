@@ -1364,6 +1364,8 @@
       };
 
       const initializationIssues = new Map();
+      const SOURCING_POLL_INTERVAL = 6000;
+      let sourcingPollTimer = null;
 
       function setButtonLoading(button, label) {
         if (!button) {
@@ -1782,6 +1784,23 @@
         }
       }
 
+      function startSourcingPolling() {
+        if (sourcingPollTimer) {
+          return;
+        }
+        sourcingPollTimer = window.setInterval(() => {
+          refreshSourcingOverview({ silent: true });
+        }, SOURCING_POLL_INTERVAL);
+      }
+
+      function stopSourcingPolling() {
+        if (!sourcingPollTimer) {
+          return;
+        }
+        window.clearInterval(sourcingPollTimer);
+        sourcingPollTimer = null;
+      }
+
       function renderSalaryBenchmark(result) {
         const container = elements.salaryResult;
         if (!container) return;
@@ -1880,17 +1899,25 @@
         }
       }
 
-      async function refreshSourcingOverview() {
+      async function refreshSourcingOverview(options = {}) {
+        const { silent = false } = options;
         try {
           const overview = await apiFetch('/api/sourcing/overview');
           clearInitializationIssue('sourcing');
           if (overview) {
             updateSourcingOverview(overview);
+            const activeJobs = overview?.summary?.active_jobs || 0;
+            if (activeJobs > 0) {
+              startSourcingPolling();
+            } else {
+              stopSourcingPolling();
+            }
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to refresh sourcing overview.';
           setInitializationIssue('sourcing', 'Sourcing overview', message);
-          if (!(error instanceof HttpError && error.status === 401)) {
+          stopSourcingPolling();
+          if (!(error instanceof HttpError && error.status === 401) && !silent) {
             showToast(message, 'error');
           }
         }
@@ -2030,6 +2057,7 @@
             });
             setMessage(elements.aiSourcingMessage, 'AI sourcing job queued. Tracking progress...', 'success');
             showToast('AI sourcing job queued.', 'success');
+            startSourcingPolling();
             refreshSourcingOverview();
           } catch (error) {
             setMessage(elements.aiSourcingMessage, error.message || 'Unable to start AI sourcing.', 'error');

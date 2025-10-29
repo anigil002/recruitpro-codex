@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Dict, Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
@@ -45,6 +45,72 @@ def get_session() -> Iterator[Session]:
         session.close()
 
 
+def _rebuild_sqlite_table(table_name: str) -> None:
+    """Recreate an SQLite table using the SQLAlchemy metadata definition."""
+
+    # Import locally to avoid circular import at module import time
+    from . import models  # noqa: F401  (imported for side effects)
+
+    table = Base.metadata.tables[table_name]
+    column_names = [column.name for column in table.columns]
+    column_list = ", ".join(column_names)
+
+    temp_table = f"{table_name}_tmp_nullable_fix"
+
+    with engine.begin() as connection:
+        connection.execute(text("PRAGMA foreign_keys=OFF"))
+        try:
+            connection.execute(text(f"ALTER TABLE {table_name} RENAME TO {temp_table}"))
+            table.create(bind=connection)
+            connection.execute(
+                text(
+                    f"INSERT INTO {table_name} ({column_list}) "
+                    f"SELECT {column_list} FROM {temp_table}"
+                )
+            )
+            connection.execute(text(f"DROP TABLE {temp_table}"))
+        finally:
+            connection.execute(text("PRAGMA foreign_keys=ON"))
+
+
+def _ensure_nullable_foreign_keys() -> None:
+    """Ensure nullable foreign key columns match the SQLAlchemy models."""
+
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    # Table -> columns that must allow NULL to match the ORM definition
+    nullable_columns = {
+        "projects": {"created_by"},
+        "project_documents": {"uploaded_by"},
+        "candidate_status_history": {"changed_by"},
+        "communication_templates": {"created_by"},
+        "outreach_runs": {"user_id"},
+        "salary_benchmarks": {"created_by"},
+        "admin_migration_logs": {"user_id"},
+    }
+
+    for table_name, columns in nullable_columns.items():
+        if table_name not in existing_tables:
+            continue
+
+        column_info = {column["name"]: column for column in inspector.get_columns(table_name)}
+        needs_rebuild = False
+        for column_name in columns:
+            info = column_info.get(column_name)
+            if info is None:
+                continue
+            if not info.get("nullable", True):
+                needs_rebuild = True
+                break
+
+        if needs_rebuild:
+            _rebuild_sqlite_table(table_name)
+
+
 def init_db() -> None:
     """Create database tables based on the current SQLAlchemy metadata."""
 
@@ -52,6 +118,7 @@ def init_db() -> None:
     # registered, preventing circular-import issues during application start.
     from . import models  # noqa: F401  (imported for side effects)
 
+    _ensure_nullable_foreign_keys()
     Base.metadata.create_all(bind=engine)
 
 

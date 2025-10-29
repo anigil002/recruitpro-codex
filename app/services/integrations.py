@@ -61,6 +61,7 @@ def set_integration_credential(
     if not value:
         if record:
             session.delete(record)
+            session.flush()
         return
 
     encrypted = encrypt_secret(value)
@@ -79,6 +80,8 @@ def set_integration_credential(
                 updated_at=now,
             )
         )
+
+    session.flush()
 
 
 def get_integration_value(key: str, *, session: Optional[Session] = None) -> str:

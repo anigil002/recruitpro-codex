@@ -84,43 +84,41 @@ def create_project(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> ProjectRead:
-    project = Project(
-        project_id=generate_id(),
-        name=payload.name,
-        sector=payload.sector,
-        location_region=payload.location_region,
-        summary=payload.summary,
-        client=payload.client,
-        status=payload.status or "active",
-        priority=payload.priority or "medium",
-        department=payload.department,
-        tags=sorted(set(payload.tags or [])),
-        team_members=sorted(set(payload.team_members or [])),
-        target_hires=payload.target_hires or 0,
-        created_by=current_user.user_id,
-        created_at=datetime.utcnow(),
-    )
-    db.add(project)
-    log_activity(
-        db,
-        actor_type="user",
-        actor_id=current_user.user_id,
-        project_id=project.project_id,
-        message=f"Created project {project.name}",
-        event_type="project_created",
-    )
-
     try:
+        project = Project(
+            project_id=generate_id(),
+            name=payload.name,
+            sector=payload.sector,
+            location_region=payload.location_region,
+            summary=payload.summary,
+            client=payload.client,
+            status=payload.status or "active",
+            priority=payload.priority or "medium",
+            department=payload.department,
+            tags=sorted(set(payload.tags or [])),
+            team_members=sorted(set(payload.team_members or [])),
+            target_hires=payload.target_hires or 0,
+            created_by=current_user.user_id,
+            created_at=datetime.utcnow(),
+        )
+        db.add(project)
+        log_activity(
+            db,
+            actor_type="user",
+            actor_id=current_user.user_id,
+            project_id=project.project_id,
+            message=f"Created project {project.name}",
+            event_type="project_created",
+        )
+        db.flush()
         db.commit()
-    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        return project_to_read(project)
+    except Exception as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to save project",
+            detail=f"Failed to create project: {str(exc)}",
         ) from exc
-
-    db.refresh(project)
-    return project_to_read(project)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)

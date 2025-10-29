@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
@@ -108,7 +109,17 @@ def create_project(
         message=f"Created project {project.name}",
         event_type="project_created",
     )
-    db.flush()
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save project",
+        ) from exc
+
+    db.refresh(project)
     return project_to_read(project)
 
 
@@ -136,6 +147,17 @@ def update_project(
             continue
         setattr(project, field, value)
     db.add(project)
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update project",
+        ) from exc
+
+    db.refresh(project)
     return project_to_read(project)
 
 
@@ -151,6 +173,15 @@ def delete_project(project_id: str, db: Session = Depends(get_db), current_user=
         message=f"Deleted project {project.name}",
         event_type="project_deleted",
     )
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete project",
+        ) from exc
 
 
 @router.post("/projects/bulk-lifecycle")
@@ -212,6 +243,15 @@ def bulk_project_lifecycle(
             event_type="project_bulk_update",
         )
 
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update projects",
+        ) from exc
+
     return {
         "updated": updated,
         "positions_updated": cascaded_positions,
@@ -260,7 +300,17 @@ def create_position(
         message=f"Created position {position.title}",
         event_type="position_created",
     )
-    db.flush()
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save position",
+        ) from exc
+
+    db.refresh(position)
     return position_to_read(position)
 
 
@@ -298,6 +348,17 @@ def update_position(
             value = []
         setattr(position, field, value)
     db.add(position)
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update position",
+        ) from exc
+
+    db.refresh(position)
     return position_to_read(position)
 
 
@@ -323,3 +384,12 @@ def delete_position(
         message=f"Deleted position {position.title}",
         event_type="position_deleted",
     )
+
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:  # pragma: no cover - defensive guard
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete position",
+        ) from exc

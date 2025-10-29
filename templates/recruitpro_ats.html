@@ -321,8 +321,8 @@
             <div class="grid gap-6 lg:grid-cols-4">
               <div class="col-span-2 rounded-3xl bg-surface/90 p-6 shadow-card ring-1 ring-slate-800/60">
                 <p class="text-sm text-slate-400">Active projects</p>
-                <h2 class="mt-1 text-3xl font-semibold text-white">Awaiting data</h2>
-                <p class="mt-4 text-sm text-slate-300">Connect your data sources to populate project metrics and pipeline insights.</p>
+                <h2 id="dashboard-project-count" class="mt-1 text-3xl font-semibold text-white">Awaiting data</h2>
+                <p id="dashboard-project-summary" class="mt-4 text-sm text-slate-300">Connect your data sources to populate project metrics and pipeline insights.</p>
                 <div class="mt-6 flex flex-wrap gap-3">
                   <button data-screen="project-management" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">Open project workspace</button>
                   <button data-screen="ai-sourcing" class="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:border-primary/60 hover:text-primary">Start AI search</button>
@@ -405,23 +405,35 @@
                   <p class="mt-3 text-sm text-slate-300">Automation statistics will display when available.</p>
                 </div>
               </div>
-              <div class="mt-8 grid gap-6 lg:grid-cols-2">
-                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Market Research automation</h3>
-                    <span class="rounded-full bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-300">No data</span>
+              <div class="mt-8 space-y-6">
+                <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 class="text-lg font-semibold text-white">Your projects</h3>
+                      <p class="text-sm text-slate-400">Recently created workspace projects appear here.</p>
+                    </div>
+                    <p id="project-list-summary" class="text-sm text-slate-400">No projects yet</p>
                   </div>
+                  <p id="project-list-empty" class="mt-4 text-sm text-slate-400">Create a project from the console to start managing it here.</p>
+                  <div id="project-list" class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></div>
+                </div>
+                <div class="grid gap-6 lg:grid-cols-2">
+                  <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-lg font-semibold text-white">Market Research automation</h3>
+                      <span class="rounded-full bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-300">No data</span>
+                    </div>
                   <p class="text-sm text-slate-300">Surface regional talent intelligence, hiring velocity, and competitor signals instantly.</p>
                   <div class="rounded-2xl border border-dashed border-slate-800/60 bg-slate-950/60 p-4 text-center text-sm text-slate-500">
                     Results will display here after market research runs are completed.
                   </div>
                 </div>
-                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Salary benchmarking</h3>
-                    <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Open benchmark hub</button>
-                  </div>
-                  <p class="text-sm text-slate-300">Launch manual analysis or review AI-generated benchmarks aligned to project context.</p>
+                  <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-lg font-semibold text-white">Salary benchmarking</h3>
+                      <button data-screen="analytics" data-screen-tab="salary-benchmark" class="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Open benchmark hub</button>
+                    </div>
+                    <p class="text-sm text-slate-300">Launch manual analysis or review AI-generated benchmarks aligned to project context.</p>
                   <div class="space-y-4 text-sm text-slate-300">
                     <div class="rounded-2xl border border-dashed border-slate-800/60 bg-slate-950/60 p-4 text-center text-slate-500">
                       Benchmark summaries will appear here when available.
@@ -442,6 +454,7 @@
                     </form>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
           </section>
@@ -1482,6 +1495,14 @@
         }
       }
 
+      function getStoredToken() {
+        try {
+          return window.localStorage?.getItem(TOKEN_STORAGE_KEY) || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
       function clearStoredAuth() {
         try {
           window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
@@ -1532,6 +1553,11 @@
         callScriptOutput: document.getElementById('call-script-output'),
         callScriptCopy: document.getElementById('call-script-copy'),
         callScriptDownload: document.getElementById('call-script-download'),
+        projectList: document.getElementById('project-list'),
+        projectListEmpty: document.getElementById('project-list-empty'),
+        projectListSummary: document.getElementById('project-list-summary'),
+        dashboardProjectCount: document.getElementById('dashboard-project-count'),
+        dashboardProjectSummary: document.getElementById('dashboard-project-summary'),
       };
 
       function updateInitializationStatus() {
@@ -1756,6 +1782,134 @@
         populatePositionOptions(select.value || '');
       }
 
+      function updateDashboardProjectsSummary() {
+        const countNode = elements.dashboardProjectCount;
+        const summaryNode = elements.dashboardProjectSummary;
+        if (!countNode) {
+          return;
+        }
+        const projectCount = Array.isArray(state.projects) ? state.projects.length : 0;
+        if (!projectCount) {
+          countNode.textContent = 'Awaiting data';
+          if (summaryNode) {
+            summaryNode.textContent = 'Create your first project to unlock live workspace metrics.';
+          }
+          return;
+        }
+        countNode.textContent = projectCount === 1 ? '1 project' : `${projectCount} projects`;
+        if (summaryNode) {
+          summaryNode.textContent = 'Manage projects, positions, and collaboration directly from the console.';
+        }
+      }
+
+      function renderProjectList() {
+        const container = elements.projectList;
+        const emptyState = elements.projectListEmpty;
+        const summaryNode = elements.projectListSummary;
+        if (!container) {
+          return;
+        }
+        container.innerHTML = '';
+        const projects = Array.isArray(state.projects) ? [...state.projects] : [];
+        projects.sort((a, b) => {
+          const aDate = a?.created_at ? new Date(a.created_at).getTime() : 0;
+          const bDate = b?.created_at ? new Date(b.created_at).getTime() : 0;
+          return bDate - aDate;
+        });
+
+        if (summaryNode) {
+          summaryNode.textContent = projects.length
+            ? `${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`
+            : 'No projects yet';
+        }
+
+        if (!projects.length) {
+          if (emptyState) {
+            emptyState.classList.remove('hidden');
+          }
+          return;
+        }
+
+        if (emptyState) {
+          emptyState.classList.add('hidden');
+        }
+
+        const token = getStoredToken();
+        const tokenQuery = token ? `&token=${encodeURIComponent(token)}` : '';
+
+        projects.forEach((project) => {
+          const card = document.createElement('article');
+          card.className = 'flex flex-col justify-between rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 transition hover:border-primary/40 hover:bg-slate-900/60';
+
+          const header = document.createElement('div');
+          header.className = 'flex items-start justify-between gap-3';
+
+          const name = document.createElement('h4');
+          name.className = 'text-base font-semibold text-white';
+          name.textContent = project?.name || 'Untitled project';
+
+          const status = document.createElement('span');
+          status.className = 'rounded-full bg-slate-800/70 px-3 py-1 text-xs text-slate-300';
+          status.textContent = toTitleCase(project?.status || 'active');
+
+          header.append(name, status);
+          card.appendChild(header);
+
+          const summary = document.createElement('p');
+          summary.className = 'mt-2 text-sm text-slate-300';
+          if (project?.summary) {
+            summary.textContent = project.summary;
+          } else {
+            summary.textContent = 'Add a project summary to share context with collaborators.';
+            summary.classList.add('text-slate-400');
+          }
+          card.appendChild(summary);
+
+          const detail = document.createElement('p');
+          detail.className = 'mt-3 text-xs text-slate-400';
+          const detailParts = [];
+          if (project?.client) {
+            detailParts.push(project.client);
+          }
+          if (project?.location_region) {
+            detailParts.push(project.location_region);
+          }
+          const teamCount = Array.isArray(project?.team_members) ? project.team_members.length : 0;
+          detailParts.push(`${teamCount} ${teamCount === 1 ? 'teammate' : 'teammates'}`);
+          const targetHires = typeof project?.target_hires === 'number' ? project.target_hires : 0;
+          detailParts.push(`${targetHires} target hires`);
+          detail.textContent = detailParts.filter(Boolean).join(' • ');
+          card.appendChild(detail);
+
+          if (project?.created_at) {
+            const created = document.createElement('p');
+            created.className = 'mt-2 text-xs text-slate-500';
+            created.textContent = `Created ${formatRelativeTime(project.created_at)}`;
+            card.appendChild(created);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'mt-4 flex flex-wrap items-center gap-3';
+
+          const viewLink = document.createElement('a');
+          viewLink.className = 'text-sm font-medium text-primary hover:underline';
+          viewLink.textContent = 'Open overview';
+          if (project?.project_id) {
+            viewLink.href = `/project-overview?project_id=${encodeURIComponent(project.project_id)}${tokenQuery}`;
+          } else {
+            viewLink.href = '#';
+            viewLink.setAttribute('aria-disabled', 'true');
+            viewLink.classList.add('pointer-events-none', 'opacity-60');
+          }
+          viewLink.target = '_blank';
+          viewLink.rel = 'noreferrer noopener';
+          actions.appendChild(viewLink);
+
+          card.appendChild(actions);
+          container.appendChild(card);
+        });
+      }
+
       function populatePositionOptions(projectId) {
         const select = elements.sourcingPosition;
         if (!select) return;
@@ -1927,11 +2081,25 @@
         try {
           const projects = await apiFetch('/api/projects');
           if (Array.isArray(projects)) {
-            state.projects = projects;
-            populateProjectOptions();
+            state.projects = projects
+              .slice()
+              .sort((a, b) => {
+                const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+                const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+                return bTime - aTime;
+              });
+          } else {
+            state.projects = [];
           }
+          populateProjectOptions();
+          renderProjectList();
+          updateDashboardProjectsSummary();
           clearInitializationIssue('projects');
         } catch (error) {
+          state.projects = [];
+          populateProjectOptions();
+          renderProjectList();
+          updateDashboardProjectsSummary();
           const message = error instanceof Error ? error.message : 'Unable to load projects.';
           setInitializationIssue('projects', 'Projects', message);
           if (!(error instanceof HttpError && error.status === 401)) {

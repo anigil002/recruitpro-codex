@@ -48,7 +48,7 @@ class Project(Base):
     hires_count = Column(Integer, nullable=False, default=0)
     research_done = Column(Integer, nullable=False, default=0)
     research_status = Column(String)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     creator = relationship("User", back_populates="projects")
@@ -64,7 +64,7 @@ class ProjectDocument(Base):
     filename = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     mime_type = Column(String, nullable=False)
-    uploaded_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    uploaded_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     uploaded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship("Project", back_populates="documents")
@@ -123,7 +123,7 @@ class CandidateStatusHistory(Base):
     candidate_id = Column(String, ForeignKey("candidates.candidate_id", ondelete="CASCADE"), nullable=False)
     old_status = Column(String)
     new_status = Column(String, nullable=False)
-    changed_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    changed_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     changed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -274,7 +274,7 @@ class CommunicationTemplate(Base):
     type = Column(String, nullable=False)
     name = Column(String, nullable=False)
     template_json = Column(JSON, nullable=False)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -282,7 +282,7 @@ class OutreachRun(Base):
     __tablename__ = "outreach_runs"
 
     outreach_id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    user_id = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     candidate_id = Column(String, ForeignKey("candidates.candidate_id", ondelete="SET NULL"))
     position_id = Column(String, ForeignKey("positions.position_id", ondelete="SET NULL"))
     type = Column(String, nullable=False)
@@ -304,7 +304,7 @@ class SalaryBenchmark(Base):
     annual_max = Column(Integer, nullable=False)
     rationale = Column(Text)
     sources = Column(JSON, nullable=False)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -342,7 +342,7 @@ class AdminMigrationLog(Base):
     __tablename__ = "admin_migration_logs"
 
     migration_id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=False)
+    user_id = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     source_name = Column(String, nullable=False)
     items_total = Column(Integer, nullable=False)
     items_success = Column(Integer, nullable=False)

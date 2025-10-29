@@ -99,7 +99,7 @@ class ProjectRead(ProjectBase):
     project_id: str
     research_done: int
     research_status: Optional[str]
-    created_by: str
+    created_by: Optional[str]
     created_at: datetime
     tags: List[str] = Field(default_factory=list)
     team_members: List[str] = Field(default_factory=list)

@@ -221,6 +221,40 @@
               </div>
             </div>
 
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#233648] bg-[#152433] px-4 py-3">
+              <p class="text-sm font-medium text-white">Project actions</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <a
+                  class="rp-button inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+                  href="#document-upload-form"
+                >
+                  <span class="material-symbols-outlined text-base" aria-hidden="true">upload_file</span>
+                  Upload document
+                </a>
+                <a
+                  class="rp-button inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+                  href="#candidate-cv-form"
+                >
+                  <span class="material-symbols-outlined text-base" aria-hidden="true">description</span>
+                  Add candidate CV
+                </a>
+                <button
+                  class="rp-button inline-flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-600/20 px-3 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-600/30"
+                  data-action="delete-project"
+                  type="button"
+                >
+                  <span class="material-symbols-outlined text-base" aria-hidden="true">delete_forever</span>
+                  <span data-button-label>Delete project</span>
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="project-actions-feedback"
+              class="mt-3 hidden rounded-lg border px-4 py-2 text-sm"
+              role="status"
+            ></div>
+
             <section class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <article class="rp-card p-4">
                 <p class="text-xs text-[#92adc9]">Total positions</p>
@@ -342,9 +376,51 @@
 
               <section class="flex flex-col gap-4">
                 <article class="rp-card p-6">
-                  <h3 class="text-lg font-semibold">Project documents</h3>
-                  {% if documents %}
-                  <ul class="mt-3 flex flex-col gap-2">
+                  <header class="flex items-center justify-between pb-3">
+                    <h3 class="text-lg font-semibold">Project documents</h3>
+                    <span class="text-xs text-[#92adc9]">Uploaded files trigger AI analysis</span>
+                  </header>
+                  <form id="document-upload-form" class="flex flex-col gap-3" enctype="multipart/form-data">
+                    <div class="flex flex-col gap-1">
+                      <label class="text-xs font-medium text-[#c2d7ef]" for="document-upload-file">Select file</label>
+                      <input
+                        class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white file:mr-3 file:rounded-md file:border-0 file:bg-primary/20 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                        id="document-upload-file"
+                        name="file"
+                        required
+                        type="file"
+                      />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <label class="text-xs font-medium text-[#c2d7ef]" for="document-upload-name">Display name (optional)</label>
+                      <input
+                        class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                        id="document-upload-name"
+                        name="display_name"
+                        placeholder="Project brief.pdf"
+                        type="text"
+                      />
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        class="rp-button inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
+                        data-loading-label="Uploading..."
+                        type="submit"
+                      >
+                        <span class="material-symbols-outlined text-base" aria-hidden="true">cloud_upload</span>
+                        <span data-button-label>Upload to project</span>
+                      </button>
+                    </div>
+                  </form>
+                  <div
+                    id="document-upload-feedback"
+                    class="mt-3 hidden rounded-lg border px-4 py-2 text-sm"
+                    role="status"
+                  ></div>
+                  <ul
+                    id="project-documents-list"
+                    class="mt-4 flex flex-col gap-2 {% if not documents %}hidden{% endif %}"
+                  >
                     {% for doc in documents %}
                     <li class="flex flex-col rounded-lg border border-[#233648] bg-[#152433] p-3 text-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20">
                       <span class="font-medium">{{ doc.filename }}</span>
@@ -355,9 +431,12 @@
                     </li>
                     {% endfor %}
                   </ul>
-                  {% else %}
-                  <p class="text-sm text-[#92adc9]">No documents uploaded yet. Use the /api/documents/upload endpoint or the console uploader.</p>
-                  {% endif %}
+                  <p
+                    id="project-documents-empty"
+                    class="mt-4 text-sm text-[#92adc9] {% if documents %}hidden{% endif %}"
+                  >
+                    No documents uploaded yet. Use the uploader above to attach project assets and trigger AI analysis.
+                  </p>
                 </article>
 
                 <article class="rp-card p-6">
@@ -375,6 +454,89 @@
                   {% else %}
                   <p class="text-sm text-[#92adc9]">Run AI research from the console to generate competitive insights.</p>
                   {% endif %}
+                </article>
+
+                <article class="rp-card p-6">
+                  <header class="flex flex-col gap-1 pb-3">
+                    <h3 class="text-lg font-semibold">Add candidate via CV</h3>
+                    <p class="text-xs text-[#92adc9]">Upload a resume to create a new candidate record for this project.</p>
+                  </header>
+                  <form id="candidate-cv-form" class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1">
+                      <label class="text-xs font-medium text-[#c2d7ef]" for="candidate-cv-file">Resume file</label>
+                      <input
+                        class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white file:mr-3 file:rounded-md file:border-0 file:bg-primary/20 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                        id="candidate-cv-file"
+                        name="resume"
+                        required
+                        type="file"
+                      />
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                      <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-[#c2d7ef]" for="candidate-cv-name">Candidate name</label>
+                        <input
+                          class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                          id="candidate-cv-name"
+                          name="candidate_name"
+                          placeholder="Alex Johnson"
+                          required
+                          type="text"
+                        />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-[#c2d7ef]" for="candidate-cv-email">Email (optional)</label>
+                        <input
+                          class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                          id="candidate-cv-email"
+                          name="candidate_email"
+                          placeholder="alex@example.com"
+                          type="email"
+                        />
+                      </div>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                      <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-[#c2d7ef]" for="candidate-cv-position">Assign to position</label>
+                        <select
+                          class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                          id="candidate-cv-position"
+                          name="candidate_position"
+                        >
+                          <option value="">Unassigned</option>
+                          {% for position in positions %}
+                          <option value="{{ position.position_id }}">{{ position.title }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-[#c2d7ef]" for="candidate-cv-source">Source label</label>
+                        <input
+                          class="rounded-lg border border-[#233648] bg-[#152433] px-3 py-2 text-sm text-white focus:border-primary/50 focus:ring-2 focus:ring-primary/40"
+                          id="candidate-cv-source"
+                          name="candidate_source"
+                          placeholder="Resume upload"
+                          type="text"
+                          value="Resume upload"
+                        />
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        class="rp-button inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
+                        data-loading-label="Saving..."
+                        type="submit"
+                      >
+                        <span class="material-symbols-outlined text-base" aria-hidden="true">person_add</span>
+                        <span data-button-label>Create candidate</span>
+                      </button>
+                    </div>
+                  </form>
+                  <div
+                    id="candidate-cv-feedback"
+                    class="mt-3 hidden rounded-lg border px-4 py-2 text-sm"
+                    role="status"
+                  ></div>
                 </article>
 
                 <article class="rp-card p-6">
@@ -416,4 +578,341 @@
       </div>
     </div>
   </body>
+  {% if project %}
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const PROJECT_ID = {{ project.project_id|tojson }};
+      const EMBEDDED_TOKEN = {{ token|tojson }};
+      const TOKEN_STORAGE_KEY = "recruitpro.token";
+      const TOKEN_TYPE_STORAGE_KEY = "recruitpro.tokenType";
+
+      const FEEDBACK_VARIANTS = {
+        success: ["border-emerald-400/40", "bg-emerald-400/10", "text-emerald-200"],
+        error: ["border-rose-400/60", "bg-rose-400/10", "text-rose-200"],
+        info: ["border-sky-400/40", "bg-sky-400/10", "text-sky-200"],
+      };
+
+      function clearFeedback(element) {
+        if (!element) return;
+        element.classList.add("hidden");
+        element.textContent = "";
+        Object.values(FEEDBACK_VARIANTS).forEach((classes) => element.classList.remove(...classes));
+      }
+
+      function showFeedback(element, type, message) {
+        if (!element) return;
+        clearFeedback(element);
+        const classes = FEEDBACK_VARIANTS[type] || [];
+        if (classes.length) {
+          element.classList.add(...classes);
+        }
+        element.textContent = message;
+        element.classList.remove("hidden");
+      }
+
+      function getStoredToken() {
+        try {
+          return window.localStorage?.getItem(TOKEN_STORAGE_KEY) || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getStoredTokenType() {
+        try {
+          return window.localStorage?.getItem(TOKEN_TYPE_STORAGE_KEY) || "Bearer";
+        } catch (error) {
+          return "Bearer";
+        }
+      }
+
+      function getAuthHeader() {
+        if (EMBEDDED_TOKEN) {
+          return `Bearer ${EMBEDDED_TOKEN}`;
+        }
+        const stored = getStoredToken();
+        if (!stored) {
+          return null;
+        }
+        const tokenType = getStoredTokenType() || "Bearer";
+        return `${tokenType} ${stored}`.trim();
+      }
+
+      async function apiFetch(path, options = {}) {
+        const init = { credentials: "include", ...options };
+        init.headers = new Headers(init.headers || {});
+        const authHeader = getAuthHeader();
+        if (authHeader && !init.headers.has("Authorization")) {
+          init.headers.set("Authorization", authHeader);
+        }
+        if (init.body && typeof init.body === "object" && !(init.body instanceof FormData)) {
+          init.headers.set("Content-Type", "application/json");
+          init.body = JSON.stringify(init.body);
+        }
+        if (!init.headers.has("Accept")) {
+          init.headers.set("Accept", "application/json");
+        }
+        const response = await fetch(path, init);
+        const text = await response.text();
+        let data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (error) {
+            data = text;
+          }
+        }
+        if (!response.ok) {
+          const detail = typeof data === "string" ? data : data?.detail || data?.message;
+          const error = new Error(detail || `Request failed with status ${response.status}`);
+          error.status = response.status;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function formatDateTime(value) {
+        if (!value) {
+          return "recently";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "recently";
+        }
+        return new Intl.DateTimeFormat(undefined, {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function createDocumentElement(data) {
+        const item = document.createElement("li");
+        item.className = "flex flex-col rounded-lg border border-[#233648] bg-[#152433] p-3 text-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20";
+        const title = document.createElement("span");
+        title.className = "font-medium";
+        title.textContent = data.filename || "Document";
+        item.appendChild(title);
+        const meta = document.createElement("span");
+        meta.className = "text-xs text-[#92adc9]";
+        meta.textContent = `Uploaded ${formatDateTime(data.uploaded_at)}`;
+        item.appendChild(meta);
+        const url = data.file_url || data.url;
+        if (url) {
+          const link = document.createElement("a");
+          link.className = "text-xs text-primary hover:underline";
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.href = url;
+          link.textContent = "Open file";
+          item.appendChild(link);
+        }
+        return item;
+      }
+
+      function renderDocuments(docs) {
+        const list = document.getElementById("project-documents-list");
+        const emptyState = document.getElementById("project-documents-empty");
+        if (!list || !emptyState) {
+          return;
+        }
+        list.innerHTML = "";
+        const items = (docs || []).slice(0, 6);
+        if (!items.length) {
+          list.classList.add("hidden");
+          emptyState.classList.remove("hidden");
+          return;
+        }
+        items.forEach((doc) => {
+          const storedPath = typeof doc.file_url === "string" ? doc.file_url : "";
+          const isExternal = /^https?:/i.test(storedPath);
+          const normalized = {
+            filename: doc.filename,
+            uploaded_at: doc.uploaded_at,
+            file_url: doc.url || (storedPath ? (isExternal ? storedPath : `/storage/${storedPath.replace(/^\/+/, "")}`) : undefined),
+          };
+          list.appendChild(createDocumentElement(normalized));
+        });
+        emptyState.classList.add("hidden");
+        list.classList.remove("hidden");
+      }
+
+      async function refreshDocuments(feedbackTarget) {
+        try {
+          const response = await apiFetch(`/api/projects/${encodeURIComponent(PROJECT_ID)}/documents`);
+          renderDocuments(response);
+        } catch (error) {
+          if (feedbackTarget) {
+            showFeedback(feedbackTarget, "error", error.message || "Failed to refresh documents.");
+          }
+        }
+      }
+
+      function setButtonLoading(button, loading) {
+        if (!button) return;
+        const label = button.querySelector("[data-button-label]");
+        if (loading) {
+          button.dataset.originalDisabled = button.disabled ? "true" : "false";
+          button.dataset.originalLabel = label ? label.textContent : "";
+          const loadingLabel = button.dataset.loadingLabel || "Working...";
+          if (label) {
+            label.textContent = loadingLabel;
+          }
+          button.disabled = true;
+        } else {
+          if (label && Object.prototype.hasOwnProperty.call(button.dataset, "originalLabel")) {
+            label.textContent = button.dataset.originalLabel;
+          }
+          if (button.dataset.originalDisabled === "false") {
+            button.disabled = false;
+          }
+          delete button.dataset.originalDisabled;
+          delete button.dataset.originalLabel;
+        }
+      }
+
+      const documentForm = document.getElementById("document-upload-form");
+      const documentFeedback = document.getElementById("document-upload-feedback");
+      if (documentForm) {
+        documentForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          clearFeedback(documentFeedback);
+          const fileInput = documentForm.querySelector('input[name="file"]');
+          if (!fileInput || !fileInput.files || !fileInput.files.length) {
+            showFeedback(documentFeedback, "error", "Choose a file before uploading.");
+            return;
+          }
+          const file = fileInput.files[0];
+          const nameField = documentForm.querySelector('input[name="display_name"]');
+          const displayName = (nameField && nameField.value.trim()) || file.name;
+          const formData = new FormData();
+          formData.append("filename", displayName);
+          formData.append("mime_type", file.type || "application/octet-stream");
+          formData.append("scope", "project");
+          formData.append("scope_id", PROJECT_ID);
+          formData.append("file", file);
+          const submitButton = documentForm.querySelector('button[type="submit"]');
+          try {
+            setButtonLoading(submitButton, true);
+            await apiFetch("/api/documents/upload", { method: "POST", body: formData });
+            documentForm.reset();
+            showFeedback(documentFeedback, "success", "Document uploaded successfully. AI analysis has been queued.");
+            await refreshDocuments(documentFeedback);
+          } catch (error) {
+            showFeedback(documentFeedback, "error", error.message || "Failed to upload document.");
+          } finally {
+            setButtonLoading(submitButton, false);
+          }
+        });
+      }
+
+      const candidateForm = document.getElementById("candidate-cv-form");
+      const candidateFeedback = document.getElementById("candidate-cv-feedback");
+      if (candidateForm) {
+        candidateForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          clearFeedback(candidateFeedback);
+          const fileInput = candidateForm.querySelector('input[name="resume"]');
+          if (!fileInput || !fileInput.files || !fileInput.files.length) {
+            showFeedback(candidateFeedback, "error", "Select a resume file to continue.");
+            return;
+          }
+          const resumeFile = fileInput.files[0];
+          const nameInput = candidateForm.querySelector('input[name="candidate_name"]');
+          const emailInput = candidateForm.querySelector('input[name="candidate_email"]');
+          const positionInput = candidateForm.querySelector('select[name="candidate_position"]');
+          const sourceInput = candidateForm.querySelector('input[name="candidate_source"]');
+
+          const candidateName = nameInput?.value.trim();
+          if (!candidateName) {
+            showFeedback(candidateFeedback, "error", "Provide the candidate name.");
+            return;
+          }
+
+          const submitButton = candidateForm.querySelector('button[type="submit"]');
+
+          try {
+            setButtonLoading(submitButton, true);
+            const uploadForm = new FormData();
+            uploadForm.append("filename", resumeFile.name || `${candidateName}-resume`);
+            uploadForm.append("mime_type", resumeFile.type || "application/pdf");
+            uploadForm.append("scope", "project");
+            uploadForm.append("scope_id", PROJECT_ID);
+            uploadForm.append("file", resumeFile);
+            const uploaded = await apiFetch("/api/documents/upload", { method: "POST", body: uploadForm });
+            const resumeUrl = uploaded?.file_url ? `/storage/${uploaded.file_url.replace(/^\/+/, "")}` : null;
+            const payload = {
+              name: candidateName,
+              project_id: PROJECT_ID,
+              position_id: positionInput?.value || null,
+              email: emailInput?.value || null,
+              source: sourceInput?.value?.trim() || "Resume upload",
+              status: "new",
+              resume_url: resumeUrl,
+            };
+            if (!payload.email) {
+              delete payload.email;
+            }
+            if (!payload.position_id) {
+              delete payload.position_id;
+            }
+            if (!payload.resume_url) {
+              delete payload.resume_url;
+            }
+            const created = await apiFetch("/api/candidates", { method: "POST", body: payload });
+            candidateForm.reset();
+            const tokenQuery = EMBEDDED_TOKEN ? `&token=${encodeURIComponent(EMBEDDED_TOKEN)}` : "";
+            const profileLink = created?.candidate_id
+              ? `/candidate-profile?candidate_id=${encodeURIComponent(created.candidate_id)}${tokenQuery}`
+              : null;
+            if (profileLink) {
+              showFeedback(candidateFeedback, "success", "Candidate created successfully.");
+              const link = document.createElement("a");
+              link.className = "ml-1 underline text-primary";
+              link.href = profileLink;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = "Open profile";
+              candidateFeedback.appendChild(document.createTextNode(" "));
+              candidateFeedback.appendChild(link);
+            } else {
+              showFeedback(candidateFeedback, "success", "Candidate created successfully.");
+            }
+          } catch (error) {
+            showFeedback(candidateFeedback, "error", error.message || "Failed to add candidate.");
+          } finally {
+            setButtonLoading(submitButton, false);
+          }
+        });
+      }
+
+      const deleteButton = document.querySelector('[data-action="delete-project"]');
+      const actionFeedback = document.getElementById("project-actions-feedback");
+      if (deleteButton) {
+        deleteButton.addEventListener("click", async () => {
+          if (!window.confirm("Deleting this project will remove associated data. Continue?")) {
+            return;
+          }
+          clearFeedback(actionFeedback);
+          try {
+            setButtonLoading(deleteButton, true);
+            await apiFetch(`/api/projects/${encodeURIComponent(PROJECT_ID)}`, { method: "DELETE" });
+            showFeedback(actionFeedback, "success", "Project deleted. Redirecting to dashboard...");
+            const redirectToken = EMBEDDED_TOKEN ? `?token=${encodeURIComponent(EMBEDDED_TOKEN)}` : "";
+            window.setTimeout(() => {
+              window.location.href = `/app${redirectToken}`;
+            }, 1200);
+          } catch (error) {
+            showFeedback(actionFeedback, "error", error.message || "Failed to delete project.");
+          } finally {
+            setButtonLoading(deleteButton, false);
+          }
+        });
+      }
+    });
+  </script>
+  {% endif %}
 </html>

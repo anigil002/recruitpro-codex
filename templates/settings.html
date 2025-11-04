@@ -999,17 +999,7 @@
           const result = validator(form);
           if (!result.valid) {
             if (result.message) {
-              // Show toast notification for validation error
-              if (window.RecruitPro && window.RecruitPro.showToast) {
-                window.RecruitPro.showToast({
-                  type: "error",
-                  title: "Validation Error",
-                  message: result.message,
-                  duration: 5000
-                });
-              } else {
-                showFeedback("error", result.message);
-              }
+              showFeedback("error", result.message);
             }
             return;
           }
@@ -1031,34 +1021,14 @@
               throw new Error(data.message || "Unable to save settings.");
             }
 
-            // Show toast notification for success
-            if (window.RecruitPro && window.RecruitPro.showToast) {
-              window.RecruitPro.showToast({
-                type: "success",
-                title: "Settings Saved",
-                message: data.message || "Settings updated successfully.",
-                duration: 4000
-              });
-            } else {
-              showFeedback("success", data.message || "Settings updated successfully.");
-            }
+            showFeedback("success", data.message || "Settings updated successfully.");
             updateIntegrationStatus(formId, data.integration, form);
           } catch (error) {
             if (error instanceof HttpError && error.status === 401) {
               handleUnauthorized(error.message);
             } else {
               const message = error instanceof Error ? error.message : "Unable to save settings.";
-              // Show toast notification for error
-              if (window.RecruitPro && window.RecruitPro.showToast) {
-                window.RecruitPro.showToast({
-                  type: "error",
-                  title: "Save Failed",
-                  message: message,
-                  duration: 5000
-                });
-              } else {
-                showFeedback("error", message);
-              }
+              showFeedback("error", message);
             }
           } finally {
             setLoading(form, false);
@@ -1080,20 +1050,10 @@
             clearFieldError(passwordField);
             passwordField.focus();
           }
-          // Show toast notification for info
-          if (window.RecruitPro && window.RecruitPro.showToast) {
-            window.RecruitPro.showToast({
-              type: "info",
-              title: "Password Removal",
-              message: "The stored SmartRecruiters password will be removed after saving.",
-              duration: 4000
-            });
-          } else {
-            showFeedback(
-              "info",
-              "The stored SmartRecruiters password will be removed after saving."
-            );
-          }
+          showFeedback(
+            "info",
+            "The stored SmartRecruiters password will be removed after saving."
+          );
         });
       });
     </script>

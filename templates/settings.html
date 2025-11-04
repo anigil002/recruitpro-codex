@@ -43,6 +43,8 @@
     </style>
   </head>
   <body class="bg-slate-950 font-display text-slate-200">
+    <!-- Include toast component -->
+    {% include 'components/toast.html' %}
     <div class="flex min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <aside
         class="hidden w-72 flex-col justify-between border-r border-white/10 bg-[#0C1727] px-6 py-8 text-slate-200 shadow-2xl lg:flex"
@@ -627,6 +629,15 @@
       }
 
       function showFeedback(type, message) {
+        // Use toast notification system
+        if (window.RecruitPro && window.RecruitPro.showToast) {
+          window.RecruitPro.showToast({
+            type: type,
+            message: message,
+            duration: 6000
+          });
+        }
+        // Fallback to old system if toast not available
         if (!feedbackBox) {
           return;
         }
@@ -988,7 +999,17 @@
           const result = validator(form);
           if (!result.valid) {
             if (result.message) {
-              showFeedback("error", result.message);
+              // Show toast notification for validation error
+              if (window.RecruitPro && window.RecruitPro.showToast) {
+                window.RecruitPro.showToast({
+                  type: "error",
+                  title: "Validation Error",
+                  message: result.message,
+                  duration: 5000
+                });
+              } else {
+                showFeedback("error", result.message);
+              }
             }
             return;
           }
@@ -1010,14 +1031,34 @@
               throw new Error(data.message || "Unable to save settings.");
             }
 
-            showFeedback("success", data.message || "Settings updated successfully.");
+            // Show toast notification for success
+            if (window.RecruitPro && window.RecruitPro.showToast) {
+              window.RecruitPro.showToast({
+                type: "success",
+                title: "Settings Saved",
+                message: data.message || "Settings updated successfully.",
+                duration: 4000
+              });
+            } else {
+              showFeedback("success", data.message || "Settings updated successfully.");
+            }
             updateIntegrationStatus(formId, data.integration, form);
           } catch (error) {
             if (error instanceof HttpError && error.status === 401) {
               handleUnauthorized(error.message);
             } else {
               const message = error instanceof Error ? error.message : "Unable to save settings.";
-              showFeedback("error", message);
+              // Show toast notification for error
+              if (window.RecruitPro && window.RecruitPro.showToast) {
+                window.RecruitPro.showToast({
+                  type: "error",
+                  title: "Save Failed",
+                  message: message,
+                  duration: 5000
+                });
+              } else {
+                showFeedback("error", message);
+              }
             }
           } finally {
             setLoading(form, false);
@@ -1039,10 +1080,20 @@
             clearFieldError(passwordField);
             passwordField.focus();
           }
-          showFeedback(
-            "info",
-            "The stored SmartRecruiters password will be removed after saving."
-          );
+          // Show toast notification for info
+          if (window.RecruitPro && window.RecruitPro.showToast) {
+            window.RecruitPro.showToast({
+              type: "info",
+              title: "Password Removal",
+              message: "The stored SmartRecruiters password will be removed after saving.",
+              duration: 4000
+            });
+          } else {
+            showFeedback(
+              "info",
+              "The stored SmartRecruiters password will be removed after saving."
+            );
+          }
         });
       });
     </script>

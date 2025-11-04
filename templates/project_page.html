@@ -700,6 +700,11 @@
         meta.className = "text-xs text-[#92adc9]";
         meta.textContent = `Uploaded ${formatDateTime(data.uploaded_at)}`;
         item.appendChild(meta);
+        
+        // Create actions container
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "flex gap-2 mt-2";
+        
         const url = data.file_url || data.url;
         if (url) {
           const link = document.createElement("a");
@@ -708,8 +713,32 @@
           link.rel = "noreferrer";
           link.href = url;
           link.textContent = "Open file";
-          item.appendChild(link);
+          actionsDiv.appendChild(link);
         }
+        
+        // Add delete button
+        if (data.id) {
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "text-xs text-red-500 hover:text-red-400 hover:underline";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.onclick = async function(e) {
+            e.preventDefault();
+            if (confirm(`Are you sure you want to delete "${data.filename}"?`)) {
+              try {
+                await apiFetch(`/api/documents/${encodeURIComponent(data.id)}`, {
+                  method: "DELETE"
+                });
+                showFeedback(document.getElementById("modal-feedback"), "success", "Document deleted successfully");
+                await refreshDocuments(document.getElementById("modal-feedback"));
+              } catch (error) {
+                showFeedback(document.getElementById("modal-feedback"), "error", error.message || "Failed to delete document");
+              }
+            }
+          };
+          actionsDiv.appendChild(deleteBtn);
+        }
+        
+        item.appendChild(actionsDiv);
         return item;
       }
 
@@ -730,6 +759,7 @@
           const storedPath = typeof doc.file_url === "string" ? doc.file_url : "";
           const isExternal = /^https?:/i.test(storedPath);
           const normalized = {
+            id: doc.id,
             filename: doc.filename,
             uploaded_at: doc.uploaded_at,
             file_url: doc.url || (storedPath ? (isExternal ? storedPath : `/storage/${storedPath.replace(/^\/+/, "")}`) : undefined),

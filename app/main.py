@@ -66,6 +66,10 @@ async def lifespan(_: FastAPI):
     """Initialize application resources before serving requests."""
 
     init_db()
+    
+    # Import services.ai to register background queue handlers
+    from .services import ai as ai_service
+    _ = ai_service  # Ensure the module is loaded and handlers are registered
 
     # Load API keys from database and configure runtime services
     try:

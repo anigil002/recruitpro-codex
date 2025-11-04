@@ -1,0 +1,192 @@
+<div
+  id="toast-root"
+  class="pointer-events-none fixed inset-x-4 top-4 z-[9999] mx-auto flex max-w-sm flex-col gap-3 sm:inset-x-auto sm:top-6 sm:right-6 sm:mx-0"
+  role="status"
+  aria-live="polite"
+></div>
+
+<script>
+  (function () {
+    const ICONS = {
+      success:
+        '<span class="material-symbols-outlined text-[#22c55e]">check_circle</span>',
+      error:
+        '<span class="material-symbols-outlined text-[#ef4444]">error</span>',
+      warning:
+        '<span class="material-symbols-outlined text-[#facc15]">warning</span>',
+      info: '<span class="material-symbols-outlined text-[#38bdf8]">info</span>',
+      loading:
+        '<span class="material-symbols-outlined text-[#38bdf8] animate-spin">progress_activity</span>',
+    };
+
+    const STYLES = {
+      base: "pointer-events-auto flex w-full items-start gap-3 rounded-xl border border-white/10 bg-[#0f172a]/80 p-4 text-sm text-white shadow-xl backdrop-blur", // prettier-ignore
+      success:
+        "border-[#22c55e]/30 bg-[#14532d]/80 text-[#dcfce7]",
+      error: "border-[#ef4444]/30 bg-[#450a0a]/80 text-[#fee2e2]",
+      warning: "border-[#facc15]/30 bg-[#422006]/80 text-[#fef3c7]",
+      info: "border-[#38bdf8]/30 bg-[#0f172a]/80 text-[#e0f2fe]",
+      loading: "border-[#38bdf8]/30 bg-[#0f172a]/80 text-[#e0f2fe]",
+    };
+
+    const DEFAULT_OPTIONS = {
+      id: undefined,
+      type: "info",
+      title: "",
+      message: "",
+      duration: 4000,
+      dismissible: true,
+      actions: [],
+    };
+
+    class ToastManager {
+      constructor(root) {
+        this.root = root;
+        this.queue = [];
+        this.activeToast = null;
+      }
+
+      show(options = {}) {
+        const toast = { ...DEFAULT_OPTIONS, ...options };
+
+        if (!toast.message && !toast.title) {
+          console.warn("Toast requires a title or message");
+          return;
+        }
+
+        toast.id = toast.id || `toast-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        this.queue.push(toast);
+        this.processQueue();
+        return toast.id;
+      }
+
+      dismiss(id) {
+        if (this.activeToast && this.activeToast.id === id) {
+          this.removeActiveToast();
+        }
+        this.queue = this.queue.filter((toast) => toast.id !== id);
+      }
+
+      clear() {
+        this.queue = [];
+        this.removeActiveToast();
+      }
+
+      processQueue() {
+        if (this.activeToast || this.queue.length === 0) {
+          return;
+        }
+        const nextToast = this.queue.shift();
+        this.renderToast(nextToast);
+      }
+
+      removeActiveToast() {
+        const activeNode = this.root.querySelector("[data-toast]");
+        if (!activeNode) return;
+        activeNode.classList.add("opacity-0", "translate-y-2");
+        setTimeout(() => {
+          activeNode.remove();
+          this.activeToast = null;
+          this.processQueue();
+        }, 200);
+      }
+
+      renderToast(toast) {
+        const node = document.createElement("div");
+        node.dataset.toast = toast.id;
+        node.setAttribute("role", "status");
+        node.className = `${STYLES.base} ${STYLES[toast.type] || ""} transition-all duration-200 ease-out opacity-0 translate-y-2`;
+
+        const icon = ICONS[toast.type] || ICONS.info;
+        const dismissButton = toast.dismissible
+          ? `<button type="button" class="ml-auto rounded-md bg-white/5 p-1 text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring focus-visible:ring-white/60" data-dismiss="${toast.id}">
+              <span class="material-symbols-outlined text-base">close</span>
+            </button>`
+          : "";
+
+        const actions = (toast.actions || [])
+          .map(
+            (action, idx) => `
+              <button
+                type="button"
+                class="rounded-lg border border-white/20 px-3 py-1 text-xs font-medium uppercase tracking-wide text-white transition hover:border-white/40 hover:bg-white/10"
+                data-action-index="${idx}"
+              >${action.label || "Action"}</button>
+            `,
+          )
+          .join("");
+
+        node.innerHTML = `
+          <div class="flex w-full items-start gap-3">
+            <div class="mt-0.5 flex size-6 flex-shrink-0 items-center justify-center">${icon}</div>
+            <div class="flex-1">
+              ${toast.title ? `<p class="text-sm font-semibold leading-5">${toast.title}</p>` : ""}
+              ${toast.message ? `<p class="mt-1 text-sm leading-5 text-white/80">${toast.message}</p>` : ""}
+              ${actions ? `<div class="mt-3 flex flex-wrap gap-2">${actions}</div>` : ""}
+            </div>
+            ${dismissButton}
+          </div>
+        `;
+
+        this.root.appendChild(node);
+
+        requestAnimationFrame(() => {
+          node.classList.remove("opacity-0", "translate-y-2");
+        });
+
+        this.activeToast = toast;
+
+        node.addEventListener("click", (event) => {
+          const dismissTarget = event.target.closest("[data-dismiss]");
+          if (dismissTarget) {
+            this.dismiss(toast.id);
+            return;
+          }
+          const actionTarget = event.target.closest("[data-action-index]");
+          if (actionTarget) {
+            const actionIndex = Number(actionTarget.getAttribute("data-action-index"));
+            const action = toast.actions[actionIndex];
+            if (action && typeof action.onClick === "function") {
+              action.onClick({ id: toast.id, toast: { ...toast } });
+            }
+          }
+        });
+
+        if (toast.duration && toast.type !== "loading") {
+          toast.timeout = setTimeout(() => this.dismiss(toast.id), toast.duration);
+        }
+      }
+    }
+
+    function createManager() {
+      const root = document.getElementById("toast-root");
+      if (!root) {
+        console.warn("Toast root not found. Include templates/components/toast.html in your layout.");
+        return null;
+      }
+      return new ToastManager(root);
+    }
+
+    window.RecruitPro = window.RecruitPro || {};
+    window.RecruitPro.toast = window.RecruitPro.toast || createManager();
+
+    window.dispatchEvent(
+      new CustomEvent("recruitpro:toast:init", { detail: { manager: window.RecruitPro.toast } }),
+    );
+
+    window.RecruitPro.showToast = function (options) {
+      if (!window.RecruitPro.toast) {
+        window.RecruitPro.toast = createManager();
+      }
+      return window.RecruitPro.toast?.show(options);
+    };
+
+    window.RecruitPro.dismissToast = function (id) {
+      window.RecruitPro.toast?.dismiss(id);
+    };
+
+    window.RecruitPro.clearToasts = function () {
+      window.RecruitPro.toast?.clear();
+    };
+  })();
+</script>

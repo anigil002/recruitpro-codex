@@ -1,0 +1,66 @@
+# RecruitPro ATS & AI Platform - Requirements
+# Python 3.11+
+
+# Core Web Framework
+fastapi==0.111.1
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+jinja2==3.1.4
+
+# Database & ORM
+sqlalchemy==2.0.44
+alembic==1.17.0
+
+# Data Validation & Settings
+pydantic==2.12.3
+pydantic-core==2.41.4
+pydantic-settings==2.11.0
+email-validator==2.3.0
+
+# Authentication & Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+bcrypt==5.0.0
+cryptography==43.0.3
+
+# Utilities
+python-dotenv==1.0.1
+typing-extensions==4.14.1
+
+# Excel Export Support
+openpyxl==3.1.5
+
+# HTTP Client (for testing and external API calls)
+httpx==0.27.2
+
+# ASGI Server Dependencies
+anyio==4.11.0
+starlette==0.37.2
+sniffio==1.3.1
+
+# Template Engine
+markupsafe==3.0.2
+
+# Database Migration
+mako==1.3.9
+
+# Additional Core Dependencies
+idna==3.10
+certifi==2024.12.14
+h11==0.14.0
+click==8.1.8
+
+# Development & Testing (optional - uncomment if needed)
+# pytest==8.2.2
+# pytest-asyncio==0.24.0
+# pytest-cov==6.0.0
+
+# Type Hints Support
+typing-inspection==0.4.2
+annotated-types==0.7.0
+
+# Async Support
+greenlet==3.2.4
+
+# Rich Terminal Output (for CLI)
+rich==13.9.4

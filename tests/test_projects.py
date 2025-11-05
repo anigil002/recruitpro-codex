@@ -149,3 +149,63 @@ def test_scope_document_triggers_market_research_job(tmp_path):
         )
         assert record.status == "completed"
         assert record.findings
+
+
+def test_project_upload_triggers_inline_analysis(monkeypatch):
+    headers, user_id = _auth_headers(return_user_id=True)
+    project_response = client.post("/api/projects", json={"name": "Metro Hub"}, headers=headers)
+    assert project_response.status_code == 201
+    project_id = project_response.json()["project_id"]
+
+    fake_analysis = {
+        "document_type": "project_brief",
+        "project_info": {"summary": "Metro operations ramp-up"},
+        "positions": [
+            {
+                "title": "Construction Director",
+                "department": "Delivery",
+                "experience": "10+ years",
+                "responsibilities": ["Lead expansion programme"],
+                "requirements": ["PMP"],
+                "location": "Dubai",
+                "description": "Oversee project execution",
+                "status": "draft",
+            }
+        ],
+        "job_descriptions_generated": True,
+        "market_research_recommended": False,
+    }
+
+    enqueued_jobs: list[tuple[str, dict]] = []
+
+    def fake_enqueue(job_type: str, payload: dict) -> None:
+        if job_type == "file_analysis":
+            _handle_file_analysis_job(payload)
+        else:
+            enqueued_jobs.append((job_type, payload))
+
+    monkeypatch.setattr("app.services.ai.gemini.analyze_file", lambda *args, **kwargs: fake_analysis)
+    monkeypatch.setattr("app.services.ai.events.publish_sync", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "app.services.ai.background_queue.enqueue", lambda job_type, payload: enqueued_jobs.append((job_type, payload))
+    )
+    monkeypatch.setattr("app.routers.documents.background_queue.enqueue", fake_enqueue)
+
+    files = {
+        "file": ("brief.txt", b"Metro build scope", "text/plain"),
+    }
+    data = {
+        "filename": "brief.txt",
+        "mime_type": "text/plain",
+        "scope": "project",
+        "scope_id": project_id,
+    }
+
+    response = client.post("/api/documents/upload", data=data, files=files, headers=headers)
+    assert response.status_code == 201
+
+    with get_session() as session:
+        project = session.get(Project, project_id)
+        assert project is not None
+        titles = [position.title for position in project.positions]
+        assert "Construction Director" in titles

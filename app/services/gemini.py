@@ -302,8 +302,54 @@ class GeminiService:
         roles: List[Dict[str, Any]] = []
         buffer: List[str] = []
         current_title: Optional[str] = None
+        title_pattern = re.compile(r"\b(role|position|engineer|manager)\b", re.I)
+
+        def clean(line: str) -> str:
+            return re.sub(r"^[\s\-•*\d.()]+", "", line).strip()
+
+        def looks_like_title(line: str) -> bool:
+            cleaned = clean(line)
+            if not cleaned or cleaned.endswith(":"):
+                return False
+            words = [re.sub(r"[^A-Za-z]", "", word) for word in cleaned.split()]
+            meaningful = [word for word in words if word]
+            if not meaningful or len(meaningful) > 8:
+                return False
+            titlecased = sum(1 for word in meaningful if word[0].isupper())
+            uppercase = sum(1 for word in meaningful if word.isupper())
+            return titlecased + uppercase >= len(meaningful)
+
+        section_titles = {
+            "position overview",
+            "role overview",
+            "position summary",
+            "role summary",
+            "project overview",
+        }
+
+        def is_heading(line: str) -> bool:
+            stripped = line.lstrip()
+            if stripped.startswith(("•", "-", "*")):
+                return False
+            cleaned = clean(line)
+            if not cleaned:
+                return False
+            if cleaned.lower() in section_titles:
+                return False
+            if not title_pattern.search(cleaned):
+                return False
+            lowered = cleaned.lower()
+            if lowered.startswith(("this role", "the role", "this position", "the position")):
+                return False
+            if cleaned.endswith(".") and len(cleaned.split()) > 6:
+                return False
+            return True
+
         for sentence in sentences:
-            if re.search(r"(role|position|engineer|manager)", sentence, re.I):
+            if not current_title and looks_like_title(sentence):
+                current_title = clean(sentence).split(" - ")[0].strip().rstrip(".")
+                continue
+            if is_heading(sentence):
                 if current_title:
                     roles.append(
                         {
@@ -314,7 +360,7 @@ class GeminiService:
                         }
                     )
                     buffer = []
-                current_title = sentence.split(" - ")[0].strip().rstrip(".")
+                current_title = clean(sentence).split(" - ")[0].strip().rstrip(".")
             else:
                 if current_title:
                     buffer.append(sentence)

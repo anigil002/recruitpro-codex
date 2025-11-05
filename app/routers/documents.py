@@ -109,8 +109,10 @@ def upload_document(
         project_id=scope_id,
         request=job_request,
     )
+    # Commit before queuing the background job so the worker can access the
+    # new document, project linkage, and job record in a fresh session.
+    db.commit()
     background_queue.enqueue("file_analysis", {"job_id": job.job_id})
-    db.flush()
 
     return DocumentRead(
         id=document.id,

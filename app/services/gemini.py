@@ -201,13 +201,10 @@ class GeminiService:
     def _ai_analyze_document(self, text: str, project_context: Dict[str, Any]) -> Dict[str, Any]:
         """Use AI to analyze document content and extract structured information."""
 
-        # Truncate text if too long (keep first 8000 characters)
-        truncated_text = text[:8000] if len(text) > 8000 else text
-
         prompt = f"""Analyze the following document text and extract structured information.
 
 Document Text:
-{truncated_text}
+{text}
 
 Project Context (if available):
 {json.dumps(project_context, indent=2, ensure_ascii=False)}

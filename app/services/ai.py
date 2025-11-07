@@ -129,10 +129,29 @@ def _handle_file_analysis_job(payload: Dict[str, Any]) -> None:
         # Update project metadata
         if project and analysis["project_info"]:
             info = analysis["project_info"]
-            for field in ("name", "summary", "sector", "location_region", "client"):
+            for field in ("name", "sector", "location_region", "client"):
                 value = info.get(field)
                 if value:
                     setattr(project, field, value)
+
+            # Handle summary and scope_of_work
+            # Prioritize scope_of_work if it's more detailed than summary
+            summary = info.get("summary")
+            scope_of_work = info.get("scope_of_work")
+
+            if scope_of_work and not summary:
+                # Only scope_of_work is available
+                project.summary = scope_of_work
+            elif scope_of_work and summary:
+                # Both available - use scope_of_work if it's longer and more detailed
+                if len(scope_of_work) > len(summary):
+                    project.summary = scope_of_work
+                else:
+                    project.summary = summary
+            elif summary:
+                # Only summary is available
+                project.summary = summary
+
             session.add(project)
         # Create draft positions
         if project:

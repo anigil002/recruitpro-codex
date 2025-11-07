@@ -198,6 +198,84 @@ class GeminiService:
     # ------------------------------------------------------------------
     # File analysis
     # ------------------------------------------------------------------
+    def _ai_analyze_document(self, text: str, project_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Use AI to analyze document content and extract structured information."""
+
+        # Truncate text if too long (keep first 8000 characters)
+        truncated_text = text[:8000] if len(text) > 8000 else text
+
+        prompt = f"""Analyze the following document text and extract structured information.
+
+Document Text:
+{truncated_text}
+
+Project Context (if available):
+{json.dumps(project_context, indent=2, ensure_ascii=False)}
+
+Please analyze this document and return a JSON object with the following structure:
+{{
+  "document_type": "project_scope" | "job_description" | "positions_list" | "general",
+  "project_info": {{
+    "name": "extracted project name or null",
+    "summary": "brief project summary (max 400 chars) or null",
+    "scope_of_work": "scope of work description or null",
+    "client": "client name or null",
+    "sector": "sector/industry or null",
+    "location_region": "location/region or null"
+  }},
+  "positions": [
+    {{
+      "title": "position title",
+      "department": "department or null",
+      "experience": "experience level or null",
+      "description": "role description or null",
+      "responsibilities": ["responsibility 1", "responsibility 2", ...],
+      "requirements": ["requirement 1", "requirement 2", ...],
+      "location": "location or null"
+    }}
+  ]
+}}
+
+Instructions:
+1. Identify the document type:
+   - "project_scope": Document describes project overview, scope of work, objectives
+   - "job_description": Document describes a single job/position in detail
+   - "positions_list": Document lists multiple positions/roles (may be brief)
+   - "general": Other project-related content
+
+2. Extract project information if present in the document:
+   - Update fields only if explicitly mentioned in the document
+   - For summary: create a concise overview (max 400 chars) based on document content
+   - For scope_of_work: extract detailed scope, objectives, deliverables if present
+
+3. Extract positions/roles if present:
+   - Include all positions mentioned in the document
+   - For each position, extract as much detail as available
+   - If responsibilities/requirements are not explicitly listed, infer reasonable ones based on the role title and context
+   - If only job titles are listed without details, still include them with basic info
+
+4. Return empty arrays/null values for information not present in the document."""
+
+        def fallback() -> Dict[str, Any]:
+            return {
+                "document_type": "general",
+                "project_info": {
+                    "name": project_context.get("name"),
+                    "summary": project_context.get("summary"),
+                    "scope_of_work": None,
+                    "client": project_context.get("client"),
+                    "sector": project_context.get("sector"),
+                    "location_region": project_context.get("location_region"),
+                },
+                "positions": [],
+            }
+
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction="You are a document analysis assistant for a recruitment platform. Analyze documents and extract project and position information accurately. Return valid JSON only.",
+        )
+
     def analyze_file(
         self,
         path: Path,
@@ -206,58 +284,39 @@ class GeminiService:
         mime_type: Optional[str] = None,
         project_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Extract project insights and potential roles from a project brief."""
+        """Extract project insights and potential roles from a project brief using AI."""
 
         text = self._extract_text(path)
-        lines = [line.strip() for line in text.splitlines() if line.strip()]
-        sentences = self._split_sentences(text)[:60]
         diagnostics: Dict[str, Any] = {
             "type": mime_type or path.suffix.replace(".", "") or "txt",
             "characters": len(text),
         }
 
-        project_info = self._extract_project_info(sentences, project_context or {})
-        document_type = self._classify_document(path, mime_type, lines, sentences)
-        positions: List[Dict[str, Any]] = []
-        job_descriptions_generated = False
+        # Use AI to analyze the document
+        ai_result = self._ai_analyze_document(text, project_context or {})
 
-        if document_type == "positions_sheet":
-            positions = self._parse_positions_sheet(text, project_context or {})
-            if not positions:
-                positions = self._extract_positions(sentences, original_name)
-        elif document_type == "job_titles":
-            titles = self._extract_job_titles(lines)
-            summary = project_context.get("summary") if project_context else None
-            positions = [
-                {
-                    "title": title,
-                    "department": None,
-                    "experience": None,
-                    "responsibilities": jd["responsibilities"],
-                    "requirements": jd["requirements"],
-                    "location": None,
-                    "description": jd["description"],
-                    "status": "draft",
-                    "auto_generated": True,
-                }
-                for title in titles
-                for jd in [self.generate_job_description({"title": title, "project_summary": summary})]
-            ]
-            job_descriptions_generated = bool(positions)
-        else:
-            positions = self._extract_positions(sentences, original_name)
+        document_type = ai_result.get("document_type", "general")
+        project_info = ai_result.get("project_info", {})
+        positions = ai_result.get("positions", [])
+
+        # Ensure positions have required fields and proper status
+        for position in positions:
+            position.setdefault("status", "draft")
+            position.setdefault("auto_generated", False)
+            position.setdefault("responsibilities", [])
+            position.setdefault("requirements", [])
 
         diagnostics["positions_detected"] = len(positions)
-        diagnostics["project_info_detected"] = any(project_info.values())
+        diagnostics["project_info_detected"] = any(v for v in project_info.values() if v)
         diagnostics["document_type"] = document_type
-        diagnostics["job_descriptions_generated"] = job_descriptions_generated
+        diagnostics["job_descriptions_generated"] = False
 
         return {
             "project_info": project_info,
             "positions": positions,
             "file_diagnostics": diagnostics,
             "document_type": document_type,
-            "job_descriptions_generated": job_descriptions_generated,
+            "job_descriptions_generated": False,
             "market_research_recommended": document_type == "project_scope",
         }
 

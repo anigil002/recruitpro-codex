@@ -1,1061 +1,519 @@
-<!DOCTYPE html>
-<html class="dark" lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>RecruitPro - System Settings</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#3B82F6",
-              "accent-sky": "#38BDF8",
-              "slate-950": "#020617",
-            },
-            fontFamily: {
-              display: ["Inter", "sans-serif"],
-            },
-            borderRadius: {
-              DEFAULT: "0.75rem",
-              lg: "1rem",
-              xl: "1.5rem",
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      .material-symbols-outlined {
-        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-        font-size: 20px;
-      }
-    </style>
-  </head>
-  <body class="bg-slate-950 font-display text-slate-200">
-    <!-- Include toast component -->
-    {% include 'components/toast.html' %}
-    <div class="flex min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <aside
-        class="hidden w-72 flex-col justify-between border-r border-white/10 bg-[#0C1727] px-6 py-8 text-slate-200 shadow-2xl lg:flex"
-      >
-        <div class="space-y-6">
-          <div class="flex items-center gap-3">
-            <div
-              class="size-12 rounded-full border border-white/10 bg-cover bg-center bg-no-repeat"
-              data-alt="RecruitPro company logo"
-              {% if sidebar.logo_url %}
-              style="background-image: url('{{ sidebar.logo_url }}');"
-              {% else %}
-              aria-hidden="true"
-              {% endif %}
-            >
-              {% if not sidebar.logo_url %}
-              <span class="flex h-full items-center justify-center text-lg font-semibold">{{ sidebar.workspace_name[:2] }}</span>
-              {% endif %}
-            </div>
-            <div>
-              <p class="text-lg font-semibold text-white">{{ sidebar.workspace_name }}</p>
-              <p class="text-sm text-slate-400">{{ sidebar.workspace_context }}</p>
-            </div>
-          </div>
-          <div class="space-y-1">
-            <p class="text-xs uppercase tracking-wider text-slate-500">Navigation</p>
-            <nav class="flex flex-col gap-1">
-              {% for item in sidebar.menu %}
-              <a
-                class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-white/5 {{ 'bg-white/10 text-white shadow-inner' if item.active else 'text-slate-400' }}"
-                href="{{ item.href }}"
-              >
-                <span class="material-symbols-outlined" {% if item.icon_filled %}style="font-variation-settings: 'FILL' 1;"{% endif %}>
-                  {{ item.icon }}
-                </span>
-                <span>{{ item.label }}</span>
-              </a>
-              {% endfor %}
-            </nav>
-          </div>
+{% extends "base.html" %}
+
+{% block title %}System Settings - RecruitPro{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen w-full bg-gradient-to-br from-background-dark via-[#0a1520] to-background-dark">
+  <!-- Sidebar -->
+  <aside class="hidden w-72 flex-col justify-between border-r border-surface-border bg-surface-dark px-6 py-8 shadow-2xl lg:flex">
+    <div class="space-y-6">
+      <!-- Workspace Info -->
+      <div class="flex items-center gap-3">
+        <div class="size-12 rounded-full border border-surface-border bg-primary/20 flex items-center justify-center">
+          <span class="text-lg font-semibold">{{ sidebar.workspace_name[:2] }}</span>
         </div>
-        <div class="space-y-2">
-          {% for item in sidebar.secondary_menu %}
+        <div>
+          <p class="text-lg font-semibold text-text-primary">{{ sidebar.workspace_name }}</p>
+          <p class="text-sm text-text-secondary">{{ sidebar.workspace_context }}</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="space-y-1">
+        <p class="text-xs uppercase tracking-wider text-text-muted">Navigation</p>
+        <nav class="flex flex-col gap-1">
+          {% for item in sidebar.menu %}
           <a
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5"
+            class="rp-nav-item {{ 'active' if item.active else '' }}"
             href="{{ item.href }}"
           >
-            <span class="material-symbols-outlined">{{ item.icon }}</span>
+            <span class="material-symbols-outlined" {% if item.icon_filled %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">
+              {{ item.icon }}
+            </span>
             <span>{{ item.label }}</span>
           </a>
           {% endfor %}
-          <div class="rounded-lg border border-white/10 bg-white/5 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-300">Workspace Health</p>
-            <div class="mt-3 flex items-center justify-between text-sm text-slate-400">
-              <span>Gemini API</span>
-              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if gemini.configured else 'text-slate-500' }}">
-                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if gemini.configured else 'error' }}</span>
-                {{ 'Active' if gemini.configured else 'Missing' }}
-              </span>
-            </div>
-            <div class="mt-2 flex items-center justify-between text-sm text-slate-400">
-              <span>Google Search</span>
-              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if google.configured else 'text-slate-500' }}">
-                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if google.configured else 'error' }}</span>
-                {{ 'Active' if google.configured else 'Missing' }}
-              </span>
-            </div>
-            <div class="mt-2 flex items-center justify-between text-sm text-slate-400">
-              <span>SmartRecruiters</span>
-              <span class="flex items-center gap-2 text-xs {{ 'text-emerald-400' if smartrecruiters.configured else 'text-slate-500' }}">
-                <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">{{ 'check_circle' if smartrecruiters.configured else 'error' }}</span>
-                {{ 'Active' if smartrecruiters.configured else 'Missing' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </aside>
-      <main class="flex-1 overflow-y-auto">
-        <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-12">
-          <header class="flex flex-col justify-between gap-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur lg:flex-row lg:items-center">
-            <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Admin Console</p>
-              <h1 class="mt-2 text-3xl font-black text-white">System Settings</h1>
-              <p class="mt-2 max-w-2xl text-sm text-slate-400">
-                Manage system feature flags and external API configurations for RecruitPro. Changes are applied immediately after saving.
-              </p>
-            </div>
-          </header>
-
-          {% if message %}
-          <div class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-300">
-            {{ message }}
-          </div>
-          {% elif error %}
-          <div class="rounded-xl border border-rose-400/40 bg-rose-400/10 p-4 text-sm font-medium text-rose-200">
-            {{ error }}
-          </div>
-          {% endif %}
-
-          <div
-            id="settings-feedback"
-            class="hidden rounded-xl border border-white/10 bg-white/5 p-4 text-sm font-medium text-slate-200"
-            role="status"
-            aria-live="polite"
-          ></div>
-
-          <section class="grid gap-6 lg:grid-cols-2">
-            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
-                  <h2 class="mt-1 text-xl font-semibold text-white">AI Candidate Matching</h2>
-                </div>
-                <button
-                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/80 text-left text-xs font-medium text-white"
-                  type="button"
-                  disabled
-                >
-                  <span class="sr-only">Toggle candidate matching</span>
-                  <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-emerald-500 shadow"></span>
-                </button>
-              </div>
-              <p class="mt-3 text-sm text-slate-400">
-                Automatically match AI-sourced candidates to open requisitions using RecruitPro's knowledge graph.
-              </p>
-            </article>
-            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
-                  <h2 class="mt-1 text-xl font-semibold text-white">Automated Interview Scheduling</h2>
-                </div>
-                <button
-                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/30 text-left text-xs font-medium text-white"
-                  type="button"
-                  disabled
-                >
-                  <span class="sr-only">Toggle interview scheduling</span>
-                  <span class="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-white/40 text-slate-500 shadow-inner"></span>
-                </button>
-              </div>
-              <p class="mt-3 text-sm text-slate-400">
-                Enable automated email outreach and interviewer coordination directly from RecruitPro.
-              </p>
-            </article>
-            <article class="rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur lg:col-span-2">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Feature Flag</p>
-                  <h2 class="mt-1 text-xl font-semibold text-white">Real-time Resume Parsing</h2>
-                </div>
-                <button
-                  class="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500/80 text-left text-xs font-medium text-white"
-                  type="button"
-                  disabled
-                >
-                  <span class="sr-only">Toggle resume parsing</span>
-                  <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-emerald-500 shadow"></span>
-                </button>
-              </div>
-              <p class="mt-3 text-sm text-slate-400">
-                Streamline intake workflows by automatically parsing resumes into structured candidate profiles.
-              </p>
-            </article>
-          </section>
-
-          <section class="space-y-6">
-            <header class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">External API Configurations</p>
-                <h2 class="mt-1 text-2xl font-semibold text-white">Connected Services</h2>
-              </div>
-            </header>
-
-            <form
-              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
-              id="gemini-settings"
-              method="post"
-              data-settings-form="gemini"
-              novalidate
-            >
-              <input name="form_id" type="hidden" value="gemini" />
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Gemini API</p>
-                  <h3 class="text-xl font-semibold text-white">Google Gemini</h3>
-                  <p class="mt-1 text-sm text-slate-400">Used for RecruitPro's AI reasoning and summarisation features.</p>
-                </div>
-                <span
-                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if gemini.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
-                  data-integration-status="gemini"
-                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
-                >
-                  <span
-                    class="material-symbols-outlined text-base"
-                    style="font-variation-settings: 'FILL' 1;"
-                    data-integration-status-icon="gemini"
-                    data-connected-icon="verified"
-                    data-missing-icon="warning"
-                  >
-                    {{ 'verified' if gemini.configured else 'warning' }}
-                  </span>
-                  <span
-                    data-integration-status-text="gemini"
-                    data-connected-label="Connected"
-                    data-missing-label="Not Configured"
-                  >
-                    {{ 'Connected' if gemini.configured else 'Not Configured' }}
-                  </span>
-                </span>
-              </div>
-              <label class="text-sm font-medium text-slate-300" for="gemini-api">Gemini API Key</label>
-              <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
-                <input
-                  class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
-                  id="gemini-api"
-                  name="gemini_api_key"
-                  type="password"
-                  placeholder="Enter your Gemini API key"
-                />
-                <button
-                  class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
-                  type="button"
-                  data-target="gemini-api"
-                >
-                  <span class="material-symbols-outlined">visibility</span>
-                </button>
-              </div>
-              <p class="text-xs text-slate-500" data-integration-description="gemini">
-                <span class="{{ '' if gemini.configured else 'hidden' }}" data-visible-when="configured">
-                  Current key:
-                  <span class="font-semibold text-slate-200" data-integration-masked="gemini">{{ gemini.masked }}</span>
-                  (<span data-integration-source="gemini">{{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}</span>).
-                </span>
-                <span class="{{ 'hidden' if gemini.configured else '' }}" data-visible-when="missing">
-                  No key configured. Provide a Gemini API key to enable real-time AI features.
-                </span>
-                <a class="text-accent-sky hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
-              </p>
-              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
-                <button
-                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
-                  type="submit"
-                >
-                  <span class="material-symbols-outlined text-base">save</span>
-                  <span class="button-label">Save Gemini Settings</span>
-                </button>
-              </div>
-            </form>
-
-            <form
-              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
-              method="post"
-              id="google-settings"
-              data-settings-form="google"
-              novalidate
-            >
-              <input name="form_id" type="hidden" value="google" />
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Google Custom Search</p>
-                  <h3 class="text-xl font-semibold text-white">Custom Search API</h3>
-                  <p class="mt-1 text-sm text-slate-400">Used to enrich candidate sourcing with web and LinkedIn data.</p>
-                </div>
-                <span
-                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if google.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
-                  data-integration-status="google"
-                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
-                >
-                  <span
-                    class="material-symbols-outlined text-base"
-                    style="font-variation-settings: 'FILL' 1;"
-                    data-integration-status-icon="google"
-                    data-connected-icon="verified"
-                    data-missing-icon="warning"
-                  >
-                    {{ 'verified' if google.configured else 'warning' }}
-                  </span>
-                  <span
-                    data-integration-status-text="google"
-                    data-connected-label="Connected"
-                    data-missing-label="Not Configured"
-                  >
-                    {{ 'Connected' if google.configured else 'Not Configured' }}
-                  </span>
-                </span>
-              </div>
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-300" for="google-api">Google API Key</label>
-                  <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
-                    <input
-                      class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
-                      id="google-api"
-                      name="google_api_key"
-                      type="password"
-                      placeholder="Enter your Google API key"
-                    />
-                    <button
-                      class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
-                      type="button"
-                      data-target="google-api"
-                    >
-                      <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-300" for="search-engine-id">Custom Search Engine ID</label>
-                  <input
-                    class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
-                    id="search-engine-id"
-                    name="google_cse_id"
-                    type="text"
-                    value="{{ google.search_engine_id }}"
-                    placeholder="Enter your Search Engine ID"
-                  />
-                </div>
-              </div>
-              <p class="text-xs text-slate-500" data-integration-description="google">
-                <span class="{{ '' if google.configured else 'hidden' }} space-y-1" data-visible-when="configured">
-                  <span class="block">
-                    Current API key:
-                    <span class="font-semibold text-slate-200" data-google-status="api_key">{{ google.api_key_masked }}</span>
-                  </span>
-                  <span class="block">
-                    Custom Search Engine ID:
-                    <span class="font-semibold text-slate-200" data-google-status="cse_id">{{ google.search_engine_id_masked }}</span>
-                  </span>
-                </span>
-                <span class="{{ 'hidden' if google.configured else '' }}" data-visible-when="missing">
-                  Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
-                </span>
-                Find your API key and Search Engine ID in the
-                <a class="text-accent-sky hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
-              </p>
-              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
-                <button
-                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
-                  type="submit"
-                >
-                  <span class="material-symbols-outlined text-base">save</span>
-                  <span class="button-label">Save Google Settings</span>
-                </button>
-              </div>
-            </form>
-
-            <form
-              class="space-y-6 rounded-2xl border border-white/10 bg-white/5/80 p-6 backdrop-blur"
-              method="post"
-              id="smartrecruiters-settings"
-              data-settings-form="smartrecruiters"
-              data-clear-password-intent="false"
-              novalidate
-            >
-              <input name="form_id" type="hidden" value="smartrecruiters" />
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">SmartRecruiters</p>
-                  <h3 class="text-xl font-semibold text-white">Enterprise ATS Connector</h3>
-                  <p class="mt-1 text-sm text-slate-400">Authenticate with SmartRecruiters to sync jobs and applications.</p>
-                </div>
-                <span
-                  class="status-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide {{ 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300' if smartrecruiters.configured else 'border-amber-400/30 bg-amber-400/10 text-amber-300' }}"
-                  data-integration-status="smartrecruiters"
-                  data-connected-class="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-                  data-missing-class="border-amber-400/30 bg-amber-400/10 text-amber-300"
-                >
-                  <span
-                    class="material-symbols-outlined text-base"
-                    style="font-variation-settings: 'FILL' 1;"
-                    data-integration-status-icon="smartrecruiters"
-                    data-connected-icon="verified"
-                    data-missing-icon="warning"
-                  >
-                    {{ 'verified' if smartrecruiters.configured else 'warning' }}
-                  </span>
-                  <span
-                    data-integration-status-text="smartrecruiters"
-                    data-connected-label="Connected"
-                    data-missing-label="Not Configured"
-                  >
-                    {{ 'Connected' if smartrecruiters.configured else 'Not Configured' }}
-                  </span>
-                </span>
-              </div>
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-300" for="smartrecruiters-email">SmartRecruiters Email</label>
-                  <input
-                    class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
-                    id="smartrecruiters-email"
-                    name="smartrecruiters_email"
-                    type="email"
-                    value="{{ smartrecruiters.email }}"
-                    placeholder="username@example.com"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label class="text-sm font-medium text-slate-300" for="smartrecruiters-password">SmartRecruiters Password</label>
-                    <button
-                      class="text-xs font-semibold text-rose-300 transition hover:text-rose-200 {{ '' if smartrecruiters.password_masked else 'hidden' }}"
-                      type="button"
-                      data-clear-password-button
-                    >
-                      Clear stored password
-                    </button>
-                  </div>
-                  <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/10 bg-slate-950/60">
-                    <input
-                      class="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
-                      id="smartrecruiters-password"
-                      name="smartrecruiters_password"
-                      type="password"
-                      placeholder="Enter your SmartRecruiters password"
-                    />
-                    <button
-                      class="toggle-visibility flex size-11 items-center justify-center border-l border-white/10 text-slate-400 transition hover:text-white"
-                      type="button"
-                      data-target="smartrecruiters-password"
-                    >
-                      <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                  </div>
-                  <p
-                    class="text-xs text-slate-500 {{ '' if smartrecruiters.password_masked else 'hidden' }}"
-                    data-smartrecruiters-password-status
-                  >
-                    Stored password:
-                    <span class="font-semibold text-slate-200" data-integration-masked="smartrecruiters_password">
-                      {{ smartrecruiters.password_masked }}
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500">
-                Credentials are encrypted at rest. Provide the SmartRecruiters login used for automated bulk imports.
-              </p>
-              <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
-                <button
-                  class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition hover:bg-primary/90"
-                  type="submit"
-                >
-                  <span class="material-symbols-outlined text-base">save</span>
-                  <span class="button-label">Save SmartRecruiters Settings</span>
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      </main>
+        </nav>
+      </div>
     </div>
-    <script>
-      const toggleButtons = document.querySelectorAll(".toggle-visibility");
-      toggleButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const targetId = button.getAttribute("data-target");
-          const input = document.getElementById(targetId);
-          if (!input) {
-            return;
-          }
-          const icon = button.querySelector(".material-symbols-outlined");
-          if (input.type === "password") {
-            input.type = "text";
-            if (icon) {
-              icon.textContent = "visibility_off";
-            }
-          } else {
-            input.type = "password";
-            if (icon) {
-              icon.textContent = "visibility";
-            }
-          }
-        });
-      });
 
-      const FIELD_ERROR_CLASSES = [
-        "border-rose-400",
-        "focus:border-rose-400/80",
-        "focus:ring-rose-400/20",
-        "ring-1",
-        "ring-rose-400/40",
-      ];
+    <!-- Workspace Health Status -->
+    <div class="space-y-2">
+      {% for item in sidebar.secondary_menu %}
+      <a class="rp-nav-item" href="{{ item.href }}">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+      {% endfor %}
 
-      const FEEDBACK_VARIANTS = {
-        success: ["border-emerald-400/40", "bg-emerald-400/10", "text-emerald-200"],
-        error: ["border-rose-400/60", "bg-rose-400/10", "text-rose-200"],
-        info: ["border-sky-400/40", "bg-sky-400/10", "text-sky-200"],
-      };
+      <div class="rp-surface-elevated">
+        <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-3">Workspace Health</p>
 
-      const feedbackBox = document.getElementById("settings-feedback");
-      let feedbackTimer;
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-text-secondary">Gemini API</span>
+            <span class="flex items-center gap-2 text-xs {{ 'text-success' if gemini.configured else 'text-text-muted' }}">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'check_circle' if gemini.configured else 'error' }}
+              </span>
+              {{ 'Active' if gemini.configured else 'Missing' }}
+            </span>
+          </div>
 
-      const TOKEN_STORAGE_KEY = "recruitpro.token";
-      const TOKEN_TYPE_STORAGE_KEY = "recruitpro.tokenType";
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-text-secondary">Google Search</span>
+            <span class="flex items-center gap-2 text-xs {{ 'text-success' if google.configured else 'text-text-muted' }}">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'check_circle' if google.configured else 'error' }}
+              </span>
+              {{ 'Active' if google.configured else 'Missing' }}
+            </span>
+          </div>
 
-      class HttpError extends Error {
-        constructor(message, status, payload) {
-          super(message);
-          this.name = "HttpError";
-          this.status = status;
-          this.payload = payload;
-        }
-      }
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-text-secondary">SmartRecruiters</span>
+            <span class="flex items-center gap-2 text-xs {{ 'text-success' if smartrecruiters.configured else 'text-text-muted' }}">
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'check_circle' if smartrecruiters.configured else 'error' }}
+              </span>
+              {{ 'Active' if smartrecruiters.configured else 'Missing' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
 
-      function getStoredAuthHeader() {
-        try {
-          const token = window.localStorage?.getItem(TOKEN_STORAGE_KEY);
-          if (!token) {
-            return null;
-          }
-          const tokenType = window.localStorage?.getItem(TOKEN_TYPE_STORAGE_KEY) || "Bearer";
-          return `${tokenType} ${token}`.trim();
-        } catch (error) {
-          return null;
-        }
-      }
+  <!-- Main Content -->
+  <main id="main-content" class="flex-1 overflow-y-auto">
+    <div class="rp-container py-10">
+      <!-- Header -->
+      <header class="rp-surface-elevated mb-8">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary">Admin Console</p>
+        <h1 class="rp-page-title mt-2">System Settings</h1>
+        <p class="rp-page-subtitle mt-2">
+          Manage system feature flags and external API configurations for RecruitPro. Changes are applied immediately after saving.
+        </p>
+      </header>
 
-      function clearStoredAuth() {
-        try {
-          window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
-          window.localStorage?.removeItem(TOKEN_TYPE_STORAGE_KEY);
-        } catch (error) {
-          // Ignore storage cleanup issues.
-        }
-      }
+      <!-- Server-side Messages -->
+      {% if message %}
+      <div class="rp-alert-success mb-8">
+        {{ message }}
+      </div>
+      {% elif error %}
+      <div class="rp-alert-error mb-8">
+        {{ error }}
+      </div>
+      {% endif %}
 
-      async function authenticatedFetch(path, options = {}) {
-        const init = { credentials: "include", ...options };
-        init.headers = new Headers(init.headers || {});
-        const authHeader = getStoredAuthHeader();
-        if (authHeader && !init.headers.has("Authorization")) {
-          init.headers.set("Authorization", authHeader);
-        }
-        if (init.body && typeof init.body === "object" && !(init.body instanceof FormData)) {
-          init.headers.set("Content-Type", "application/json");
-          init.body = JSON.stringify(init.body);
-        }
-        if (!init.headers.has("Accept")) {
-          init.headers.set("Accept", "application/json");
-        }
-        const response = await fetch(path, init);
-        const text = await response.text();
-        let data = null;
-        if (text) {
-          try {
-            data = JSON.parse(text);
-          } catch (error) {
-            data = text;
-          }
-        }
-        if (!response.ok) {
-          const detail = typeof data === "string" ? data : data?.detail || data?.message;
-          if (response.status === 401) {
-            clearStoredAuth();
-          }
-          throw new HttpError(detail || `Request failed with status ${response.status}`, response.status, data);
-        }
-        return data;
-      }
+      <!-- Client-side Feedback -->
+      <div id="settings-feedback" class="hidden mb-8 rp-alert-info" role="status" aria-live="polite"></div>
 
-      function clearFeedbackVariants() {
-        if (!feedbackBox) {
-          return;
-        }
-        Object.values(FEEDBACK_VARIANTS).forEach((classes) => {
-          feedbackBox.classList.remove(...classes);
-        });
-      }
+      <!-- Feature Flags -->
+      <section class="grid gap-6 lg:grid-cols-2 mb-8">
+        <article class="rp-surface-elevated">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Feature Flag</p>
+              <h2 class="mt-1 text-xl font-semibold text-text-primary">AI Candidate Matching</h2>
+            </div>
+            <button
+              class="relative inline-flex h-6 w-11 items-center rounded-full bg-success/80 text-left"
+              type="button"
+              disabled
+              aria-label="Toggle candidate matching (currently enabled)"
+            >
+              <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-success shadow"></span>
+            </button>
+          </div>
+          <p class="mt-3 text-sm text-text-secondary">
+            Automatically match AI-sourced candidates to open requisitions using RecruitPro's knowledge graph.
+          </p>
+        </article>
 
-      function hideFeedback() {
-        if (!feedbackBox) {
-          return;
-        }
-        clearTimeout(feedbackTimer);
-        clearFeedbackVariants();
-        feedbackBox.classList.add("hidden");
-        feedbackBox.textContent = "";
-      }
+        <article class="rp-surface-elevated">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Feature Flag</p>
+              <h2 class="mt-1 text-xl font-semibold text-text-primary">Automated Interview Scheduling</h2>
+            </div>
+            <button
+              class="relative inline-flex h-6 w-11 items-center rounded-full bg-surface-elevated border border-surface-border text-left"
+              type="button"
+              disabled
+              aria-label="Toggle interview scheduling (currently disabled)"
+            >
+              <span class="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-white/40 text-text-muted shadow-inner"></span>
+            </button>
+          </div>
+          <p class="mt-3 text-sm text-text-secondary">
+            Enable automated email outreach and interviewer coordination directly from RecruitPro.
+          </p>
+        </article>
 
-      function showFeedback(type, message) {
-        // Use toast notification system
-        if (window.RecruitPro && window.RecruitPro.showToast) {
-          window.RecruitPro.showToast({
-            type: type,
-            message: message,
-            duration: 6000
-          });
-        }
-        // Fallback to old system if toast not available
-        if (!feedbackBox) {
-          return;
-        }
-        clearTimeout(feedbackTimer);
-        clearFeedbackVariants();
-        const classes = FEEDBACK_VARIANTS[type] || [];
-        if (classes.length) {
-          feedbackBox.classList.add(...classes);
-        }
-        feedbackBox.textContent = message;
-        feedbackBox.classList.remove("hidden");
-        feedbackTimer = window.setTimeout(() => {
-          hideFeedback();
-        }, 6000);
-      }
+        <article class="rp-surface-elevated lg:col-span-2">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Feature Flag</p>
+              <h2 class="mt-1 text-xl font-semibold text-text-primary">Real-time Resume Parsing</h2>
+            </div>
+            <button
+              class="relative inline-flex h-6 w-11 items-center rounded-full bg-success/80 text-left"
+              type="button"
+              disabled
+              aria-label="Toggle resume parsing (currently enabled)"
+            >
+              <span class="ml-[22px] inline-flex size-5 items-center justify-center rounded-full bg-white text-success shadow"></span>
+            </button>
+          </div>
+          <p class="mt-3 text-sm text-text-secondary">
+            Streamline intake workflows by automatically parsing resumes into structured candidate profiles.
+          </p>
+        </article>
+      </section>
 
-      function handleUnauthorized(message) {
-        const detail = message || "Your session has expired. Please sign in again.";
-        showFeedback("error", detail);
-        const current = `${window.location.pathname}${window.location.search}`;
-        window.setTimeout(() => {
-          window.location.href = `/login?next=${encodeURIComponent(current)}`;
-        }, 1200);
-      }
+      <!-- API Configurations -->
+      <section class="space-y-6">
+        <header>
+          <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">External API Configurations</p>
+          <h2 class="mt-1 text-2xl font-semibold text-text-primary">Connected Services</h2>
+        </header>
 
-      function setFieldError(field, message) {
-        if (!field) {
-          return;
-        }
-        FIELD_ERROR_CLASSES.forEach((cls) => field.classList.add(cls));
-        field.dataset.hasError = "true";
-        field.setAttribute("aria-invalid", "true");
-        if (typeof field.setCustomValidity === "function") {
-          field.setCustomValidity(message);
-        }
-        if (typeof field.reportValidity === "function") {
-          field.reportValidity();
-        }
-        if (typeof field.focus === "function") {
-          field.focus();
-        }
-      }
+        <!-- Gemini API Form -->
+        <form id="gemini-settings" class="rp-surface-elevated space-y-6" method="post" data-settings-form="gemini" novalidate>
+          <input name="form_id" type="hidden" value="gemini">
 
-      function clearFieldError(field) {
-        if (!field || !field.dataset.hasError) {
-          return;
-        }
-        FIELD_ERROR_CLASSES.forEach((cls) => field.classList.remove(cls));
-        field.removeAttribute("aria-invalid");
-        if (typeof field.setCustomValidity === "function") {
-          field.setCustomValidity("");
-        }
-        delete field.dataset.hasError;
-      }
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Gemini API</p>
+              <h3 class="text-xl font-semibold text-text-primary">Google Gemini</h3>
+              <p class="mt-1 text-sm text-text-secondary">Used for RecruitPro's AI reasoning and summarisation features.</p>
+            </div>
+            <span
+              class="rp-badge-{{ 'success' if gemini.configured else 'warning' }}"
+              data-integration-status="gemini"
+            >
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'verified' if gemini.configured else 'warning' }}
+              </span>
+              <span data-integration-status-text="gemini">
+                {{ 'Connected' if gemini.configured else 'Not Configured' }}
+              </span>
+            </span>
+          </div>
 
-      function clearFormErrors(form) {
-        form.querySelectorAll("[data-has-error]").forEach((input) => clearFieldError(input));
-      }
+          <div class="rp-form-group">
+            <label for="gemini-api" class="rp-label">Gemini API Key</label>
+            <div class="relative">
+              <input
+                id="gemini-api"
+                name="gemini_api_key"
+                type="password"
+                placeholder="Enter your Gemini API key"
+                class="rp-input pr-12"
+              >
+              <button
+                type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 rp-icon-button"
+                data-toggle-visibility="gemini-api"
+                aria-label="Toggle password visibility"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+              </button>
+            </div>
+            <p class="text-xs text-text-muted mt-1">
+              {% if gemini.configured %}
+                Current key: <span class="font-semibold text-text-secondary">{{ gemini.masked }}</span>
+                ({{ 'stored in database' if gemini.source == 'database' else 'loaded from environment' }}).
+              {% else %}
+                No key configured. Provide a Gemini API key to enable real-time AI features.
+              {% endif %}
+              <a class="text-primary hover:underline ml-1" href="{{ gemini.learn_more_url }}" target="_blank" rel="noopener">Learn how to get your key.</a>
+            </p>
+          </div>
 
-      function parseClasses(value) {
-        return value ? value.split(" ").filter(Boolean) : [];
-      }
+          <div class="flex items-center justify-end gap-3 border-t border-surface-border pt-4">
+            <button type="submit" class="rp-button-primary">
+              <span class="material-symbols-outlined text-base" aria-hidden="true">save</span>
+              <span class="button-label">Save Gemini Settings</span>
+            </button>
+          </div>
+        </form>
 
-      function applyBadge(name, configured) {
-        const badge = document.querySelector(`[data-integration-status="${name}"]`);
-        if (!badge) {
-          return;
-        }
-        const connected = parseClasses(badge.dataset.connectedClass);
-        const missing = parseClasses(badge.dataset.missingClass);
-        const combined = [...connected, ...missing];
-        if (combined.length) {
-          badge.classList.remove(...combined);
-        }
-        badge.classList.add(...(configured ? connected : missing));
+        <!-- Google Custom Search Form -->
+        <form id="google-settings" class="rp-surface-elevated space-y-6" method="post" data-settings-form="google" novalidate>
+          <input name="form_id" type="hidden" value="google">
 
-        const icon = document.querySelector(`[data-integration-status-icon="${name}"]`);
-        if (icon) {
-          const iconValue = configured ? icon.dataset.connectedIcon : icon.dataset.missingIcon;
-          if (iconValue) {
-            icon.textContent = iconValue;
-          }
-        }
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Google Custom Search</p>
+              <h3 class="text-xl font-semibold text-text-primary">Custom Search API</h3>
+              <p class="mt-1 text-sm text-text-secondary">Used to enrich candidate sourcing with web and LinkedIn data.</p>
+            </div>
+            <span
+              class="rp-badge-{{ 'success' if google.configured else 'warning' }}"
+              data-integration-status="google"
+            >
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'verified' if google.configured else 'warning' }}
+              </span>
+              <span data-integration-status-text="google">
+                {{ 'Connected' if google.configured else 'Not Configured' }}
+              </span>
+            </span>
+          </div>
 
-        const label = document.querySelector(`[data-integration-status-text="${name}"]`);
-        if (label) {
-          const textValue = configured ? label.dataset.connectedLabel : label.dataset.missingLabel;
-          if (textValue) {
-            label.textContent = textValue;
-          }
-        }
-      }
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="rp-form-group">
+              <label for="google-api" class="rp-label">Google API Key</label>
+              <div class="relative">
+                <input
+                  id="google-api"
+                  name="google_api_key"
+                  type="password"
+                  placeholder="Enter your Google API key"
+                  class="rp-input pr-12"
+                >
+                <button
+                  type="button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 rp-icon-button"
+                  data-toggle-visibility="google-api"
+                  aria-label="Toggle password visibility"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                </button>
+              </div>
+              {% if google.api_key_masked %}
+              <p class="text-xs text-text-muted mt-1">
+                Current: <span class="font-semibold text-text-secondary">{{ google.api_key_masked }}</span>
+              </p>
+              {% endif %}
+            </div>
 
-      function updateDescription(name, status) {
-        const container = document.querySelector(`[data-integration-description="${name}"]`);
-        if (!container) {
-          return;
-        }
-        const configured = Boolean(status && status.configured);
-        const configuredEl = container.querySelector('[data-visible-when="configured"]');
-        const missingEl = container.querySelector('[data-visible-when="missing"]');
-        if (configuredEl) {
-          configuredEl.classList.toggle("hidden", !configured);
-        }
-        if (missingEl) {
-          missingEl.classList.toggle("hidden", configured);
-        }
-        const maskedSpan = container.querySelector(`[data-integration-masked="${name}"]`);
-        if (maskedSpan && Object.prototype.hasOwnProperty.call(status || {}, "masked")) {
-          maskedSpan.textContent = status.masked || "";
-        }
-        if (name === "gemini") {
-          const sourceSpan = container.querySelector('[data-integration-source="gemini"]');
-          if (sourceSpan && status) {
-            let sourceText = "stored in database";
-            if (status.source === "environment") {
-              sourceText = "loaded from environment";
-            }
-            sourceSpan.textContent = sourceText;
-          }
-        }
-      }
+            <div class="rp-form-group">
+              <label for="google-cse" class="rp-label">Search Engine ID</label>
+              <input
+                id="google-cse"
+                name="google_cse_id"
+                type="text"
+                placeholder="Enter your Search Engine ID"
+                class="rp-input"
+                value="{{ google.search_engine_id or '' }}"
+              >
+              {% if google.search_engine_id_masked %}
+              <p class="text-xs text-text-muted mt-1">
+                Current: <span class="font-semibold text-text-secondary">{{ google.search_engine_id_masked }}</span>
+              </p>
+              {% endif %}
+            </div>
+          </div>
 
-      function updateGoogleDescription(keyStatus, cseStatus, configuredFlag) {
-        const container = document.querySelector('[data-integration-description="google"]');
-        if (!container) {
-          return;
-        }
-        const configured =
-          typeof configuredFlag === "boolean"
-            ? configuredFlag
-            : Boolean((keyStatus && keyStatus.configured) && (cseStatus && cseStatus.configured));
-        const configuredEl = container.querySelector('[data-visible-when="configured"]');
-        const missingEl = container.querySelector('[data-visible-when="missing"]');
-        if (configuredEl) {
-          configuredEl.classList.toggle("hidden", !configured);
-        }
-        if (missingEl) {
-          missingEl.classList.toggle("hidden", configured);
-        }
-        const apiSpan = container.querySelector('[data-google-status="api_key"]');
-        if (apiSpan && Object.prototype.hasOwnProperty.call(keyStatus || {}, "masked")) {
-          apiSpan.textContent = keyStatus.masked || "";
-        }
-        const cseSpan = container.querySelector('[data-google-status="cse_id"]');
-        if (cseSpan && Object.prototype.hasOwnProperty.call(cseStatus || {}, "masked")) {
-          cseSpan.textContent = cseStatus.masked || "";
-        }
-      }
+          <p class="text-xs text-text-muted">
+            <a class="text-primary hover:underline" href="{{ google.learn_more_url }}" target="_blank" rel="noopener">Learn how to set up Google Custom Search.</a>
+          </p>
 
-      function updateSmartRecruitersDetails(form, status) {
-        if (!form) {
-          return;
-        }
-        const passwordField = form.querySelector('[name="smartrecruiters_password"]');
-        if (passwordField) {
-          passwordField.value = "";
-          clearFieldError(passwordField);
-        }
-        const statusContainer = form.querySelector("[data-smartrecruiters-password-status]");
-        if (statusContainer) {
-          statusContainer.classList.toggle("hidden", !status || !status.configured);
-          const maskedSpan = statusContainer.querySelector('[data-integration-masked="smartrecruiters_password"]');
-          if (maskedSpan && Object.prototype.hasOwnProperty.call(status || {}, "masked")) {
-            maskedSpan.textContent = status.masked || "";
-          }
-        }
-        const clearButton = form.querySelector("[data-clear-password-button]");
-        if (clearButton) {
-          clearButton.classList.toggle("hidden", !status || !status.configured);
-        }
-      }
+          <div class="flex items-center justify-end gap-3 border-t border-surface-border pt-4">
+            <button type="submit" class="rp-button-primary">
+              <span class="material-symbols-outlined text-base" aria-hidden="true">save</span>
+              <span class="button-label">Save Google Settings</span>
+            </button>
+          </div>
+        </form>
 
-      function updateIntegrationStatus(formId, integration, form) {
-        if (!integration) {
-          return;
-        }
-        if (formId === "gemini") {
-          applyBadge("gemini", Boolean(integration.configured));
-          updateDescription("gemini", integration);
-          const field = form.querySelector('[name="gemini_api_key"]');
-          if (field) {
-            field.value = "";
-            clearFieldError(field);
-          }
-        } else if (formId === "google") {
-          const keyStatus = integration.google_api_key || {};
-          const cseStatus = integration.google_cse_id || {};
-          const configured = Boolean(keyStatus.configured && cseStatus.configured);
-          applyBadge("google", configured);
-          updateGoogleDescription(keyStatus, cseStatus, configured);
-          const apiField = form.querySelector('[name="google_api_key"]');
-          if (apiField) {
-            apiField.value = "";
-            clearFieldError(apiField);
-          }
-          const cseField = form.querySelector('[name="google_cse_id"]');
-          if (cseField) {
-            clearFieldError(cseField);
-          }
-        } else if (formId === "smartrecruiters") {
-          const emailStatus = integration.smartrecruiters_email || {};
-          const passwordStatus = integration.smartrecruiters_password || {};
-          const configured = Boolean(emailStatus.configured && passwordStatus.configured);
-          applyBadge("smartrecruiters", configured);
-          updateSmartRecruitersDetails(form, passwordStatus);
-          if (form) {
-            form.dataset.clearPasswordIntent = "false";
-          }
-          const emailField = form.querySelector('[name="smartrecruiters_email"]');
-          if (emailField) {
-            clearFieldError(emailField);
-          }
-        }
-      }
+        <!-- SmartRecruiters Form -->
+        <form id="smartrecruiters-settings" class="rp-surface-elevated space-y-6" method="post" data-settings-form="smartrecruiters" novalidate>
+          <input name="form_id" type="hidden" value="smartrecruiters">
 
-      function setLoading(form, isLoading) {
-        const button = form.querySelector('button[type="submit"]');
-        if (!button) {
-          return;
-        }
-        const icon = button.querySelector(".material-symbols-outlined");
-        const label = button.querySelector(".button-label");
-        if (isLoading) {
-          button.disabled = true;
-          button.setAttribute("aria-busy", "true");
-          button.classList.add("opacity-70", "cursor-not-allowed");
-          if (icon) {
-            button.dataset.originalIcon = icon.textContent;
-            icon.textContent = "hourglass_top";
-          }
-          if (label) {
-            button.dataset.originalLabel = label.textContent;
-            label.textContent = "Saving…";
-          }
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary">SmartRecruiters Integration</p>
+              <h3 class="text-xl font-semibold text-text-primary">SmartRecruiters ATS</h3>
+              <p class="mt-1 text-sm text-text-secondary">Sync candidates and job requisitions with SmartRecruiters.</p>
+            </div>
+            <span
+              class="rp-badge-{{ 'success' if smartrecruiters.configured else 'warning' }}"
+              data-integration-status="smartrecruiters"
+            >
+              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">
+                {{ 'verified' if smartrecruiters.configured else 'warning' }}
+              </span>
+              <span data-integration-status-text="smartrecruiters">
+                {{ 'Connected' if smartrecruiters.configured else 'Not Configured' }}
+              </span>
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="rp-form-group">
+              <label for="smartrecruiters-email" class="rp-label">Email</label>
+              <input
+                id="smartrecruiters-email"
+                name="smartrecruiters_email"
+                type="email"
+                placeholder="admin@company.com"
+                class="rp-input"
+                value="{{ smartrecruiters.email or '' }}"
+              >
+            </div>
+
+            <div class="rp-form-group">
+              <label for="smartrecruiters-password" class="rp-label">Password</label>
+              <div class="relative">
+                <input
+                  id="smartrecruiters-password"
+                  name="smartrecruiters_password"
+                  type="password"
+                  placeholder="Enter password"
+                  class="rp-input pr-12"
+                >
+                <button
+                  type="button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 rp-icon-button"
+                  data-toggle-visibility="smartrecruiters-password"
+                  aria-label="Toggle password visibility"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                </button>
+              </div>
+              {% if smartrecruiters.password_masked %}
+              <p class="text-xs text-text-muted mt-1">
+                Current: <span class="font-semibold text-text-secondary">{{ smartrecruiters.password_masked }}</span>
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 border-t border-surface-border pt-4">
+            <button type="submit" class="rp-button-primary">
+              <span class="material-symbols-outlined text-base" aria-hidden="true">save</span>
+              <span class="button-label">Save SmartRecruiters Settings</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    'use strict';
+
+    // Password visibility toggles
+    const toggleButtons = document.querySelectorAll('[data-toggle-visibility]');
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.dataset.toggleVisibility;
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const icon = button.querySelector('.material-symbols-outlined');
+        if (input.type === 'password') {
+          input.type = 'text';
+          if (icon) icon.textContent = 'visibility_off';
         } else {
-          button.disabled = false;
-          button.removeAttribute("aria-busy");
-          button.classList.remove("opacity-70", "cursor-not-allowed");
-          if (icon && button.dataset.originalIcon) {
-            icon.textContent = button.dataset.originalIcon;
-          }
-          if (label && button.dataset.originalLabel) {
-            label.textContent = button.dataset.originalLabel;
-          }
-          delete button.dataset.originalIcon;
-          delete button.dataset.originalLabel;
+          input.type = 'password';
+          if (icon) icon.textContent = 'visibility';
         }
+      });
+    });
+
+    // Feedback box
+    const feedbackBox = document.getElementById('settings-feedback');
+    let feedbackTimer;
+
+    function showFeedback(message, variant = 'info') {
+      if (!feedbackBox) return;
+
+      clearTimeout(feedbackTimer);
+
+      // Remove all variant classes
+      feedbackBox.classList.remove('rp-alert-success', 'rp-alert-error', 'rp-alert-info', 'hidden');
+
+      // Add appropriate class
+      feedbackBox.classList.add(`rp-alert-${variant}`);
+      feedbackBox.textContent = message;
+
+      // Auto-hide after 5 seconds
+      feedbackTimer = setTimeout(() => {
+        feedbackBox.classList.add('hidden');
+      }, 5000);
+    }
+
+    // Form submission handlers
+    const forms = document.querySelectorAll('[data-settings-form]');
+
+    forms.forEach(form => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const buttonLabel = submitButton?.querySelector('.button-label');
+        const originalText = buttonLabel?.textContent || 'Save';
+
+        try {
+          // Show loading state
+          if (submitButton) {
+            submitButton.disabled = true;
+            if (buttonLabel) buttonLabel.textContent = 'Saving...';
+          }
+
+          // Submit form
+          const formData = new FormData(form);
+          const response = await fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+          });
+
+          if (response.ok) {
+            showFeedback('Settings saved successfully!', 'success');
+
+            // Update status badges if needed
+            const formType = form.dataset.settingsForm;
+            updateIntegrationStatus(formType, true);
+          } else {
+            const text = await response.text();
+            showFeedback(text || 'Failed to save settings. Please try again.', 'error');
+          }
+        } catch (error) {
+          console.error('Settings save error:', error);
+          showFeedback('An error occurred while saving settings.', 'error');
+        } finally {
+          // Restore button state
+          if (submitButton) {
+            submitButton.disabled = false;
+            if (buttonLabel) buttonLabel.textContent = originalText;
+          }
+        }
+      });
+    });
+
+    // Update integration status badges
+    function updateIntegrationStatus(integration, isConfigured) {
+      const badge = document.querySelector(`[data-integration-status="${integration}"]`);
+      const statusText = badge?.querySelector(`[data-integration-status-text="${integration}"]`);
+      const statusIcon = badge?.querySelector('.material-symbols-outlined');
+
+      if (!badge) return;
+
+      // Update badge classes
+      badge.classList.remove('rp-badge-success', 'rp-badge-warning');
+      badge.classList.add(isConfigured ? 'rp-badge-success' : 'rp-badge-warning');
+
+      // Update icon
+      if (statusIcon) {
+        statusIcon.textContent = isConfigured ? 'verified' : 'warning';
       }
 
-      document.querySelectorAll("input").forEach((input) => {
-        input.addEventListener("input", () => {
-          if (input.dataset.hasError) {
-            clearFieldError(input);
-          }
-        });
-      });
-
-      const CLEAR_PASSWORD_FLAG = "clearPasswordIntent";
-
-      const VALIDATORS = {
-        gemini(form) {
-          const apiField = form.querySelector('[name="gemini_api_key"]');
-          const value = (apiField?.value || "").trim();
-          if (!value) {
-            setFieldError(apiField, "Gemini API key is required.");
-            return { valid: false, message: "Enter a Gemini API key to continue." };
-          }
-          return { valid: true, payload: { gemini_api_key: value } };
-        },
-        google(form) {
-          const apiField = form.querySelector('[name="google_api_key"]');
-          const cseField = form.querySelector('[name="google_cse_id"]');
-          const apiKey = (apiField?.value || "").trim();
-          const cseId = (cseField?.value || "").trim();
-          let message = "";
-          if (!apiKey) {
-            setFieldError(apiField, "Google API key is required.");
-            message = "Enter your Google API key.";
-          }
-          if (!cseId) {
-            setFieldError(cseField, "Custom Search Engine ID is required.");
-            message = message || "Enter your Custom Search Engine ID.";
-          }
-          if (message) {
-            return { valid: false, message };
-          }
-          return {
-            valid: true,
-            payload: {
-              google_api_key: apiKey,
-              google_cse_id: cseId,
-            },
-          };
-        },
-        smartrecruiters(form) {
-          const emailField = form.querySelector('[name="smartrecruiters_email"]');
-          const passwordField = form.querySelector('[name="smartrecruiters_password"]');
-          const email = (emailField?.value || "").trim();
-          const password = (passwordField?.value || "").trim();
-          const clearIntent = form.dataset.clearPasswordIntent === "true";
-          const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-          if (!email) {
-            setFieldError(emailField, "SmartRecruiters email is required.");
-            return { valid: false, message: "Provide the SmartRecruiters account email." };
-          }
-
-          if (!emailPattern.test(email)) {
-            setFieldError(emailField, "Enter a valid email address.");
-            return { valid: false, message: "Enter a valid SmartRecruiters email address." };
-          }
-
-          if (password && password.length < 8) {
-            setFieldError(passwordField, "Password must be at least 8 characters long.");
-            return {
-              valid: false,
-              message: "SmartRecruiters password must be at least 8 characters.",
-            };
-          }
-
-          return {
-            valid: true,
-            payload: {
-              smartrecruiters_email: email,
-              smartrecruiters_password: password ? password : null,
-              clear_password: clearIntent && !password,
-            },
-          };
-        },
-      };
-
-      const forms = document.querySelectorAll("form[data-settings-form]");
-
-      forms.forEach((form) => {
-        if (!form.dataset.clearPasswordIntent) {
-          form.dataset.clearPasswordIntent = "false";
-        }
-
-        const passwordField = form.querySelector('[name="smartrecruiters_password"]');
-        if (passwordField) {
-          passwordField.addEventListener("input", () => {
-            if (passwordField.value.trim().length > 0) {
-              form.dataset.clearPasswordIntent = "false";
-            }
-          });
-        }
-
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          hideFeedback();
-          clearFormErrors(form);
-          const formId = form.dataset.settingsForm;
-          const validator = VALIDATORS[formId];
-          if (!validator) {
-            return;
-          }
-
-          const result = validator(form);
-          if (!result.valid) {
-            if (result.message) {
-              showFeedback("error", result.message);
-            }
-            return;
-          }
-
-          const payload = result.payload || {};
-
-          try {
-            setLoading(form, true);
-            const data = await authenticatedFetch(`/api/settings/${formId}`, {
-              method: "POST",
-              body: payload,
-            });
-
-            if (!data || typeof data !== "object") {
-              throw new Error("Unexpected response from the server.");
-            }
-
-            if (data.status !== "success") {
-              throw new Error(data.message || "Unable to save settings.");
-            }
-
-            showFeedback("success", data.message || "Settings updated successfully.");
-            updateIntegrationStatus(formId, data.integration, form);
-          } catch (error) {
-            if (error instanceof HttpError && error.status === 401) {
-              handleUnauthorized(error.message);
-            } else {
-              const message = error instanceof Error ? error.message : "Unable to save settings.";
-              showFeedback("error", message);
-            }
-          } finally {
-            setLoading(form, false);
-          }
-        });
-      });
-
-      const clearPasswordButtons = document.querySelectorAll("[data-clear-password-button]");
-      clearPasswordButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const form = button.closest("form");
-          if (!form) {
-            return;
-          }
-          form.dataset.clearPasswordIntent = "true";
-          const passwordField = form.querySelector('[name="smartrecruiters_password"]');
-          if (passwordField) {
-            passwordField.value = "";
-            clearFieldError(passwordField);
-            passwordField.focus();
-          }
-          showFeedback(
-            "info",
-            "The stored SmartRecruiters password will be removed after saving."
-          );
-        });
-      });
-    </script>
-  </body>
-</html>
+      // Update text
+      if (statusText) {
+        statusText.textContent = isConfigured ? 'Connected' : 'Not Configured';
+      }
+    }
+  })();
+</script>
+{% endblock %}

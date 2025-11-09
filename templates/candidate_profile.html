@@ -1,191 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RecruitPro Candidate Profile</title>
-    <style>
-      :root {
-        color-scheme: dark light;
-        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --bg: #0f172a;
-        --panel: #111a22;
-        --border: #1f2a3d;
-        --accent: #3b82f6;
-        --text: #e2e8f0;
-        --muted: #94a3b8;
-      }
+{% extends "base.html" %}
 
-      * {
-        box-sizing: border-box;
-      }
+{% block title %}{% if candidate %}{{ candidate.name }} - {% endif %}Candidate Profile - RecruitPro{% endblock %}
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: var(--bg);
-        color: var(--text);
-        display: flex;
-        justify-content: center;
-        padding: 48px 16px;
-      }
+{% block body %}
+<div class="min-h-screen bg-gradient-to-br from-background-dark via-[#0a1520] to-background-dark flex items-center justify-center p-6">
+  <main class="w-full max-w-4xl">
+    <!-- Header -->
+    <header class="rp-surface-elevated mb-6 shadow-glow">
+      <h1 class="rp-page-title">Candidate Profile</h1>
+      <p class="rp-page-subtitle mt-2">
+        A lightweight view rendered directly from the RecruitPro database. {% if not candidate %}Provide a candidate_id query parameter to load data.{% endif %}
+      </p>
+    </header>
 
-      main {
-        width: min(860px, 100%);
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        box-shadow: 0 30px 70px -40px rgba(59, 130, 246, 0.35);
-      }
+    {% if candidate %}
+    <!-- Candidate Overview -->
+    <section class="rp-surface-elevated mb-6">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="flex-1">
+          <h2 class="text-2xl font-semibold text-text-primary">{{ candidate.name }}</h2>
+          <p class="text-text-secondary mt-1">
+            {{ candidate.email or "No email provided" }}
+            {% if candidate.phone %}
+            <span class="text-text-muted">•</span> {{ candidate.phone }}
+            {% endif %}
+          </p>
+          <div class="flex items-center gap-3 mt-3">
+            <span class="rp-badge-{{ 'success' if candidate.status == 'hired' else 'info' if candidate.status == 'interview' else 'primary' }}">
+              {{ candidate.status or 'new' }}
+            </span>
+            {% if candidate.rating %}
+            <span class="text-warning flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">star</span>
+              {{ candidate.rating }}/5
+            </span>
+            {% endif %}
+            {% if candidate.source %}
+            <span class="text-text-muted text-sm">
+              Source: <span class="text-text-secondary">{{ candidate.source }}</span>
+            </span>
+            {% endif %}
+          </div>
+        </div>
 
-      header {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+        {% if candidate.resume_url %}
+        <a
+          href="{{ candidate.resume_url }}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rp-button-primary"
+        >
+          <span class="material-symbols-outlined text-base" aria-hidden="true">description</span>
+          Open Resume
+        </a>
+        {% endif %}
+      </div>
+    </section>
 
-      h1,
-      h2,
-      h3 {
-        margin: 0;
-        font-weight: 600;
-      }
+    <!-- Details Grid -->
+    <div class="grid gap-6 md:grid-cols-2 mb-6">
+      <!-- Assignment Info -->
+      <section class="rp-surface-elevated">
+        <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined" aria-hidden="true">work</span>
+          Assignment
+        </h3>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-sm font-medium text-text-secondary">Project</dt>
+            <dd class="text-text-primary mt-1">
+              {% if project %}
+                <a href="/project-overview?project_id={{ project.project_id }}{% if token %}&token={{ token }}{% endif %}" class="text-primary hover:underline">
+                  {{ project.name }}
+                </a>
+              {% else %}
+                <span class="text-text-muted">Not assigned</span>
+              {% endif %}
+            </dd>
+          </div>
 
-      p {
-        margin: 0;
-      }
+          <div>
+            <dt class="text-sm font-medium text-text-secondary">Position</dt>
+            <dd class="text-text-primary mt-1">
+              {% if position %}
+                {{ position.title }}
+                {% if position.status %}
+                <span class="rp-badge-primary text-xs ml-2">{{ position.status }}</span>
+                {% endif %}
+              {% else %}
+                <span class="text-text-muted">Not assigned</span>
+              {% endif %}
+            </dd>
+          </div>
 
-      .muted {
-        color: var(--muted);
-        font-size: 0.95rem;
-      }
-
-      .section {
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(15, 23, 42, 0.6);
-        padding: 20px 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .grid-two {
-        display: grid;
-        gap: 16px;
-      }
-
-      @media (min-width: 768px) {
-        .grid-two {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      dl {
-        display: grid;
-        grid-template-columns: 160px 1fr;
-        gap: 6px 12px;
-        margin: 0;
-      }
-
-      dt {
-        font-weight: 600;
-        color: var(--muted);
-      }
-
-      dd {
-        margin: 0;
-      }
-
-      a.button {
-        align-self: flex-start;
-        border-radius: 999px;
-        background: var(--accent);
-        color: #0f172a;
-        padding: 10px 18px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: transform 120ms ease, box-shadow 120ms ease;
-      }
-
-      a.button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px -12px rgba(96, 165, 250, 0.6);
-      }
-
-      .empty {
-        border-radius: 12px;
-        border: 1px dashed var(--border);
-        background: rgba(15, 23, 42, 0.45);
-        padding: 18px;
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <header>
-        <h1>Candidate profile</h1>
-        <p class="muted">
-          A lightweight view rendered directly from the RecruitPro database. Provide a candidate_id query parameter to load data.
-        </p>
-      </header>
-
-      {% if candidate %}
-      <section class="section">
-        <h2>{{ candidate.name }}</h2>
-        <p class="muted">{{ candidate.email or "No email provided" }}{% if candidate.phone %} • {{ candidate.phone }}{% endif %}</p>
-        <p>Status: <strong>{{ candidate.status }}</strong>{% if candidate.source %} • Source: {{ candidate.source }}{% endif %}</p>
+          <div>
+            <dt class="text-sm font-medium text-text-secondary">Created</dt>
+            <dd class="text-text-primary mt-1">
+              {{ candidate.created_at.strftime("%B %d, %Y at %I:%M %p") }}
+            </dd>
+          </div>
+        </dl>
       </section>
 
-      <div class="grid-two">
-        <section class="section">
-          <h3>Assignment</h3>
-          <dl>
-            <dt>Project</dt>
-            <dd>{% if project %}{{ project.name }}{% else %}—{% endif %}</dd>
-            <dt>Position</dt>
-            <dd>{% if position %}{{ position.title }}{% else %}—{% endif %}</dd>
-            <dt>Created</dt>
-            <dd>{{ candidate.created_at.strftime("%Y-%m-%d %H:%M") }}</dd>
-          </dl>
-        </section>
+      <!-- Tags & Scoring -->
+      <section class="rp-surface-elevated">
+        <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined" aria-hidden="true">label</span>
+          Tags & Scoring
+        </h3>
 
-        <section class="section">
-          <h3>Tags & scoring</h3>
-          {% if candidate.tags %}
-          <p>Tags: {{ ", ".join(candidate.tags) }}</p>
-          {% else %}
-          <p class="muted">No tags recorded.</p>
-          {% endif %}
+        <div class="space-y-4">
+          <div>
+            <dt class="text-sm font-medium text-text-secondary mb-2">Tags</dt>
+            <dd>
+              {% if candidate.tags %}
+              <div class="flex flex-wrap gap-2">
+                {% for tag in candidate.tags %}
+                <span class="rp-badge-info">{{ tag }}</span>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="text-text-muted text-sm">No tags recorded.</p>
+              {% endif %}
+            </dd>
+          </div>
+
           {% if candidate.ai_score %}
-          <pre style="margin: 0; white-space: pre-wrap;">{{ candidate.ai_score_json }}</pre>
-          {% else %}
-          <p class="muted">No AI score captured.</p>
+          <div>
+            <dt class="text-sm font-medium text-text-secondary mb-2">AI Score</dt>
+            <dd>
+              <pre class="bg-surface-dark border border-surface-border rounded-lg p-3 text-xs overflow-x-auto scrollbar-thin">{{ candidate.ai_score_json }}</pre>
+            </dd>
+          </div>
           {% endif %}
-        </section>
-      </div>
-
-      {% if candidate.resume_url %}
-      <section class="section">
-        <h3>Resume</h3>
-        <a class="button" href="{{ candidate.resume_url }}" target="_blank" rel="noreferrer">Open resume</a>
+        </div>
       </section>
-      {% endif %}
+    </div>
 
-      {% else %}
-      <div class="empty">
-        <p>No candidate selected yet. Return to the <a href="/app{% if token %}?token={{ token }}{% endif %}" style="color: var(--accent);">local console</a> and open a profile link.</p>
-      </div>
-      {% endif %}
+    <!-- Back Navigation -->
+    <footer class="text-center">
+      <a
+        href="/app{% if token %}?token={{ token }}{% endif %}"
+        class="rp-button-secondary inline-flex"
+      >
+        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_back</span>
+        Back to Console
+      </a>
+    </footer>
 
-      <footer style="text-align: center; padding-top: 16px; border-top: 1px solid var(--border);">
-        <a href="/app{% if token %}?token={{ token }}{% endif %}" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">← Back to Console</a>
-      </footer>
-    </main>
-  </body>
-</html>
+    {% else %}
+    <!-- Empty State -->
+    <div class="rp-surface-elevated text-center py-12">
+      <span class="material-symbols-outlined text-6xl text-text-muted mb-4 inline-block" aria-hidden="true">person_search</span>
+      <h2 class="text-xl font-semibold text-text-primary mb-2">No Candidate Selected</h2>
+      <p class="text-text-secondary mb-6">
+        Return to the <a href="/app{% if token %}?token={{ token }}{% endif %}" class="text-primary hover:underline">console</a> and open a candidate profile link.
+      </p>
+      <a href="/app{% if token %}?token={{ token }}{% endif %}" class="rp-button-primary inline-flex">
+        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_back</span>
+        Go to Console
+      </a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

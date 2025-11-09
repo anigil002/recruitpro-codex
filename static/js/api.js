@@ -167,8 +167,8 @@ class APIClient {
    */
   getAuthHeader() {
     try {
-      const token = window.localStorage?.getItem('recruitpro_token');
-      const tokenType = window.localStorage?.getItem('recruitpro_token_type') || 'Bearer';
+      const token = window.localStorage?.getItem('recruitpro.token');
+      const tokenType = window.localStorage?.getItem('recruitpro.tokenType') || 'Bearer';
       return token ? `${tokenType} ${token}` : '';
     } catch (error) {
       return '';

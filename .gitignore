@@ -11,3 +11,9 @@ desktop/node_modules/
 desktop/dist/
 desktop/out/
 desktop/build/
+
+# Frontend build artifacts
+node_modules/
+static/css/output.css
+static/css/output.css.map
+package-lock.json

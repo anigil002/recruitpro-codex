@@ -111,6 +111,7 @@ except Exception:  # pragma: no cover - fallback if storage helper missing
     storage_path = settings.storage_path
 
 app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.exception_handler(HTTPException)

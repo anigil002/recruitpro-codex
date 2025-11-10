@@ -276,7 +276,25 @@ Instructions:
 3. Extract ALL positions/roles found in the document:
    - SCAN THE ENTIRE DOCUMENT and extract EVERY position mentioned
    - Do NOT limit the number of positions - extract all of them
-   - For each position, extract as much detail as available
+
+   SPECIAL INSTRUCTIONS FOR TABLE-STRUCTURED DOCUMENTS:
+   - If the document has a TABLE format with columns like "JD", "Role Title", "Qualifications", "Responsibilities":
+     * Extract job titles ONLY from the "Role Title" or similar column
+     * DO NOT extract text from "Qualifications", "Requirements", or "Experience" columns as job titles
+     * A valid job title is typically SHORT (2-8 words), e.g., "Program Director", "Senior Engineer", "Project Manager"
+   - INVALID job titles (REJECT these):
+     * Phrases starting with "Minimum of", "Registered Professional", "experience in", "ability to"
+     * Long sentences describing qualifications (more than 10 words)
+     * Phrases ending with "position", "role", "experience" without a specific title
+     * Text fragments like "engineering position at major international airports" (too vague)
+   - VALID job titles (ACCEPT these):
+     * "Program Director/Lead"
+     * "Airfield Subprogram Director/Lead"
+     * "Design/Engineering Program Lead"
+     * "Technology and Innovation Lead"
+     * "Health and Safety Lead"
+
+   - For each position, extract as much detail as available from the corresponding row
    - If responsibilities/requirements are not explicitly listed, infer reasonable ones based on the role title and context
    - If only job titles are listed without details, still include them with basic info
    - Look for positions in various formats: detailed job descriptions, bulleted lists, tables, paragraphs
@@ -284,7 +302,7 @@ Instructions:
 
 4. Return empty arrays/null values for information not present in the document.
 
-REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not truncate or summarize the positions list."""
+REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not truncate or summarize the positions list. Focus on extracting actual JOB TITLES, not qualifications or requirements text."""
 
         def fallback() -> Dict[str, Any]:
             # Even without AI, try to extract positions using heuristic methods
@@ -391,22 +409,49 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
         roles: List[Dict[str, Any]] = []
         buffer: List[str] = []
         current_title: Optional[str] = None
-        title_pattern = re.compile(r"\b(role|position|engineer|manager)\b", re.I)
+        title_pattern = re.compile(r"\b(lead|director|manager|engineer|coordinator|specialist|analyst)\b", re.I)
 
         def clean(line: str) -> str:
             return re.sub(r"^[\s\-•*\d.()]+", "", line).strip()
+
+        def is_invalid_title(text: str) -> bool:
+            """Check if the text is NOT a valid job title (e.g., it's a qualification or requirement)."""
+            text_lower = text.lower()
+            # Reject if it starts with qualification indicators
+            if any(text_lower.startswith(prefix) for prefix in [
+                "minimum of", "minimum", "registered professional", "experience in", "experience with",
+                "ability to", "demonstrated", "demonstrable", "strong", "excellent", "thorough",
+                "knowledge of", "familiarity", "proficiency"
+            ]):
+                return True
+            # Reject if it's too long (more than 10 words typically means it's not a title)
+            if len(text.split()) > 10:
+                return True
+            # Reject vague position descriptions
+            if any(phrase in text_lower for phrase in [
+                "position at", "role in", "experience in", "licensed to practice"
+            ]):
+                return True
+            return False
 
         def looks_like_title(line: str) -> bool:
             cleaned = clean(line)
             if not cleaned or cleaned.endswith(":"):
                 return False
-            words = [re.sub(r"[^A-Za-z]", "", word) for word in cleaned.split()]
-            meaningful = [word for word in words if word]
+            # Reject invalid titles
+            if is_invalid_title(cleaned):
+                return False
+            words = [re.sub(r"[^A-Za-z/]", "", word) for word in cleaned.split()]
+            meaningful = [word for word in words if word and len(word) > 1]
             if not meaningful or len(meaningful) > 8:
                 return False
+            # Check if it has title-case formatting
             titlecased = sum(1 for word in meaningful if word[0].isupper())
             uppercase = sum(1 for word in meaningful if word.isupper())
-            return titlecased + uppercase >= len(meaningful)
+            # Must have title pattern keywords or be mostly title-cased
+            has_title_keywords = title_pattern.search(cleaned)
+            is_mostly_titlecased = (titlecased + uppercase) >= len(meaningful) * 0.7
+            return has_title_keywords or is_mostly_titlecased
 
         section_titles = {
             "position overview",
@@ -414,6 +459,10 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
             "position summary",
             "role summary",
             "project overview",
+            "qualifications and experience",
+            "qualifications",
+            "responsibilities",
+            "requirements",
         }
 
         def is_heading(line: str) -> bool:
@@ -424,6 +473,9 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
             if not cleaned:
                 return False
             if cleaned.lower() in section_titles:
+                return False
+            # Reject invalid titles
+            if is_invalid_title(cleaned):
                 return False
             if not title_pattern.search(cleaned):
                 return False

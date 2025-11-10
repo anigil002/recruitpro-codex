@@ -160,8 +160,11 @@ class GeminiService:
         if isinstance(baseline, dict) and isinstance(payload, dict):
             merged = baseline.copy()
             for key, value in payload.items():
-                if value not in (None, "", [], {}):
-                    merged[key] = value
+                # Respect explicit empty lists/dicts from AI (e.g., "positions": [] means no positions found)
+                # Only skip None and empty strings
+                if value is None or value == "":
+                    continue
+                merged[key] = value
             return merged
         if isinstance(baseline, list) and isinstance(payload, list):
             return payload or baseline
@@ -608,8 +611,10 @@ Instructions:
                 "compensation_note",
             ):
                 value = payload.get(key)
-                if value not in (None, "", []):
-                    merged[key] = value
+                # Respect explicit empty lists from AI, only skip None and empty strings
+                if value is None or value == "":
+                    continue
+                merged[key] = value
             return merged
 
         prompt = (

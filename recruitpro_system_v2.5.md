@@ -3115,7 +3115,7 @@ GEMINI PROCESSING
    │   └─> Additional context
    │
    ├─> Model Invocation
-   │   ├─> Model: gemini-flash-lite
+   │   ├─> Model: gemini-2.5-flash-lite
    │   ├─> Temperature: 0.15
    │   └─> Max tokens: 2048
    │

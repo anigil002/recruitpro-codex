@@ -57,7 +57,7 @@ class CandidatePersona:
 class GeminiService:
     """Gemini client with graceful fallbacks for offline environments."""
 
-    DEFAULT_MODEL = "gemini-flash-lite-latest"
+    DEFAULT_MODEL = "gemini-2.5-flash-lite"
     _BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
     def __init__(self, model: str = DEFAULT_MODEL, temperature: float = 0.15):
@@ -201,16 +201,18 @@ class GeminiService:
     def _ai_analyze_document(self, text: str, project_context: Dict[str, Any]) -> Dict[str, Any]:
         """Use AI to analyze document content and extract structured information."""
 
-        # Truncate text if too long (keep first 8000 characters)
-        truncated_text = text[:8000] if len(text) > 8000 else text
+        # Truncate text if too long (keep first 50000 characters for better parsing of multi-position documents)
+        truncated_text = text[:50000] if len(text) > 50000 else text
 
-        prompt = f"""Analyze the following document text and extract structured information.
+        prompt = f"""Analyze the following document text and extract ALL job positions and project information.
 
 Document Text:
 {truncated_text}
 
 Project Context (if available):
 {json.dumps(project_context, indent=2, ensure_ascii=False)}
+
+CRITICAL: This document may contain MULTIPLE job descriptions (potentially 10 or more). You MUST extract EVERY SINGLE position mentioned in the document, no matter how many there are.
 
 Please analyze this document and return a JSON object with the following structure:
 {{
@@ -240,7 +242,7 @@ Instructions:
 1. Identify the document type:
    - "project_scope": Document describes project overview, scope of work, objectives
    - "job_description": Document describes a single job/position in detail
-   - "positions_list": Document lists multiple positions/roles (may be brief)
+   - "positions_list": Document lists multiple positions/roles (may be brief or detailed)
    - "general": Other project-related content
 
 2. Extract project information if present in the document:
@@ -248,26 +250,31 @@ Instructions:
    - For summary: create a concise overview (max 400 chars) based on document content
    - For scope_of_work: extract detailed scope, objectives, deliverables if present
 
-3. Extract positions/roles if present:
-   - Include all positions mentioned in the document
+3. Extract ALL positions/roles found in the document:
+   - SCAN THE ENTIRE DOCUMENT and extract EVERY position mentioned
+   - Do NOT limit the number of positions - extract all of them
    - For each position, extract as much detail as available
    - If responsibilities/requirements are not explicitly listed, infer reasonable ones based on the role title and context
    - If only job titles are listed without details, still include them with basic info
+   - Look for positions in various formats: detailed job descriptions, bulleted lists, tables, paragraphs
+   - Common position title patterns: "[Title]", "Position: [Title]", "Role: [Title]", or just the title on its own line
 
-4. Return empty arrays/null values for information not present in the document."""
+4. Return empty arrays/null values for information not present in the document.
+
+REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not truncate or summarize the positions list."""
 
         def fallback() -> Dict[str, Any]:
+            # Even without AI, try to extract positions using heuristic methods
+            sentences = self._split_sentences(truncated_text)
+            heuristic_positions = self._extract_positions(sentences, "uploaded_document")
+
+            # Extract project info using heuristics
+            project_info = self._extract_project_info(sentences, project_context)
+
             return {
                 "document_type": "general",
-                "project_info": {
-                    "name": project_context.get("name"),
-                    "summary": project_context.get("summary"),
-                    "scope_of_work": None,
-                    "client": project_context.get("client"),
-                    "sector": project_context.get("sector"),
-                    "location_region": project_context.get("location_region"),
-                },
-                "positions": [],
+                "project_info": project_info,
+                "positions": heuristic_positions,
             }
 
         return self._structured_completion(

@@ -193,10 +193,13 @@
           </nav>
         </div>
         <div class="space-y-3 px-6 py-6 text-sm text-slate-300">
-          <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Shortcuts</p>
-          <button data-screen="ai-tools" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">AI Tools Hub</button>
-          <button data-screen="chatbot" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">Gemini Assistant</button>
-          <button data-screen="verbal-script" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900">Verbal Script</button>
+          <p class="text-xs uppercase tracking-[0.25em] text-slate-500">AI Tools</p>
+          <button data-screen="document-analysis" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Document Analysis</button>
+          <button data-screen="job-description" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Job Description</button>
+          <button data-screen="candidate-screening" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Candidate Screening</button>
+          <button data-screen="outreach-email" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Outreach Email</button>
+          <button data-screen="verbal-script" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Verbal Script</button>
+          <button data-screen="chatbot" class="rounded-2xl bg-slate-900/80 px-4 py-2 text-left transition hover:bg-slate-900 w-full">Gemini Assistant</button>
         </div>
       </aside>
       <main class="flex flex-1 flex-col overflow-hidden rounded-[32px] bg-slate-950/60 ring-1 ring-slate-800/60 backdrop-blur">
@@ -632,14 +635,14 @@
               </div>
               <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
                 <div class="flex flex-col rounded-3xl bg-slate-950/70 p-6 ring-1 ring-slate-800/60">
-                  <div class="flex-1 space-y-4 overflow-y-auto text-sm text-slate-300" id="chat-stream">
+                  <div class="flex-1 space-y-4 overflow-y-auto text-sm text-slate-300 max-h-[500px]" id="chat-stream">
                     <div class="rounded-2xl border border-dashed border-slate-800/60 bg-slate-950/60 p-4 text-center text-xs text-slate-500">
                       Chat history will appear here once conversations begin.
                     </div>
                   </div>
                   <div class="mt-6 flex items-end gap-3">
-                    <textarea class="min-h-[80px] flex-1 rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-sm" placeholder="Ask Gemini to launch salary benchmarking for the Director, Customer Success role"></textarea>
-                    <button class="rounded-full border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">Send</button>
+                    <textarea id="chatbot-input" class="min-h-[80px] flex-1 rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-sm" placeholder="Ask Gemini to launch salary benchmarking for the Director, Customer Success role"></textarea>
+                    <button id="chatbot-send" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">Send</button>
                   </div>
                 </div>
                 <div class="space-y-4">
@@ -907,8 +910,52 @@
               </div>
               <div class="mt-6 space-y-6">
                 <div id="analytics-market-research" class="candidate-panel space-y-6" role="tabpanel" aria-labelledby="analytics-tab-market-research" data-tab-group="analytics" data-tab-panel="market-research" aria-hidden="false">
-                  <div class="rounded-3xl border border-dashed border-slate-800/60 bg-slate-950/60 p-6 text-sm text-slate-400 text-center">
-                    Market research insights will appear here once available.
+                  <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <form id="market-research-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                      <h3 class="text-lg font-semibold text-white">Trigger Market Research</h3>
+                      <div class="grid gap-4">
+                        <label class="text-xs text-slate-400">Project
+                          <select id="market-research-project" name="project_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                            <option value="">Select project</option>
+                          </select>
+                        </label>
+                        <label class="text-xs text-slate-400">Region
+                          <select id="market-research-region" name="region" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                            <option value="">Select region</option>
+                            <option value="north-america">North America</option>
+                            <option value="emea">EMEA</option>
+                            <option value="apac">APAC</option>
+                            <option value="latam">LATAM</option>
+                            <option value="middle-east">Middle East</option>
+                          </select>
+                        </label>
+                        <label class="text-xs text-slate-400">Sector (Optional)
+                          <select id="market-research-sector" name="sector" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                            <option value="">All sectors</option>
+                            <option value="saas">SaaS</option>
+                            <option value="fintech">FinTech</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="ecommerce">E-Commerce</option>
+                            <option value="consulting">Consulting</option>
+                          </select>
+                        </label>
+                        <label class="text-xs text-slate-400">Additional Context (Optional)
+                          <textarea id="market-research-summary" name="summary" class="mt-1 h-20 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Provide additional context about your market research needs"></textarea>
+                        </label>
+                      </div>
+                      <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Start Market Research</button>
+                      <p id="market-research-message" class="text-xs text-slate-400"></p>
+                    </form>
+                    <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                      <h3 class="text-lg font-semibold text-white">Research Results</h3>
+                      <div id="market-research-output" class="space-y-3 text-xs max-h-[600px] overflow-y-auto">
+                        <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                          <p class="font-semibold text-white">Ready</p>
+                          <p class="mt-2">Select a project and region to start market research analysis.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -996,6 +1043,218 @@
                   <div class="flex flex-wrap items-center gap-2 text-xs">
                     <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-copy">Copy</button>
                     <button type="button" class="rounded-full border border-slate-700 px-3 py-1" id="call-script-download">Download</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="document-analysis" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Document Analysis</p>
+                  <h2 class="text-2xl font-semibold text-white">AI-Powered Document Processing</h2>
+                  <p class="mt-2 text-sm text-slate-300">Upload and analyze recruitment documents to extract project details, positions, and requirements automatically.</p>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="document-analysis-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <h3 class="text-lg font-semibold text-white">Analyze Document</h3>
+                  <div class="space-y-4">
+                    <label class="block text-xs text-slate-400">Document ID
+                      <input id="document-id" name="document_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Enter document ID" type="text" required />
+                    </label>
+                    <label class="block text-xs text-slate-400">Project (Optional)
+                      <select id="document-project" name="project_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">Select project (optional)</option>
+                      </select>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-slate-400">
+                      <input type="checkbox" id="trigger-market-research" name="trigger_market_research" checked class="rounded border-slate-700 bg-slate-950" />
+                      Trigger market research after analysis
+                    </label>
+                  </div>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Analyze Document</button>
+                  <p id="document-analysis-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Analysis Results</h3>
+                  <div id="document-analysis-output" class="space-y-3 text-xs">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <p class="font-semibold text-white">Ready</p>
+                      <p class="mt-2">Upload a document to see AI-extracted insights.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="job-description" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Job Description Generator</p>
+                  <h2 class="text-2xl font-semibold text-white">AI-Generated Job Descriptions</h2>
+                  <p class="mt-2 text-sm text-slate-300">Create compelling, market-aligned job descriptions with AI assistance.</p>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="jd-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <h3 class="text-lg font-semibold text-white">Generate Job Description</h3>
+                  <div class="grid gap-4 lg:grid-cols-2">
+                    <label class="text-xs text-slate-400">Job Title
+                      <input id="jd-title" name="title" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Senior Software Engineer" type="text" required />
+                    </label>
+                    <label class="text-xs text-slate-400">Location
+                      <input id="jd-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Remote / San Francisco" type="text" />
+                    </label>
+                    <label class="text-xs text-slate-400">Seniority Level
+                      <select id="jd-seniority" name="seniority" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="">Select level</option>
+                        <option value="entry">Entry Level</option>
+                        <option value="mid">Mid Level</option>
+                        <option value="senior">Senior</option>
+                        <option value="lead">Lead</option>
+                        <option value="principal">Principal</option>
+                      </select>
+                    </label>
+                    <label class="text-xs text-slate-400">Department
+                      <input id="jd-department" name="department" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Engineering" type="text" />
+                    </label>
+                  </div>
+                  <label class="text-xs text-slate-400">Key Responsibilities (one per line)
+                    <textarea id="jd-responsibilities" name="responsibilities" class="mt-1 h-24 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Design and develop scalable systems&#10;Lead technical discussions&#10;Mentor junior engineers"></textarea>
+                  </label>
+                  <label class="text-xs text-slate-400">Required Skills (comma separated)
+                    <input id="jd-skills" name="skills" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Python, AWS, Docker, Kubernetes" type="text" />
+                  </label>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Generate JD</button>
+                  <p id="jd-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Generated Description</h3>
+                  <div id="jd-output" class="space-y-3 text-xs max-h-[600px] overflow-y-auto">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <p class="font-semibold text-white">Ready</p>
+                      <p class="mt-2">Fill in the form to generate a professional job description.</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1 text-xs" id="jd-copy">Copy</button>
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1 text-xs" id="jd-download">Download</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="candidate-screening" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Candidate Screening</p>
+                  <h2 class="text-2xl font-semibold text-white">AI-Powered Candidate Scoring</h2>
+                  <p class="mt-2 text-sm text-slate-300">Evaluate candidates against position requirements with explainable AI scoring.</p>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="screening-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <h3 class="text-lg font-semibold text-white">Screen Candidate</h3>
+                  <div class="grid gap-4 lg:grid-cols-2">
+                    <label class="text-xs text-slate-400">Candidate ID
+                      <input id="screening-candidate-id" name="candidate_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Enter candidate ID" type="text" required />
+                    </label>
+                    <label class="text-xs text-slate-400">Position
+                      <select id="screening-position" name="position_id" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" required>
+                        <option value="">Select position</option>
+                      </select>
+                    </label>
+                    <label class="text-xs text-slate-400">Years of Experience
+                      <input id="screening-years" name="years_experience" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="5" type="number" min="0" />
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-slate-400 mt-6">
+                      <input type="checkbox" id="screening-leadership" name="leadership" class="rounded border-slate-700 bg-slate-950" />
+                      Has leadership experience
+                    </label>
+                  </div>
+                  <label class="text-xs text-slate-400">Skills (comma separated)
+                    <input id="screening-skills" name="skills" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Python, React, AWS, Leadership" type="text" />
+                  </label>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Screen Candidate</button>
+                  <p id="screening-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Screening Results</h3>
+                  <div id="screening-output" class="space-y-3 text-xs">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <p class="font-semibold text-white">Ready</p>
+                      <p class="mt-2">Submit candidate details to see AI scoring results.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="outreach-email" class="screen">
+            <div class="rounded-3xl bg-surface/90 p-6 ring-1 ring-slate-800/60">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-primary">Outreach Email Generator</p>
+                  <h2 class="text-2xl font-semibold text-white">Personalized Recruitment Emails</h2>
+                  <p class="mt-2 text-sm text-slate-300">Generate tailored outreach emails for candidates with AI-powered personalization.</p>
+                </div>
+              </div>
+              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+                <form id="outreach-form" class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300" novalidate>
+                  <h3 class="text-lg font-semibold text-white">Generate Outreach Email</h3>
+                  <div class="grid gap-4 lg:grid-cols-2">
+                    <label class="text-xs text-slate-400">Candidate Name
+                      <input id="outreach-candidate-name" name="candidate_name" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="John Doe" type="text" required />
+                    </label>
+                    <label class="text-xs text-slate-400">Candidate Title
+                      <input id="outreach-candidate-title" name="candidate_title" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Senior Engineer at Tech Corp" type="text" />
+                    </label>
+                    <label class="text-xs text-slate-400">Position Title
+                      <input id="outreach-title" name="title" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Lead Software Engineer" type="text" required />
+                    </label>
+                    <label class="text-xs text-slate-400">Location
+                      <input id="outreach-location" name="location" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="San Francisco, CA" type="text" />
+                    </label>
+                    <label class="text-xs text-slate-400">Seniority Level
+                      <select id="outreach-seniority" name="seniority" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="mid">Mid Level</option>
+                        <option value="senior">Senior</option>
+                        <option value="lead">Lead</option>
+                        <option value="executive">Executive</option>
+                      </select>
+                    </label>
+                    <label class="text-xs text-slate-400">Email Template
+                      <select id="outreach-template" name="template" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                        <option value="standard">Standard</option>
+                        <option value="executive">Executive</option>
+                        <option value="technical">Technical</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label class="text-xs text-slate-400">Key Skills (comma separated)
+                    <input id="outreach-skills" name="skills" class="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Python, AWS, Leadership, System Design" type="text" required />
+                  </label>
+                  <label class="text-xs text-slate-400">Candidate Highlights (one per line)
+                    <textarea id="outreach-highlights" name="highlights" class="mt-1 h-20 w-full rounded-xl border border-slate-800 bg-slate-950/80 p-3" placeholder="Led team of 10 engineers&#10;Built scalable platform serving 1M users&#10;Expert in cloud architecture"></textarea>
+                  </label>
+                  <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Generate Email</button>
+                  <p id="outreach-message" class="text-xs text-slate-400"></p>
+                </form>
+                <div class="space-y-4 rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60 text-sm text-slate-300">
+                  <h3 class="text-lg font-semibold text-white">Generated Email</h3>
+                  <div id="outreach-output" class="space-y-3 text-xs max-h-[600px] overflow-y-auto">
+                    <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4">
+                      <p class="font-semibold text-white">Ready</p>
+                      <p class="mt-2">Fill in candidate details to generate a personalized outreach email.</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1 text-xs" id="outreach-copy">Copy</button>
+                    <button type="button" class="rounded-full border border-slate-700 px-3 py-1 text-xs" id="outreach-download">Download</button>
                   </div>
                 </div>
               </div>
@@ -1168,6 +1427,10 @@
             tabsGroup: 'analytics',
           },
           'verbal-script': { breadcrumb: ['Workspace', 'Enablement', 'Verbal Script'] },
+          'document-analysis': { breadcrumb: ['Workspace', 'AI Tools', 'Document Analysis'] },
+          'job-description': { breadcrumb: ['Workspace', 'AI Tools', 'Job Description'] },
+          'candidate-screening': { breadcrumb: ['Workspace', 'AI Tools', 'Candidate Screening'] },
+          'outreach-email': { breadcrumb: ['Workspace', 'AI Tools', 'Outreach Email'] },
         };
 
         const fallbackMetadata = { breadcrumb: ['Workspace', 'Dashboard'] };
@@ -1374,6 +1637,8 @@
         positions: [],
         sourcingOverview: null,
         callScriptText: '',
+        jdText: '',
+        outreachText: '',
       };
 
       const initializationIssues = new Map();
@@ -1558,6 +1823,60 @@
         projectListSummary: document.getElementById('project-list-summary'),
         dashboardProjectCount: document.getElementById('dashboard-project-count'),
         dashboardProjectSummary: document.getElementById('dashboard-project-summary'),
+        // Document Analysis
+        documentAnalysisForm: document.getElementById('document-analysis-form'),
+        documentId: document.getElementById('document-id'),
+        documentProject: document.getElementById('document-project'),
+        triggerMarketResearch: document.getElementById('trigger-market-research'),
+        documentAnalysisMessage: document.getElementById('document-analysis-message'),
+        documentAnalysisOutput: document.getElementById('document-analysis-output'),
+        // Job Description
+        jdForm: document.getElementById('jd-form'),
+        jdTitle: document.getElementById('jd-title'),
+        jdLocation: document.getElementById('jd-location'),
+        jdSeniority: document.getElementById('jd-seniority'),
+        jdDepartment: document.getElementById('jd-department'),
+        jdResponsibilities: document.getElementById('jd-responsibilities'),
+        jdSkills: document.getElementById('jd-skills'),
+        jdMessage: document.getElementById('jd-message'),
+        jdOutput: document.getElementById('jd-output'),
+        jdCopy: document.getElementById('jd-copy'),
+        jdDownload: document.getElementById('jd-download'),
+        // Candidate Screening
+        screeningForm: document.getElementById('screening-form'),
+        screeningCandidateId: document.getElementById('screening-candidate-id'),
+        screeningPosition: document.getElementById('screening-position'),
+        screeningYears: document.getElementById('screening-years'),
+        screeningLeadership: document.getElementById('screening-leadership'),
+        screeningSkills: document.getElementById('screening-skills'),
+        screeningMessage: document.getElementById('screening-message'),
+        screeningOutput: document.getElementById('screening-output'),
+        // Outreach Email
+        outreachForm: document.getElementById('outreach-form'),
+        outreachCandidateName: document.getElementById('outreach-candidate-name'),
+        outreachCandidateTitle: document.getElementById('outreach-candidate-title'),
+        outreachTitle: document.getElementById('outreach-title'),
+        outreachLocation: document.getElementById('outreach-location'),
+        outreachSeniority: document.getElementById('outreach-seniority'),
+        outreachTemplate: document.getElementById('outreach-template'),
+        outreachSkills: document.getElementById('outreach-skills'),
+        outreachHighlights: document.getElementById('outreach-highlights'),
+        outreachMessage: document.getElementById('outreach-message'),
+        outreachOutput: document.getElementById('outreach-output'),
+        outreachCopy: document.getElementById('outreach-copy'),
+        outreachDownload: document.getElementById('outreach-download'),
+        // Market Research
+        marketResearchForm: document.getElementById('market-research-form'),
+        marketResearchProject: document.getElementById('market-research-project'),
+        marketResearchRegion: document.getElementById('market-research-region'),
+        marketResearchSector: document.getElementById('market-research-sector'),
+        marketResearchSummary: document.getElementById('market-research-summary'),
+        marketResearchMessage: document.getElementById('market-research-message'),
+        marketResearchOutput: document.getElementById('market-research-output'),
+        // Chatbot
+        chatbotInput: document.getElementById('chatbot-input'),
+        chatbotSend: document.getElementById('chatbot-send'),
+        chatStream: document.getElementById('chat-stream'),
       };
 
       function updateInitializationStatus() {
@@ -1761,25 +2080,46 @@
 
       function populateProjectOptions() {
         const select = elements.sourcingProject;
-        if (!select) return;
-        const previous = select.value;
-        select.innerHTML = '';
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select project';
-        select.appendChild(placeholder);
-        state.projects.forEach((project) => {
-          const option = document.createElement('option');
-          option.value = project.project_id;
-          option.textContent = project.name || 'Untitled project';
-          select.appendChild(option);
-        });
-        if (previous && state.projects.some((project) => project.project_id === previous)) {
-          select.value = previous;
-        } else if (!previous && state.projects.length === 1) {
-          select.value = state.projects[0].project_id;
+        if (select) {
+          const previous = select.value;
+          select.innerHTML = '';
+          const placeholder = document.createElement('option');
+          placeholder.value = '';
+          placeholder.textContent = 'Select project';
+          select.appendChild(placeholder);
+          state.projects.forEach((project) => {
+            const option = document.createElement('option');
+            option.value = project.project_id;
+            option.textContent = project.name || 'Untitled project';
+            select.appendChild(option);
+          });
+          if (previous && state.projects.some((project) => project.project_id === previous)) {
+            select.value = previous;
+          } else if (!previous && state.projects.length === 1) {
+            select.value = state.projects[0].project_id;
+          }
+          populatePositionOptions(select.value || '');
         }
-        populatePositionOptions(select.value || '');
+        // Populate document analysis project dropdown
+        if (elements.documentProject) {
+          elements.documentProject.innerHTML = '<option value="">Select project (optional)</option>';
+          state.projects.forEach((project) => {
+            const option = document.createElement('option');
+            option.value = project.project_id;
+            option.textContent = project.name;
+            elements.documentProject.appendChild(option);
+          });
+        }
+        // Populate market research project dropdown
+        if (elements.marketResearchProject) {
+          elements.marketResearchProject.innerHTML = '<option value="">Select project</option>';
+          state.projects.forEach((project) => {
+            const option = document.createElement('option');
+            option.value = project.project_id;
+            option.textContent = project.name;
+            elements.marketResearchProject.appendChild(option);
+          });
+        }
       }
 
       function updateDashboardProjectsSummary() {
@@ -1912,29 +2252,41 @@
 
       function populatePositionOptions(projectId) {
         const select = elements.sourcingPosition;
-        if (!select) return;
-        const previous = select.value;
-        select.innerHTML = '';
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select position';
-        select.appendChild(placeholder);
-        const rows = state.positions.filter((position) => {
-          if (!projectId) {
-            return true;
+        if (select) {
+          const previous = select.value;
+          select.innerHTML = '';
+          const placeholder = document.createElement('option');
+          placeholder.value = '';
+          placeholder.textContent = 'Select position';
+          select.appendChild(placeholder);
+          const rows = state.positions.filter((position) => {
+            if (!projectId) {
+              return true;
+            }
+            return position.project_id === projectId;
+          });
+          rows.forEach((position) => {
+            const option = document.createElement('option');
+            option.value = position.position_id;
+            option.textContent = position.title || 'Untitled position';
+            select.appendChild(option);
+          });
+          if (previous && rows.some((position) => position.position_id === previous)) {
+            select.value = previous;
+          } else if (!select.value && rows.length === 1) {
+            select.value = rows[0].position_id;
           }
-          return position.project_id === projectId;
-        });
-        rows.forEach((position) => {
-          const option = document.createElement('option');
-          option.value = position.position_id;
-          option.textContent = position.title || 'Untitled position';
-          select.appendChild(option);
-        });
-        if (previous && rows.some((position) => position.position_id === previous)) {
-          select.value = previous;
-        } else if (!select.value && rows.length === 1) {
-          select.value = rows[0].position_id;
+        }
+        // Populate screening position dropdown
+        if (elements.screeningPosition) {
+          elements.screeningPosition.innerHTML = '<option value="">Select position</option>';
+          const positions = projectId ? state.positions.filter((pos) => pos.project_id === projectId) : state.positions;
+          positions.forEach((position) => {
+            const option = document.createElement('option');
+            option.value = position.position_id;
+            option.textContent = position.title || 'Untitled position';
+            elements.screeningPosition.appendChild(option);
+          });
         }
       }
 
@@ -2438,6 +2790,582 @@
             showToast(error.message || 'Unable to create project.', 'error');
           }
         });
+      }
+
+      // Document Analysis Handler
+      if (elements.documentAnalysisForm) {
+        elements.documentAnalysisForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.documentAnalysisForm);
+          const documentId = formData.get('document_id');
+          if (!documentId) {
+            setMessage(elements.documentAnalysisMessage, 'Document ID is required.', 'error');
+            return;
+          }
+          const payload = {
+            document_id: documentId,
+            trigger_market_research: elements.triggerMarketResearch?.checked || false,
+          };
+          const projectId = formData.get('project_id');
+          if (projectId) {
+            payload.project_id = projectId;
+          }
+          const submitButton = elements.documentAnalysisForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/api/ai/analyze-file', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Analyzing document…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Analyzing…',
+            });
+            renderDocumentAnalysis(result);
+            setMessage(elements.documentAnalysisMessage, 'Document analyzed successfully.', 'success');
+            showToast('Document analysis complete.', 'success');
+          } catch (error) {
+            setMessage(elements.documentAnalysisMessage, error.message || 'Unable to analyze document.', 'error');
+            showToast(error.message || 'Unable to analyze document.', 'error');
+          }
+        });
+      }
+
+      function renderDocumentAnalysis(result) {
+        const container = elements.documentAnalysisOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 space-y-3';
+        const title = document.createElement('p');
+        title.className = 'font-semibold text-white';
+        title.textContent = `Document Type: ${result.document_type || 'Unknown'}`;
+        card.appendChild(title);
+        if (result.project_info) {
+          const projectInfo = document.createElement('div');
+          projectInfo.className = 'mt-3';
+          const projectTitle = document.createElement('p');
+          projectTitle.className = 'font-semibold text-primary';
+          projectTitle.textContent = 'Project Information';
+          projectInfo.appendChild(projectTitle);
+          Object.entries(result.project_info).forEach(([key, value]) => {
+            const p = document.createElement('p');
+            p.className = 'mt-1 text-slate-300';
+            p.textContent = `${toTitleCase(key)}: ${value}`;
+            projectInfo.appendChild(p);
+          });
+          card.appendChild(projectInfo);
+        }
+        if (result.positions && Array.isArray(result.positions)) {
+          const positionsDiv = document.createElement('div');
+          positionsDiv.className = 'mt-3';
+          const positionsTitle = document.createElement('p');
+          positionsTitle.className = 'font-semibold text-primary';
+          positionsTitle.textContent = `Positions Found (${result.positions.length})`;
+          positionsDiv.appendChild(positionsTitle);
+          result.positions.forEach((pos, idx) => {
+            const posDiv = document.createElement('div');
+            posDiv.className = 'mt-2 pl-3 border-l-2 border-primary/30';
+            const posTitle = document.createElement('p');
+            posTitle.className = 'text-white';
+            posTitle.textContent = `${idx + 1}. ${pos.title || 'Untitled Position'}`;
+            posDiv.appendChild(posTitle);
+            if (pos.requirements) {
+              const req = document.createElement('p');
+              req.className = 'mt-1 text-xs text-slate-400';
+              req.textContent = `Requirements: ${pos.requirements}`;
+              posDiv.appendChild(req);
+            }
+            positionsDiv.appendChild(posDiv);
+          });
+          card.appendChild(positionsDiv);
+        }
+        container.appendChild(card);
+      }
+
+      // Job Description Handler
+      if (elements.jdForm) {
+        elements.jdForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.jdForm);
+          const title = formData.get('title');
+          if (!title) {
+            setMessage(elements.jdMessage, 'Job title is required.', 'error');
+            return;
+          }
+          const payload = { title };
+          const location = formData.get('location');
+          const seniority = formData.get('seniority');
+          const department = formData.get('department');
+          const responsibilities = formData.get('responsibilities');
+          const skills = formData.get('skills');
+          if (location) payload.location = location;
+          if (seniority) payload.seniority = seniority;
+          if (department) payload.department = department;
+          if (responsibilities) {
+            payload.responsibilities = responsibilities.split('\n').map(r => r.trim()).filter(Boolean);
+          }
+          if (skills) {
+            payload.skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+          }
+          const submitButton = elements.jdForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/api/ai/generate-jd', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Generating job description…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Generating…',
+            });
+            renderJobDescription(result);
+            setMessage(elements.jdMessage, 'Job description generated successfully.', 'success');
+            showToast('Job description ready.', 'success');
+          } catch (error) {
+            setMessage(elements.jdMessage, error.message || 'Unable to generate job description.', 'error');
+            showToast(error.message || 'Unable to generate job description.', 'error');
+          }
+        });
+      }
+
+      function renderJobDescription(jd) {
+        const container = elements.jdOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        state.jdText = '';
+        const textLines = [];
+        if (jd.title) {
+          const titleCard = document.createElement('div');
+          titleCard.className = 'rounded-2xl border border-primary/30 bg-primary/5 p-4';
+          const title = document.createElement('h3');
+          title.className = 'text-lg font-semibold text-white';
+          title.textContent = jd.title;
+          titleCard.appendChild(title);
+          if (jd.summary) {
+            const summary = document.createElement('p');
+            summary.className = 'mt-2 text-slate-300';
+            summary.textContent = jd.summary;
+            titleCard.appendChild(summary);
+          }
+          container.appendChild(titleCard);
+          textLines.push(jd.title);
+          if (jd.summary) textLines.push('', jd.summary);
+        }
+        const sections = [
+          { key: 'company_info', label: 'About the Company' },
+          { key: 'responsibilities', label: 'Key Responsibilities' },
+          { key: 'requirements', label: 'Requirements' },
+          { key: 'preferred_qualifications', label: 'Preferred Qualifications' },
+          { key: 'benefits', label: 'What We Offer' }
+        ];
+        sections.forEach(({ key, label }) => {
+          const value = jd[key];
+          if (!value) return;
+          const card = document.createElement('div');
+          card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const title = document.createElement('p');
+          title.className = 'font-semibold text-white';
+          title.textContent = label;
+          card.appendChild(title);
+          const content = document.createElement('p');
+          content.className = 'mt-2 text-slate-300 whitespace-pre-line';
+          content.textContent = Array.isArray(value) ? value.join('\n') : value;
+          card.appendChild(content);
+          container.appendChild(card);
+          textLines.push('', label, Array.isArray(value) ? value.join('\n') : value);
+        });
+        state.jdText = textLines.join('\n');
+      }
+
+      if (elements.jdCopy) {
+        elements.jdCopy.addEventListener('click', () => {
+          if (!state.jdText) {
+            showToast('Generate a job description first.', 'info');
+            return;
+          }
+          copyToClipboard(state.jdText, 'Job description copied to clipboard.');
+        });
+      }
+
+      if (elements.jdDownload) {
+        elements.jdDownload.addEventListener('click', () => {
+          if (!state.jdText) {
+            showToast('Generate a job description first.', 'info');
+            return;
+          }
+          downloadText(state.jdText, 'job-description.txt');
+        });
+      }
+
+      // Candidate Screening Handler
+      if (elements.screeningForm) {
+        elements.screeningForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.screeningForm);
+          const candidateId = formData.get('candidate_id');
+          const positionId = formData.get('position_id');
+          if (!candidateId || !positionId) {
+            setMessage(elements.screeningMessage, 'Candidate ID and Position are required.', 'error');
+            return;
+          }
+          const payload = {
+            candidate_id: candidateId,
+            position_id: positionId,
+          };
+          const yearsExperience = formData.get('years_experience');
+          const leadership = elements.screeningLeadership?.checked || false;
+          const skills = formData.get('skills');
+          if (yearsExperience) payload.years_experience = parseInt(yearsExperience, 10);
+          payload.leadership = leadership;
+          if (skills) {
+            payload.skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+          }
+          const submitButton = elements.screeningForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/api/ai/screen-candidate', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Screening candidate…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Screening…',
+            });
+            renderScreeningResult(result);
+            setMessage(elements.screeningMessage, 'Candidate screened successfully.', 'success');
+            showToast('Screening complete.', 'success');
+          } catch (error) {
+            setMessage(elements.screeningMessage, error.message || 'Unable to screen candidate.', 'error');
+            showToast(error.message || 'Unable to screen candidate.', 'error');
+          }
+        });
+      }
+
+      function renderScreeningResult(result) {
+        const container = elements.screeningOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 space-y-3';
+        const title = document.createElement('p');
+        title.className = 'font-semibold text-white';
+        title.textContent = 'Screening Results';
+        card.appendChild(title);
+        const scores = [
+          { key: 'technical_fit', label: 'Technical Fit' },
+          { key: 'cultural_alignment', label: 'Cultural Alignment' },
+          { key: 'growth_potential', label: 'Growth Potential' },
+          { key: 'overall_score', label: 'Overall Score' }
+        ];
+        scores.forEach(({ key, label }) => {
+          if (result[key] !== undefined) {
+            const scoreDiv = document.createElement('div');
+            scoreDiv.className = 'flex items-center justify-between';
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'text-slate-300';
+            labelSpan.textContent = label;
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'text-primary font-semibold';
+            const score = typeof result[key] === 'number' ? (result[key] * 100).toFixed(0) : result[key];
+            scoreSpan.textContent = `${score}%`;
+            scoreDiv.appendChild(labelSpan);
+            scoreDiv.appendChild(scoreSpan);
+            card.appendChild(scoreDiv);
+          }
+        });
+        if (result.rationale) {
+          const rationale = document.createElement('p');
+          rationale.className = 'mt-3 text-xs text-slate-400 border-t border-slate-800/60 pt-3';
+          rationale.textContent = `Rationale: ${result.rationale}`;
+          card.appendChild(rationale);
+        }
+        container.appendChild(card);
+      }
+
+      // Outreach Email Handler
+      if (elements.outreachForm) {
+        elements.outreachForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.outreachForm);
+          const candidateName = formData.get('candidate_name');
+          const title = formData.get('title');
+          const skills = formData.get('skills');
+          if (!candidateName || !title || !skills) {
+            setMessage(elements.outreachMessage, 'Candidate name, position title, and skills are required.', 'error');
+            return;
+          }
+          const payload = {
+            candidate_name: candidateName,
+            title: title,
+            skills: skills.split(',').map(s => s.trim()).filter(Boolean),
+          };
+          const candidateTitle = formData.get('candidate_title');
+          const location = formData.get('location');
+          const seniority = formData.get('seniority');
+          const template = formData.get('template');
+          const highlights = formData.get('highlights');
+          if (candidateTitle) payload.candidate_title = candidateTitle;
+          if (location) payload.location = location;
+          if (seniority) payload.seniority = seniority;
+          if (template) payload.template = template;
+          if (highlights) {
+            payload.highlights = highlights.split('\n').map(h => h.trim()).filter(Boolean);
+          }
+          const submitButton = elements.outreachForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/api/ai/generate-email', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Generating outreach email…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Generating…',
+            });
+            renderOutreachEmail(result);
+            setMessage(elements.outreachMessage, 'Outreach email generated successfully.', 'success');
+            showToast('Outreach email ready.', 'success');
+          } catch (error) {
+            setMessage(elements.outreachMessage, error.message || 'Unable to generate email.', 'error');
+            showToast(error.message || 'Unable to generate email.', 'error');
+          }
+        });
+      }
+
+      function renderOutreachEmail(email) {
+        const container = elements.outreachOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        state.outreachText = '';
+        const textLines = [];
+        if (email.subject) {
+          const subjectCard = document.createElement('div');
+          subjectCard.className = 'rounded-2xl border border-primary/30 bg-primary/5 p-4';
+          const label = document.createElement('p');
+          label.className = 'text-xs text-slate-400';
+          label.textContent = 'Subject Line';
+          const subject = document.createElement('p');
+          subject.className = 'mt-1 font-semibold text-white';
+          subject.textContent = email.subject;
+          subjectCard.appendChild(label);
+          subjectCard.appendChild(subject);
+          container.appendChild(subjectCard);
+          textLines.push('Subject: ' + email.subject, '');
+        }
+        if (email.body) {
+          const bodyCard = document.createElement('div');
+          bodyCard.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4';
+          const label = document.createElement('p');
+          label.className = 'text-xs text-slate-400 mb-2';
+          label.textContent = 'Email Body';
+          const body = document.createElement('p');
+          body.className = 'text-slate-300 whitespace-pre-line';
+          body.textContent = email.body;
+          bodyCard.appendChild(label);
+          bodyCard.appendChild(body);
+          container.appendChild(bodyCard);
+          textLines.push(email.body);
+        }
+        state.outreachText = textLines.join('\n');
+      }
+
+      if (elements.outreachCopy) {
+        elements.outreachCopy.addEventListener('click', () => {
+          if (!state.outreachText) {
+            showToast('Generate an outreach email first.', 'info');
+            return;
+          }
+          copyToClipboard(state.outreachText, 'Outreach email copied to clipboard.');
+        });
+      }
+
+      if (elements.outreachDownload) {
+        elements.outreachDownload.addEventListener('click', () => {
+          if (!state.outreachText) {
+            showToast('Generate an outreach email first.', 'info');
+            return;
+          }
+          downloadText(state.outreachText, 'outreach-email.txt');
+        });
+      }
+
+      // Market Research Handler
+      if (elements.marketResearchForm) {
+        elements.marketResearchForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(elements.marketResearchForm);
+          const projectId = formData.get('project_id');
+          const region = formData.get('region');
+          if (!projectId || !region) {
+            setMessage(elements.marketResearchMessage, 'Project and Region are required.', 'error');
+            return;
+          }
+          const payload = {
+            project_id: projectId,
+            region: region,
+          };
+          const sector = formData.get('sector');
+          const summary = formData.get('summary');
+          if (sector) payload.sector = sector;
+          if (summary) payload.summary = summary;
+          const submitButton = elements.marketResearchForm.querySelector('[type="submit"]');
+          try {
+            const result = await apiFetch('/research/market-analysis', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Starting market research…',
+              loadingButton: submitButton,
+              loadingButtonLabel: 'Starting…',
+            });
+            if (result.job_id) {
+              setMessage(elements.marketResearchMessage, 'Market research job queued. Results will appear when complete.', 'success');
+              showToast('Market research job queued.', 'success');
+              renderMarketResearchPending();
+            } else {
+              renderMarketResearch(result);
+              setMessage(elements.marketResearchMessage, 'Market research complete.', 'success');
+              showToast('Market research ready.', 'success');
+            }
+          } catch (error) {
+            setMessage(elements.marketResearchMessage, error.message || 'Unable to start market research.', 'error');
+            showToast(error.message || 'Unable to start market research.', 'error');
+          }
+        });
+      }
+
+      function renderMarketResearchPending() {
+        const container = elements.marketResearchOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center';
+        const p = document.createElement('p');
+        p.className = 'text-slate-300';
+        p.textContent = 'Market research job queued. Results will appear when analysis is complete.';
+        card.appendChild(p);
+        container.appendChild(card);
+      }
+
+      function renderMarketResearch(research) {
+        const container = elements.marketResearchOutput;
+        if (!container) return;
+        container.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 space-y-3';
+        const title = document.createElement('p');
+        title.className = 'font-semibold text-white';
+        title.textContent = `Market Research: ${research.region || 'Region'} - ${research.sector || 'All Sectors'}`;
+        card.appendChild(title);
+        if (research.summary) {
+          const summary = document.createElement('p');
+          summary.className = 'text-slate-300';
+          summary.textContent = research.summary;
+          card.appendChild(summary);
+        }
+        if (research.findings) {
+          const findings = document.createElement('div');
+          findings.className = 'mt-3 border-t border-slate-800/60 pt-3';
+          const findingsTitle = document.createElement('p');
+          findingsTitle.className = 'font-semibold text-primary';
+          findingsTitle.textContent = 'Key Findings';
+          findings.appendChild(findingsTitle);
+          const findingsText = document.createElement('p');
+          findingsText.className = 'mt-2 text-slate-300 whitespace-pre-line';
+          findingsText.textContent = typeof research.findings === 'string' ? research.findings : JSON.stringify(research.findings, null, 2);
+          findings.appendChild(findingsText);
+          card.appendChild(findings);
+        }
+        if (research.sources) {
+          const sources = document.createElement('p');
+          sources.className = 'mt-3 text-xs text-slate-400 border-t border-slate-800/60 pt-3';
+          sources.textContent = `Sources: ${Array.isArray(research.sources) ? research.sources.join(', ') : research.sources}`;
+          card.appendChild(sources);
+        }
+        container.appendChild(card);
+      }
+
+      // Chatbot Handler
+      let chatbotSessionId = null;
+      if (elements.chatbotSend && elements.chatbotInput) {
+        const sendMessage = async () => {
+          const message = elements.chatbotInput.value.trim();
+          if (!message) return;
+          const userMessageDiv = document.createElement('div');
+          userMessageDiv.className = 'rounded-2xl bg-primary/10 border border-primary/30 p-3';
+          const userLabel = document.createElement('p');
+          userLabel.className = 'text-xs text-primary font-semibold mb-1';
+          userLabel.textContent = 'You';
+          const userText = document.createElement('p');
+          userText.className = 'text-slate-200';
+          userText.textContent = message;
+          userMessageDiv.appendChild(userLabel);
+          userMessageDiv.appendChild(userText);
+          elements.chatStream.appendChild(userMessageDiv);
+          elements.chatbotInput.value = '';
+          elements.chatStream.scrollTop = elements.chatStream.scrollHeight;
+          try {
+            const payload = { message };
+            if (chatbotSessionId) payload.session_id = chatbotSessionId;
+            const result = await apiFetch('/chatbot', {
+              method: 'POST',
+              body: payload,
+              loadingMessage: 'Thinking…',
+            });
+            if (result.session_id) chatbotSessionId = result.session_id;
+            const assistantMessageDiv = document.createElement('div');
+            assistantMessageDiv.className = 'rounded-2xl bg-slate-950/70 border border-slate-800/60 p-3';
+            const assistantLabel = document.createElement('p');
+            assistantLabel.className = 'text-xs text-emerald font-semibold mb-1';
+            assistantLabel.textContent = 'Gemini Assistant';
+            const assistantText = document.createElement('p');
+            assistantText.className = 'text-slate-300';
+            assistantText.textContent = result.reply;
+            assistantMessageDiv.appendChild(assistantLabel);
+            assistantMessageDiv.appendChild(assistantText);
+            elements.chatStream.appendChild(assistantMessageDiv);
+            elements.chatStream.scrollTop = elements.chatStream.scrollHeight;
+          } catch (error) {
+            showToast(error.message || 'Unable to send message.', 'error');
+          }
+        };
+        elements.chatbotSend.addEventListener('click', sendMessage);
+        elements.chatbotInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+      }
+
+      // Utility functions
+      function copyToClipboard(text, successMessage) {
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast(successMessage || 'Copied to clipboard.', 'success');
+          }).catch(() => {
+            showToast('Unable to copy to clipboard.', 'error');
+          });
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            showToast(successMessage || 'Copied to clipboard.', 'success');
+          } catch (error) {
+            showToast('Unable to copy to clipboard.', 'error');
+          }
+          document.body.removeChild(textarea);
+        }
+      }
+
+      function downloadText(text, filename) {
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Downloaded successfully.', 'success');
       }
 
       initializeConsole();

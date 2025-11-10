@@ -25,6 +25,11 @@ from zipfile import ZipFile
 from ..config import get_settings
 
 try:  # pragma: no cover - optional dependency guard
+    import fitz  # PyMuPDF
+except ImportError:  # pragma: no cover - fitz may be missing in lightweight installs
+    fitz = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency guard
     import httpx
 except ImportError:  # pragma: no cover - httpx may be missing in lightweight installs
     httpx = None  # type: ignore[assignment]
@@ -178,7 +183,24 @@ class GeminiService:
             return ""
         suffix = path.suffix.lower()
         try:
-            if suffix == ".docx":
+            if suffix == ".pdf":
+                # Handle PDF files with PyMuPDF (fitz)
+                if fitz is None:
+                    logger.warning("PyMuPDF not installed, cannot extract PDF text")
+                    return ""
+                try:
+                    doc = fitz.open(str(path))
+                    text_parts = []
+                    for page in doc:
+                        page_text = page.get_text()
+                        if page_text:
+                            text_parts.append(page_text)
+                    doc.close()
+                    text = "\n".join(text_parts)
+                except Exception as exc:
+                    logger.warning(f"Failed to extract text from PDF: {exc}")
+                    return ""
+            elif suffix == ".docx":
                 with ZipFile(path) as archive:
                     data = archive.read("word/document.xml")
                 text = re.sub(r"<(.+?)>", " ", data.decode("utf-8", errors="ignore"))

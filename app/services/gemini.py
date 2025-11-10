@@ -186,20 +186,21 @@ class GeminiService:
             if suffix == ".pdf":
                 # Handle PDF files with PyMuPDF (fitz)
                 if fitz is None:
-                    logger.warning("PyMuPDF not installed, cannot extract PDF text")
-                    return ""
-                try:
-                    doc = fitz.open(str(path))
-                    text_parts = []
-                    for page in doc:
-                        page_text = page.get_text()
-                        if page_text:
-                            text_parts.append(page_text)
-                    doc.close()
-                    text = "\n".join(text_parts)
-                except Exception as exc:
-                    logger.warning(f"Failed to extract text from PDF: {exc}")
-                    return ""
+                    logger.warning("PyMuPDF not installed, falling back to raw bytes")
+                    text = path.read_bytes().decode("utf-8", errors="ignore")
+                else:
+                    try:
+                        doc = fitz.open(str(path))
+                        text_parts = []
+                        for page in doc:
+                            page_text = page.get_text()
+                            if page_text:
+                                text_parts.append(page_text)
+                        doc.close()
+                        text = "\n".join(text_parts)
+                    except Exception as exc:
+                        logger.warning(f"Failed to extract text from PDF with PyMuPDF: {exc}, falling back to raw bytes")
+                        text = path.read_bytes().decode("utf-8", errors="ignore")
             elif suffix == ".docx":
                 with ZipFile(path) as archive:
                     data = archive.read("word/document.xml")

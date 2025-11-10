@@ -73,6 +73,28 @@ def _rebuild_sqlite_table(table_name: str) -> None:
             connection.execute(text("PRAGMA foreign_keys=ON"))
 
 
+def _add_qualifications_column() -> None:
+    """Add qualifications column to positions table if it doesn't exist."""
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    if "positions" not in existing_tables:
+        return
+
+    column_info = {column["name"]: column for column in inspector.get_columns("positions")}
+    if "qualifications" in column_info:
+        return
+
+    # Add the qualifications column
+    with engine.begin() as connection:
+        try:
+            connection.execute(text("ALTER TABLE positions ADD COLUMN qualifications JSON"))
+        except Exception:
+            # Column might already exist or ALTER TABLE might not be supported
+            pass
+
+
 def _ensure_nullable_foreign_keys() -> None:
     """Ensure nullable foreign key columns match the SQLAlchemy models."""
 
@@ -119,6 +141,7 @@ def init_db() -> None:
     from . import models  # noqa: F401  (imported for side effects)
 
     _ensure_nullable_foreign_keys()
+    _add_qualifications_column()
     Base.metadata.create_all(bind=engine)
 
 

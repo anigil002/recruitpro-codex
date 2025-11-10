@@ -227,64 +227,150 @@ class GeminiService:
         # Truncate text if too long (keep first 50000 characters for better parsing of multi-position documents)
         truncated_text = text[:50000] if len(text) > 50000 else text
 
-        prompt = f"""Analyze the following document text and extract ALL job positions and project information.
+        prompt = f"""Task
+Analyze the provided document and return structured project and job information.
+The document may be:
+    • a project scope/summary
+    • a single job description
+    • a list of multiple job descriptions
+    • a mix of project scope and one or more job descriptions
+
+You must:
+    1. Correctly classify the document type.
+    2. Extract project_info if project details exist.
+    3. Extract all positions if any job descriptions exist.
+
+⸻
+
+Input
 
 Document Text:
 {truncated_text}
 
-Project Context (if available):
+Optional Project Context (JSON):
 {json.dumps(project_context, indent=2, ensure_ascii=False)}
 
-CRITICAL: This document may contain MULTIPLE job descriptions (potentially 10 or more). You MUST extract EVERY SINGLE position mentioned in the document, no matter how many there are.
+⸻
 
-Please analyze this document and return a JSON object with the following structure:
+Output Schema (RecruitPro Standard)
+
+Return a single valid JSON object with this exact structure:
+
 {{
-  "document_type": "project_scope" | "job_description" | "positions_list" | "general",
+  "document_type": "project_scope" | "job_description" | "positions_list" | "mixed" | "general",
   "project_info": {{
-    "name": "extracted project name or null",
-    "summary": "brief project summary (max 400 chars) or null",
-    "scope_of_work": "scope of work description or null",
-    "client": "client name or null",
-    "sector": "sector/industry or null",
-    "location_region": "location/region or null"
+    "name": "string|null",
+    "summary": "string|null",
+    "scope_of_work": "string|null",
+    "client": "string|null",
+    "sector": "string|null",
+    "location_region": "string|null"
   }},
   "positions": [
     {{
-      "title": "position title",
-      "department": "department or null",
-      "experience": "experience level or null",
-      "description": "role description or null",
-      "responsibilities": ["responsibility 1", "responsibility 2", ...],
-      "requirements": ["requirement 1", "requirement 2", ...],
-      "location": "location or null"
+      "title": "string",
+      "department": "string|null",
+      "experience": "string|null",
+      "qualifications": ["string", "..."],
+      "description": "string|null",
+      "responsibilities": ["string", "..."],
+      "requirements": ["string", "..."],
+      "location": "string|null"
     }}
   ]
 }}
 
-Instructions:
-1. Identify the document type:
-   - "project_scope": Document describes project overview, scope of work, objectives
-   - "job_description": Document describes a single job/position in detail
-   - "positions_list": Document lists multiple positions/roles (may be brief or detailed)
-   - "general": Other project-related content
+    • positions must contain one object per distinct role.
+    • All keys must always be present. Use null or [] when data is missing.
 
-2. Extract project information if present in the document:
-   - Update fields only if explicitly mentioned in the document
-   - For summary: create a concise overview (max 400 chars) based on document content
-   - For scope_of_work: extract detailed scope, objectives, deliverables if present
+⸻
 
-3. Extract ALL positions/roles found in the document:
-   - SCAN THE ENTIRE DOCUMENT and extract EVERY position mentioned
-   - Do NOT limit the number of positions - extract all of them
-   - For each position, extract as much detail as available
-   - If responsibilities/requirements are not explicitly listed, infer reasonable ones based on the role title and context
-   - If only job titles are listed without details, still include them with basic info
-   - Look for positions in various formats: detailed job descriptions, bulleted lists, tables, paragraphs
-   - Common position title patterns: "[Title]", "Position: [Title]", "Role: [Title]", or just the title on its own line
+Document Type Logic (document_type)
 
-4. Return empty arrays/null values for information not present in the document.
+Set document_type using these rules:
+    • "project_scope"
+The document mainly describes a project, its context, objectives, or scope of work, with no meaningful job descriptions.
+    • "job_description"
+The document primarily describes one role in detail (even if it mentions a project).
+    • "positions_list"
+The document's main purpose is to list multiple roles (e.g., hiring matrix, "we're hiring" list, staffing table), with little or no project detail.
+    • "mixed"
+The document contains both:
+    • meaningful project information (overview, scope, client, etc.), and
+    • one or more job descriptions/roles.
+    • "general"
+Other project-related or HR-related content that does not fit the above categories.
 
-REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not truncate or summarize the positions list."""
+Even if document_type is project_scope, job_description, positions_list, or mixed, you must still try to populate both project_info and positions whenever relevant information appears.
+
+⸻
+
+Extraction Rules
+
+1. Strict Extraction (No Inference)
+    • Extract only information explicitly present in the document text (and table cells).
+    • Do not guess or invent responsibilities, requirements, qualifications, or project details.
+    • If a value is missing in the source:
+    • Use null for string/object fields.
+    • Use [] for arrays.
+    • Never omit any keys defined in the schema.
+
+2. Project Info (project_info)
+    • Extract from the Document Text first.
+    • Then use Optional Project Context (JSON) only to fill fields that are still null.
+    • If both document and context provide a value, the document text wins.
+    • summary must be a concise overview (≤400 characters) if the document provides enough information.
+    • Populate scope_of_work with explicit scope, objectives, or deliverables if present.
+
+3. Positions (positions)
+    • Scan the entire document (paragraphs, bullet points, tables, headings).
+    • Extract every distinct role:
+    • A document can have 1, 5, 10, or 20+ roles — include them all.
+    • Each role must be a separate object in the positions array.
+    • For each position, fill:
+    • title
+    • department
+    • experience
+    • qualifications[]
+    • description
+    • responsibilities[]
+    • requirements[]
+    • location
+    • If a field is not present for a specific role, use null or [].
+
+4. Tables & Structured Lists
+When the document contains tables or aligned columns:
+    • Treat each data row as a potential position.
+    • Map header/column names to schema fields:
+    • Role / Position / Title → title
+    • Department / Division → department
+    • Experience → experience
+    • Qualifications / Education → qualifications[]
+    • Responsibilities / Duties → responsibilities[]
+    • Requirements / Skills → requirements[]
+    • Location / Region → location
+    • Combine all cells from the same row into a single position object.
+    • Skip header rows and non-data rows.
+    • If a cell contains multiple bullet points or lines, split them into separate items in the corresponding array.
+
+5. Valid Job Title Filtering
+A valid title must:
+    • Be a specific role or designation (typically 2–8 words).
+    • Clearly indicate a job/position (e.g., "Senior Electrical Engineer", "Project Manager – Airfield", "HSE Lead").
+
+Do not treat these as titles:
+    • Sentences starting with:
+"Minimum of…", "Experience in…", "Ability to…", "Registered Professional…"
+    • Long qualification sentences (>10 words).
+    • Generic phrases like "engineering position at major airports".
+    • Phrases ending with "position", "role", or "experience" without a concrete title.
+
+⸻
+
+Output Constraints
+    • The final answer must be only one JSON object, matching the schema.
+    • Do not include any explanations, markdown, comments, or extra text.
+    • Ensure JSON syntax is valid: proper quotes, commas, and arrays."""
 
         def fallback() -> Dict[str, Any]:
             # Even without AI, try to extract positions using heuristic methods
@@ -303,7 +389,7 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
         return self._structured_completion(
             prompt,
             fallback=fallback,
-            system_instruction="You are a document analysis assistant for a recruitment platform. Analyze documents and extract project and position information accurately. Return valid JSON only.",
+            system_instruction="You are a document analysis assistant for RecruitPro. Extract only information explicitly present in documents. Do not infer or invent data. Return valid JSON only matching the RecruitPro Standard schema.",
         )
 
     def analyze_file(
@@ -333,6 +419,7 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
         for position in positions:
             position.setdefault("status", "draft")
             position.setdefault("auto_generated", False)
+            position.setdefault("qualifications", [])
             position.setdefault("responsibilities", [])
             position.setdefault("requirements", [])
 
@@ -391,22 +478,49 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
         roles: List[Dict[str, Any]] = []
         buffer: List[str] = []
         current_title: Optional[str] = None
-        title_pattern = re.compile(r"\b(role|position|engineer|manager)\b", re.I)
+        title_pattern = re.compile(r"\b(lead|director|manager|engineer|coordinator|specialist|analyst)\b", re.I)
 
         def clean(line: str) -> str:
             return re.sub(r"^[\s\-•*\d.()]+", "", line).strip()
+
+        def is_invalid_title(text: str) -> bool:
+            """Check if the text is NOT a valid job title (e.g., it's a qualification or requirement)."""
+            text_lower = text.lower()
+            # Reject if it starts with qualification indicators
+            if any(text_lower.startswith(prefix) for prefix in [
+                "minimum of", "minimum", "registered professional", "experience in", "experience with",
+                "ability to", "demonstrated", "demonstrable", "strong", "excellent", "thorough",
+                "knowledge of", "familiarity", "proficiency"
+            ]):
+                return True
+            # Reject if it's too long (more than 10 words typically means it's not a title)
+            if len(text.split()) > 10:
+                return True
+            # Reject vague position descriptions
+            if any(phrase in text_lower for phrase in [
+                "position at", "role in", "experience in", "licensed to practice"
+            ]):
+                return True
+            return False
 
         def looks_like_title(line: str) -> bool:
             cleaned = clean(line)
             if not cleaned or cleaned.endswith(":"):
                 return False
-            words = [re.sub(r"[^A-Za-z]", "", word) for word in cleaned.split()]
-            meaningful = [word for word in words if word]
+            # Reject invalid titles
+            if is_invalid_title(cleaned):
+                return False
+            words = [re.sub(r"[^A-Za-z/]", "", word) for word in cleaned.split()]
+            meaningful = [word for word in words if word and len(word) > 1]
             if not meaningful or len(meaningful) > 8:
                 return False
+            # Check if it has title-case formatting
             titlecased = sum(1 for word in meaningful if word[0].isupper())
             uppercase = sum(1 for word in meaningful if word.isupper())
-            return titlecased + uppercase >= len(meaningful)
+            # Must have title pattern keywords or be mostly title-cased
+            has_title_keywords = title_pattern.search(cleaned)
+            is_mostly_titlecased = (titlecased + uppercase) >= len(meaningful) * 0.7
+            return has_title_keywords or is_mostly_titlecased
 
         section_titles = {
             "position overview",
@@ -414,6 +528,10 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
             "position summary",
             "role summary",
             "project overview",
+            "qualifications and experience",
+            "qualifications",
+            "responsibilities",
+            "requirements",
         }
 
         def is_heading(line: str) -> bool:
@@ -424,6 +542,9 @@ REMEMBER: Extract ALL positions, even if there are 10, 20, or more. Do not trunc
             if not cleaned:
                 return False
             if cleaned.lower() in section_titles:
+                return False
+            # Reject invalid titles
+            if is_invalid_title(cleaned):
                 return False
             if not title_pattern.search(cleaned):
                 return False

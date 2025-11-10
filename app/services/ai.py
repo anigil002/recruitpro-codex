@@ -168,6 +168,7 @@ def _handle_file_analysis_job(payload: Dict[str, Any]) -> None:
                     title=title,
                     department=role.get("department"),
                     experience=role.get("experience"),
+                    qualifications=role.get("qualifications") or [],
                     responsibilities=role.get("responsibilities") or [],
                     requirements=role.get("requirements") or [],
                     location=role.get("location"),

@@ -78,6 +78,7 @@ class Position(Base):
     title = Column(String, nullable=False)
     department = Column(String)
     experience = Column(String)
+    qualifications = Column(JSON)
     responsibilities = Column(JSON)
     requirements = Column(JSON)
     location = Column(String)

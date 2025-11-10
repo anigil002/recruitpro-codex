@@ -199,6 +199,9 @@ def apply_structured_json_migration(
                     title=(entry.get("title") or "New Role").strip() or "New Role",
                     department=entry.get("department"),
                     experience=entry.get("experience"),
+                    qualifications=entry.get("qualifications")
+                    if isinstance(entry.get("qualifications"), list)
+                    else _ensure_list(entry.get("qualifications")),
                     responsibilities=entry.get("responsibilities")
                     if isinstance(entry.get("responsibilities"), list)
                     else _ensure_list(entry.get("responsibilities")),
@@ -223,6 +226,12 @@ def apply_structured_json_migration(
                 ):
                     if entry.get(field) is not None:
                         setattr(position, field, entry.get(field))
+                if entry.get("qualifications") is not None:
+                    position.qualifications = (
+                        entry.get("qualifications")
+                        if isinstance(entry.get("qualifications"), list)
+                        else _ensure_list(entry.get("qualifications"))
+                    )
                 if entry.get("responsibilities") is not None:
                     position.responsibilities = (
                         entry.get("responsibilities")

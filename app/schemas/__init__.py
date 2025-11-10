@@ -130,6 +130,7 @@ class PositionBase(BaseModel):
     title: str
     department: Optional[str] = None
     experience: Optional[str] = None
+    qualifications: Optional[List[str]] = None
     responsibilities: Optional[List[str]] = None
     requirements: Optional[List[str]] = None
     location: Optional[str] = None
@@ -153,6 +154,7 @@ class PositionUpdate(BaseModel):
     title: Optional[str] = None
     department: Optional[str] = None
     experience: Optional[str] = None
+    qualifications: Optional[List[str]] = None
     responsibilities: Optional[List[str]] = None
     requirements: Optional[List[str]] = None
     location: Optional[str] = None

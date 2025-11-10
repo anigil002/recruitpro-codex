@@ -6,7 +6,7 @@ from app.services.gemini import GeminiService, gemini
 
 @pytest.mark.parametrize("service", [gemini, GeminiService()])
 def test_gemini_uses_flash_lite_latest(service):
-    assert service.model == GeminiService.DEFAULT_MODEL == "gemini-flash-lite-latest"
+    assert service.model == GeminiService.DEFAULT_MODEL == "gemini-2.5-flash-lite"
 
 
 def test_background_queue_has_expected_ai_triggers():

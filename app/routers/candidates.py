@@ -1,12 +1,13 @@
 """Candidate endpoints."""
 
 from datetime import datetime
+from pathlib import Path
 from typing import Iterable, List, Set, Tuple
 
 import csv
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 try:
     from openpyxl import Workbook
@@ -15,7 +16,7 @@ except ImportError:  # pragma: no cover - optional dependency
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
-from ..models import Candidate, CandidateStatusHistory, Position, Project
+from ..models import Candidate, CandidateStatusHistory, Document, Position, Project
 from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..schemas import (
     CandidateBulkActionRequest,
@@ -26,7 +27,8 @@ from ..schemas import (
     CandidateUpdate,
 )
 from ..services.activity import log_activity
-from ..utils.storage import delete_storage_file
+from ..services.ai import enqueue_cv_screening_job
+from ..utils.storage import delete_storage_file, ensure_storage_dir
 from ..utils.security import generate_id
 
 router = APIRouter(prefix="/api", tags=["candidates"])
@@ -547,3 +549,92 @@ def candidates_bulk_action(
         )
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported action")
+
+
+@router.post("/candidates/upload-cv", status_code=status.HTTP_201_CREATED)
+def upload_candidate_cv(
+    file: UploadFile = File(...),
+    project_id: str | None = Form(None),
+    position_id: str | None = Form(None),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Upload a candidate CV and automatically screen it with AI.
+
+    This endpoint:
+    1. Uploads the CV file to storage
+    2. Creates a Document record
+    3. Triggers background CV screening job
+    4. AI extracts candidate details (name, email, phone)
+    5. AI screens the CV against position requirements
+    6. Automatically creates a Candidate record with all details populated
+
+    Returns the job ID for tracking screening progress.
+    """
+
+    # Validate project access if project_id is provided
+    if project_id:
+        project = db.get(Project, project_id)
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        ensure_project_access(project, current_user)
+
+    # Validate position exists if position_id is provided
+    if position_id:
+        position = db.get(Position, position_id)
+        if not position:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+        # If position has a project, use that project_id
+        if position.project_id and not project_id:
+            project_id = position.project_id
+
+    # Store the CV file
+    storage_dir = ensure_storage_dir()
+    safe_name = Path(file.filename).name if file.filename else "cv.pdf"
+    file_id = generate_id()
+    file_path = storage_dir / f"{file_id}_{safe_name}"
+
+    with file_path.open("wb") as buffer:
+        buffer.write(file.file.read())
+
+    relative_path = file_path.relative_to(storage_dir)
+
+    # Create Document record
+    document = Document(
+        id=file_id,
+        filename=safe_name,
+        mime_type=file.content_type or "application/pdf",
+        file_url=str(relative_path),
+        scope="candidate_cv",
+        scope_id=position_id or project_id,
+        owner_user=current_user.user_id,
+    )
+    db.add(document)
+
+    # Log activity
+    log_activity(
+        db,
+        actor_type="user",
+        actor_id=current_user.user_id,
+        project_id=project_id,
+        message=f"Uploaded CV {safe_name} for screening",
+        event_type="cv_uploaded",
+    )
+
+    # Enqueue CV screening job
+    job = enqueue_cv_screening_job(
+        db,
+        document_id=file_id,
+        project_id=project_id,
+        position_id=position_id,
+        user_id=current_user.user_id,
+    )
+
+    db.commit()
+
+    return {
+        "message": "CV uploaded successfully. AI screening has been queued.",
+        "document_id": file_id,
+        "job_id": job.job_id,
+        "filename": safe_name,
+    }

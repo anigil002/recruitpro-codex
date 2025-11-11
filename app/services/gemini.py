@@ -1085,6 +1085,199 @@ Output Constraints
             postprocess=postprocess,
         )
 
+    def screen_cv(
+        self,
+        path: Path,
+        *,
+        original_name: str,
+        position_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Screen a candidate CV and extract comprehensive candidate information with role fit analysis."""
+
+        text = self._extract_text(path)
+
+        # Truncate text if too long (keep first 50000 characters)
+        truncated_text = text[:50000] if len(text) > 50000 else text
+
+        # Build position context string
+        position_info = ""
+        if position_context:
+            position_info = f"""
+Target Role Context (if available):
+{json.dumps(position_context, indent=2, ensure_ascii=False)}
+"""
+
+        system_instruction = {
+            "system_name": "Egis RecruitPro",
+            "persona": {
+                "owner": "Abdulla Nigil",
+                "role": "Regional Talent Acquisition Manager – Egis Middle East & North America",
+                "expertise": [
+                    "Engineering, Construction & Project Management Recruitment",
+                    "Aviation, Transportation & Infrastructure Projects",
+                    "Technical and Leadership Role Screening"
+                ],
+                "tone": "Professional, concise, factual, and compliance-oriented"
+            },
+            "core_function": "CV Screening & Candidate Rating",
+            "objectives": [
+                "Analyze the candidate's CV and determine role alignment, strengths, and potential gaps.",
+                "Classify each candidate as High Match / Potential Match / Low Match.",
+                "Summarize findings using structured tables for clear comparison.",
+                "Ensure accuracy, neutrality, and adherence to employment and regional compliance standards.",
+                "Maintain record logs with traceable entries for tracking and duplication control."
+            ],
+            "compliance_rules": [
+                "No fabricated or speculative data.",
+                "All statements must be grounded in the CV or provided context.",
+                "Use objective, factual, and professional tone.",
+                "Maintain consistency with Egis recruitment and documentation standards."
+            ]
+        }
+
+        prompt = f"""Task: CV Screening & Candidate Rating
+
+Analyze the provided CV and extract comprehensive candidate information.
+
+{position_info}
+
+CV Content:
+{truncated_text}
+
+You must return a JSON object with the following structure:
+
+{{
+  "candidate": {{
+    "name": "string (REQUIRED - extract from CV)",
+    "email": "string or null",
+    "phone": "string or null",
+    "source_system": "string (e.g. 'CV Upload', 'LinkedIn', 'Manual')",
+    "cv_reference": "string or null"
+  }},
+  "role_context": {{
+    "target_role_title": "string or null (from position context or inferred from CV)",
+    "requisition_id": "string or null",
+    "project_name": "string or null",
+    "region": "string or null"
+  }},
+  "screening_result": {{
+    "overall_fit": "HIGH_MATCH | POTENTIAL_MATCH | LOW_MATCH",
+    "match_score": "number (0-100)",
+    "recommended_roles": ["string"],
+    "key_strengths": ["string (3-4 concise, factual points)"],
+    "potential_gaps": ["string (areas to validate or missing elements)"],
+    "notice_period": "string (e.g. 'Immediate', '30 days', 'Not mentioned')"
+  }},
+  "must_have_requirements": [
+    {{
+      "requirement": "string",
+      "description": "string",
+      "compliance_status": "COMPLYING | NOT_COMPLYING | NOT_MENTIONED",
+      "indicator": "string (e.g. '✅', '❌', '⚠️')",
+      "justification": "string"
+    }}
+  ],
+  "record_management": {{
+    "screened_at_utc": "ISO-8601 datetime string",
+    "screened_by": "string (e.g. 'Egis RecruitPro')",
+    "duplication_status": "NEW | POSSIBLE_DUPLICATE | CONFIRMED_DUPLICATE",
+    "remarks": "string or null",
+    "tags": ["string"]
+  }}
+}}
+
+Evaluation Criteria:
+Primary factors:
+- Relevant discipline experience (engineering, design, construction, or project management)
+- Exposure to major infrastructure, aviation, or transportation projects
+- Regional experience (e.g., North America, Middle East, Europe)
+- Certifications or licenses (P.Eng., PMP, PE, etc.)
+- Leadership, stakeholder, and client management capabilities
+
+Secondary factors:
+- Technical software proficiency (e.g., Primavera, AutoCAD, BIM tools)
+- Communication and coordination skills
+- Availability or notice period
+
+Rating Scale:
+- High Match: Strong alignment with the target role's technical and project requirements.
+- Potential Match: Relevant experience with minor gaps worth clarifying.
+- Low Match: Limited alignment or missing key role requirements.
+
+IMPORTANT:
+- You MUST extract the candidate's name from the CV
+- Extract email and phone if available
+- Be factual and objective
+- Do not invent or speculate data
+- Use the current timestamp for screened_at_utc
+- Return only valid JSON"""
+
+        def fallback() -> Dict[str, Any]:
+            # Extract basic information using heuristic methods
+            lines = truncated_text.split('\n')
+            candidate_name = "Unknown Candidate"
+            email = None
+            phone = None
+
+            # Try to extract name from first few lines
+            for line in lines[:10]:
+                line = line.strip()
+                if line and len(line.split()) <= 4 and not any(char in line for char in ['@', 'http', ':', '•']):
+                    if not any(keyword in line.lower() for keyword in ['curriculum', 'vitae', 'resume', 'cv', 'profile']):
+                        candidate_name = line
+                        break
+
+            # Try to extract email
+            import re
+            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            email_match = re.search(email_pattern, truncated_text)
+            if email_match:
+                email = email_match.group(0)
+
+            # Try to extract phone
+            phone_pattern = r'[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}'
+            phone_match = re.search(phone_pattern, truncated_text)
+            if phone_match:
+                phone = phone_match.group(0)
+
+            return {
+                "candidate": {
+                    "name": candidate_name,
+                    "email": email,
+                    "phone": phone,
+                    "source_system": "CV Upload",
+                    "cv_reference": original_name
+                },
+                "role_context": {
+                    "target_role_title": position_context.get("title") if position_context else None,
+                    "requisition_id": None,
+                    "project_name": position_context.get("project_name") if position_context else None,
+                    "region": None
+                },
+                "screening_result": {
+                    "overall_fit": "POTENTIAL_MATCH",
+                    "match_score": 50,
+                    "recommended_roles": [position_context.get("title") if position_context else "To be determined"],
+                    "key_strengths": ["CV analysis pending"],
+                    "potential_gaps": ["Full screening analysis pending"],
+                    "notice_period": "Not mentioned"
+                },
+                "must_have_requirements": [],
+                "record_management": {
+                    "screened_at_utc": datetime.utcnow().isoformat() + "Z",
+                    "screened_by": "Egis RecruitPro",
+                    "duplication_status": "NEW",
+                    "remarks": "Basic extraction completed, full AI screening unavailable",
+                    "tags": []
+                }
+            }
+
+        return self._structured_completion(
+            prompt,
+            fallback=fallback,
+            system_instruction=json.dumps(system_instruction, ensure_ascii=False),
+        )
+
     def build_boolean_search(self, persona: CandidatePersona) -> str:
         skills = persona.skills or ["PMO", "Mega Project", "Stakeholder Management"]
         title = persona.title.replace(" ", "")

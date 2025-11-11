@@ -578,6 +578,37 @@
                       </div>
                     </div>
                   </div>
+                  <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                      <h3 class="text-lg font-semibold text-white">Upload Candidate CV</h3>
+                      <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">AI Screening</span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-300">Upload a CV and let AI automatically extract candidate details and provide screening results.</p>
+                    <form id="cv-upload-form-candidate-page" class="mt-4 space-y-4" novalidate>
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <label class="text-xs text-slate-400">
+                          CV File (PDF, DOCX) <span class="text-red-400">*</span>
+                          <input id="cv-file-candidate" name="cv_file" type="file" accept=".pdf,.docx,.doc" required class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20" />
+                        </label>
+                        <label class="text-xs text-slate-400">
+                          Position (Optional)
+                          <select id="cv-position-candidate" name="position_id" class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2">
+                            <option value="">Select position</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-6 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">
+                          Upload & Screen CV
+                        </button>
+                        <span class="text-xs text-slate-400">AI will extract name, email, phone and provide screening analysis</span>
+                      </div>
+                      <div id="cv-upload-result-candidate" class="hidden rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-slate-200">
+                        <p class="font-semibold text-white">CV uploaded successfully!</p>
+                        <p class="mt-1 text-slate-300">AI screening is in progress. Candidate will appear in the pipeline shortly.</p>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -996,12 +1027,45 @@
                   <p class="mt-2 text-sm text-slate-200">Connect to your ATS to view positions, applicants, and tags.</p>
                 </div>
               </div>
-              <div class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr] text-sm text-slate-200">
-                <div class="rounded-3xl border border-dashed border-white/20 bg-[#0a4c63]/60 p-6 text-center">
-                  Position tables will display here once data sync is complete.
+              <div class="mt-6 space-y-6 text-sm text-slate-200">
+                <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                  <div class="rounded-3xl border border-dashed border-white/20 bg-[#0a4c63]/60 p-6 text-center">
+                    Position tables will display here once data sync is complete.
+                  </div>
+                  <div class="rounded-3xl border border-dashed border-white/20 bg-[#0a4c63]/60 p-6 text-center">
+                    Tags and quick stats will appear after integration.
+                  </div>
                 </div>
-                <div class="rounded-3xl border border-dashed border-white/20 bg-[#0a4c63]/60 p-6 text-center">
-                  Tags and quick stats will appear after integration.
+                <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <h3 class="text-lg font-semibold text-white">Upload Candidate CV for Position</h3>
+                    <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">AI Screening</span>
+                  </div>
+                  <p class="mt-2 text-sm text-slate-300">Upload a CV for a specific position. AI will automatically extract candidate details and screen against position requirements.</p>
+                  <form id="cv-upload-form-position-page" class="mt-4 space-y-4" novalidate>
+                    <div class="grid gap-4 md:grid-cols-2">
+                      <label class="text-xs text-slate-400">
+                        CV File (PDF, DOCX) <span class="text-red-400">*</span>
+                        <input id="cv-file-position" name="cv_file" type="file" accept=".pdf,.docx,.doc" required class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20" />
+                      </label>
+                      <label class="text-xs text-slate-400">
+                        Position <span class="text-red-400">*</span>
+                        <select id="cv-position-position-page" name="position_id" required class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2">
+                          <option value="">Select position</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-6 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">
+                        Upload & Screen CV
+                      </button>
+                      <span class="text-xs text-slate-400">AI will extract candidate info and screen against position requirements</span>
+                    </div>
+                    <div id="cv-upload-result-position" class="hidden rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-slate-200">
+                      <p class="font-semibold text-white">CV uploaded successfully!</p>
+                      <p class="mt-1 text-slate-300">AI screening is in progress. Candidate will be linked to the position.</p>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -3367,6 +3431,140 @@
         URL.revokeObjectURL(url);
         showToast('Downloaded successfully.', 'success');
       }
+
+      // CV Upload Handlers
+      const cvUploadFormCandidate = document.getElementById('cv-upload-form-candidate-page');
+      const cvUploadFormPosition = document.getElementById('cv-upload-form-position-page');
+
+      // Load positions for dropdowns
+      async function loadPositionsForCV() {
+        try {
+          const response = await fetch('/api/positions', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
+          if (response.ok) {
+            const positions = await response.json();
+            const selectCandidate = document.getElementById('cv-position-candidate');
+            const selectPosition = document.getElementById('cv-position-position-page');
+
+            [selectCandidate, selectPosition].forEach(select => {
+              if (select) {
+                select.innerHTML = '<option value="">Select position</option>';
+                positions.forEach(pos => {
+                  const option = document.createElement('option');
+                  option.value = pos.position_id;
+                  option.textContent = pos.title || 'Untitled Position';
+                  select.appendChild(option);
+                });
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load positions:', error);
+        }
+      }
+
+      // Handle CV upload from candidate management page
+      if (cvUploadFormCandidate) {
+        cvUploadFormCandidate.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const fileInput = document.getElementById('cv-file-candidate');
+          const positionSelect = document.getElementById('cv-position-candidate');
+          const resultDiv = document.getElementById('cv-upload-result-candidate');
+
+          if (!fileInput.files || !fileInput.files[0]) {
+            showToast('Please select a CV file', 'error');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+          if (positionSelect.value) {
+            formData.append('position_id', positionSelect.value);
+          }
+
+          try {
+            showToast('Uploading CV...', 'info');
+            const response = await fetch('/api/candidates/upload-cv', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: formData
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              resultDiv.classList.remove('hidden');
+              showToast('CV uploaded successfully! AI screening in progress...', 'success');
+              cvUploadFormCandidate.reset();
+              setTimeout(() => {
+                resultDiv.classList.add('hidden');
+              }, 5000);
+            } else {
+              const error = await response.json();
+              showToast(error.detail || 'Failed to upload CV', 'error');
+            }
+          } catch (error) {
+            console.error('CV upload error:', error);
+            showToast('Failed to upload CV', 'error');
+          }
+        });
+      }
+
+      // Handle CV upload from position page
+      if (cvUploadFormPosition) {
+        cvUploadFormPosition.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const fileInput = document.getElementById('cv-file-position');
+          const positionSelect = document.getElementById('cv-position-position-page');
+          const resultDiv = document.getElementById('cv-upload-result-position');
+
+          if (!fileInput.files || !fileInput.files[0]) {
+            showToast('Please select a CV file', 'error');
+            return;
+          }
+
+          if (!positionSelect.value) {
+            showToast('Please select a position', 'error');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+          formData.append('position_id', positionSelect.value);
+
+          try {
+            showToast('Uploading CV...', 'info');
+            const response = await fetch('/api/candidates/upload-cv', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: formData
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              resultDiv.classList.remove('hidden');
+              showToast('CV uploaded successfully! AI screening in progress...', 'success');
+              cvUploadFormPosition.reset();
+              setTimeout(() => {
+                resultDiv.classList.add('hidden');
+              }, 5000);
+            } else {
+              const error = await response.json();
+              showToast(error.detail || 'Failed to upload CV', 'error');
+            }
+          } catch (error) {
+            console.error('CV upload error:', error);
+            showToast('Failed to upload CV', 'error');
+          }
+        });
+      }
+
+      // Load positions when page loads
+      loadPositionsForCV();
 
       initializeConsole();
       showScreen('dashboard');

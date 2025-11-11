@@ -338,11 +338,103 @@ def _handle_smartrecruiters(payload: Dict[str, Any]) -> None:
         )
 
 
+def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
+    """Handle CV screening job - extracts candidate info and creates candidate record."""
+    job_id = payload["job_id"]
+    with get_session() as session:
+        job = session.get(AIJob, job_id)
+        if not job:
+            return
+        mark_job_running(session, job)
+        request = job.request_json or {}
+        document_id = request.get("document_id")
+
+        # Get the document
+        from ..models import Document
+        document = session.get(Document, document_id)
+        if not document:
+            mark_job_failed(session, job, "Document not found")
+            return
+
+        # Get position context if position_id is provided
+        position_context = None
+        position_id = request.get("position_id")
+        project_id = request.get("project_id")
+
+        if position_id:
+            from ..models import Position
+            position = session.get(Position, position_id)
+            if position:
+                position_context = {
+                    "title": position.title,
+                    "department": position.department,
+                    "location": position.location,
+                    "experience": position.experience,
+                    "description": position.description,
+                    "requirements": position.requirements or [],
+                    "qualifications": position.qualifications or [],
+                    "project_name": position.project.name if position.project else None,
+                }
+
+        try:
+            path = resolve_storage_path(document.file_url)
+        except ValueError:
+            mark_job_failed(session, job, "Document path outside storage directory")
+            return
+
+        # Screen the CV
+        screening_result = gemini.screen_cv(
+            path,
+            original_name=document.filename,
+            position_context=position_context,
+        )
+
+        # Extract candidate information
+        candidate_data = screening_result.get("candidate", {})
+        screening_data = screening_result.get("screening_result", {})
+
+        # Create the candidate record
+        candidate = Candidate(
+            candidate_id=generate_id(),
+            project_id=project_id,
+            position_id=position_id,
+            name=candidate_data.get("name", "Unknown Candidate"),
+            email=candidate_data.get("email"),
+            phone=candidate_data.get("phone"),
+            source=candidate_data.get("source_system", "CV Upload"),
+            status="screening",
+            resume_url=document.file_url,
+            ai_score=screening_data.get("match_score", 0) / 100.0,  # Convert to 0-1 scale
+            tags=screening_result.get("record_management", {}).get("tags", []),
+        )
+        session.add(candidate)
+        session.flush()
+
+        # Record the screening run
+        record_screening(session, candidate, position_id or "general", {
+            "screening_result": screening_data,
+            "must_have_requirements": screening_result.get("must_have_requirements", []),
+            "overall_fit": screening_data.get("overall_fit"),
+        })
+
+        mark_job_completed(session, job, screening_result)
+
+        log_activity(
+            session,
+            actor_type="ai",
+            actor_id=request.get("user_id"),
+            project_id=project_id,
+            message=f"CV screened for {candidate_data.get('name', 'candidate')} - {screening_data.get('overall_fit', 'N/A')}",
+            event_type="cv_screened",
+        )
+
+
 background_queue.register_handler("file_analysis", _handle_file_analysis_job)
 background_queue.register_handler("market_research", _handle_market_research_job)
 background_queue.register_handler("ai_sourcing", _handle_sourcing_job)
 background_queue.register_handler("linkedin_xray", _handle_linkedin_xray)
 background_queue.register_handler("smartrecruiters_bulk", _handle_smartrecruiters)
+background_queue.register_handler("cv_screening", _handle_cv_screening_job)
 
 
 # ---------------------------------------------------------------------------
@@ -516,6 +608,32 @@ def analyze_document_inline(
     return analysis
 
 
+def enqueue_cv_screening_job(
+    session: Session,
+    document_id: str,
+    *,
+    project_id: Optional[str],
+    position_id: Optional[str],
+    user_id: Optional[str],
+) -> AIJob:
+    """Enqueue a CV screening job for background processing."""
+    job = create_ai_job(
+        session,
+        "cv_screening",
+        project_id=project_id,
+        position_id=position_id,
+        request={
+            "document_id": document_id,
+            "project_id": project_id,
+            "position_id": position_id,
+            "user_id": user_id,
+        },
+    )
+    session.flush()
+    background_queue.enqueue("cv_screening", {"job_id": job.job_id})
+    return job
+
+
 __all__ = [
     "create_ai_job",
     "mark_job_completed",
@@ -527,4 +645,5 @@ __all__ = [
     "start_smartrecruiters_bulk",
     "enqueue_market_research_job",
     "analyze_document_inline",
+    "enqueue_cv_screening_job",
 ]

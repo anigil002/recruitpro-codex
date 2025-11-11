@@ -3440,7 +3440,7 @@
       async function loadPositionsForCV() {
         try {
           const response = await fetch('/api/positions', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${getStoredToken()}` }
           });
           if (response.ok) {
             const positions = await response.json();
@@ -3488,7 +3488,7 @@
             const response = await fetch('/api/candidates/upload-cv', {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${getStoredToken()}`
               },
               body: formData
             });
@@ -3539,7 +3539,7 @@
             const response = await fetch('/api/candidates/upload-cv', {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${getStoredToken()}`
               },
               body: formData
             });

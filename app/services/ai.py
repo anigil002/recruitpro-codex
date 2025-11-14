@@ -391,7 +391,17 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
 
         # Extract candidate information
         candidate_data = screening_result.get("candidate", {})
-        screening_data = screening_result.get("screening_result", {})
+        overall_recommendation = screening_result.get("overall_recommendation", {})
+
+        # Map recommendation to AI score (0-1 scale)
+        recommendation = overall_recommendation.get("recommendation", "Recommend with reservations")
+        ai_score_map = {
+            "Strongly recommend": 0.9,
+            "Recommend": 0.7,
+            "Recommend with reservations": 0.5,
+            "Do not recommend": 0.2
+        }
+        ai_score = ai_score_map.get(recommendation, 0.5)
 
         # Create the candidate record
         candidate = Candidate(
@@ -404,7 +414,7 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
             source=candidate_data.get("source_system", "CV Upload"),
             status="screening",
             resume_url=document.file_url,
-            ai_score=screening_data.get("match_score", 0) / 100.0,  # Convert to 0-1 scale
+            ai_score=ai_score,
             tags=screening_result.get("record_management", {}).get("tags", []),
         )
         session.add(candidate)
@@ -412,9 +422,12 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
 
         # Record the screening run
         record_screening(session, candidate, position_id or "general", {
-            "screening_result": screening_data,
-            "must_have_requirements": screening_result.get("must_have_requirements", []),
-            "overall_fit": screening_data.get("overall_fit"),
+            "summary": screening_result.get("summary", ""),
+            "compliance_table": screening_result.get("compliance_table", []),
+            "functional_capability_assessment": screening_result.get("functional_capability_assessment", {}),
+            "strengths": screening_result.get("strengths", []),
+            "risks_gaps": screening_result.get("risks_gaps", []),
+            "overall_recommendation": overall_recommendation,
         })
 
         mark_job_completed(session, job, screening_result)
@@ -424,7 +437,7 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
             actor_type="ai",
             actor_id=request.get("user_id"),
             project_id=project_id,
-            message=f"CV screened for {candidate_data.get('name', 'candidate')} - {screening_data.get('overall_fit', 'N/A')}",
+            message=f"CV screened for {candidate_data.get('name', 'candidate')} - {recommendation}",
             event_type="cv_screened",
         )
 

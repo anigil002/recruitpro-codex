@@ -1108,41 +1108,30 @@ Target Role Context (if available):
 """
 
         system_instruction = {
-            "system_name": "Egis RecruitPro",
-            "persona": {
-                "owner": "Abdulla Nigil",
-                "role": "Regional Talent Acquisition Manager – Egis Middle East & North America",
-                "expertise": [
-                    "Engineering, Construction & Project Management Recruitment",
-                    "Aviation, Transportation & Infrastructure Projects",
-                    "Technical and Leadership Role Screening"
-                ],
-                "tone": "Professional, concise, factual, and compliance-oriented"
-            },
-            "core_function": "CV Screening & Candidate Rating",
-            "objectives": [
-                "Analyze the candidate's CV and determine role alignment, strengths, and potential gaps.",
-                "Classify each candidate as High Match / Potential Match / Low Match.",
-                "Summarize findings using structured tables for clear comparison.",
-                "Ensure accuracy, neutrality, and adherence to employment and regional compliance standards.",
-                "Maintain record logs with traceable entries for tracking and duplication control."
-            ],
+            "role": "Senior Talent Acquisition Partner",
+            "goal": "Screen the candidate's CV against the Job Description by evaluating compliance, functional capability, and overall suitability. Extract only evidence-based insights directly from the CV.",
             "compliance_rules": [
                 "No fabricated or speculative data.",
                 "All statements must be grounded in the CV or provided context.",
                 "Use objective, factual, and professional tone.",
-                "Maintain consistency with Egis recruitment and documentation standards."
+                "Extract only evidence-based insights directly from the CV."
             ]
         }
 
-        prompt = f"""Task: CV Screening & Candidate Rating
+        prompt = f"""Task: CV Screening Against Job Description
 
-Analyze the provided CV and extract comprehensive candidate information.
+Screen the candidate's CV against the Job Description by evaluating compliance, functional capability, and overall suitability.
 
 {position_info}
 
 CV Content:
 {truncated_text}
+
+DIRECTIVES:
+
+1. COMPLIANCE REQUIREMENTS: Identify all mandatory requirements in the Job Description (e.g., certifications, licenses, domain experience, minimum years of experience, education, technical proficiencies, location/relocation eligibility). For each, determine if the candidate meets it and extract textual evidence from the CV.
+
+2. KEY ROLE REQUIREMENTS: Identify all core functional responsibilities and critical skills required for success in the role. Evaluate the candidate's capability for each based on tangible evidence from the CV.
 
 You must return a JSON object with the following structure:
 
@@ -1154,61 +1143,40 @@ You must return a JSON object with the following structure:
     "source_system": "string (e.g. 'CV Upload', 'LinkedIn', 'Manual')",
     "cv_reference": "string or null"
   }},
-  "role_context": {{
-    "target_role_title": "string or null (from position context or inferred from CV)",
-    "requisition_id": "string or null",
-    "project_name": "string or null",
-    "region": "string or null"
-  }},
-  "screening_result": {{
-    "overall_fit": "HIGH_MATCH | POTENTIAL_MATCH | LOW_MATCH",
-    "match_score": "number (0-100)",
-    "recommended_roles": ["string"],
-    "key_strengths": ["string (3-4 concise, factual points)"],
-    "potential_gaps": ["string (areas to validate or missing elements)"],
-    "notice_period": "string (e.g. 'Immediate', '30 days', 'Not mentioned')"
-  }},
-  "must_have_requirements": [
+  "summary": "string - A concise summary of the candidate's overall suitability, relevant experience, and any immediate red flags",
+  "compliance_table": [
     {{
-      "requirement": "string",
-      "description": "string",
-      "compliance_status": "COMPLYING | NOT_COMPLYING | NOT_MENTIONED",
-      "indicator": "string (e.g. '✅', '❌', '⚠️')",
-      "justification": "string"
+      "requirement": "string - The mandatory requirement from job description",
+      "meets_requirement": "Yes | No",
+      "evidence_from_cv": "string - Textual evidence extracted from the CV"
     }}
   ],
+  "functional_capability_assessment": {{
+    "technical_expertise": ["string - Evidence of technical skills from CV"],
+    "project_experience": ["string - Relevant projects and accomplishments"],
+    "industry_domain_exposure": ["string - Industry-specific experience"],
+    "leadership_and_communication": ["string - Leadership and communication evidence"],
+    "tools_and_software": ["string - Tools and software proficiencies"]
+  }},
+  "strengths": ["string - 4-6 strengths supported directly by the CV"],
+  "risks_gaps": ["string - Any concerns or missing requirements such as lack of certification, domain mismatch, insufficient experience, location or relocation constraints, etc."],
+  "overall_recommendation": {{
+    "recommendation": "Strongly recommend | Recommend | Recommend with reservations | Do not recommend",
+    "justification": "string - Clear justification for the recommendation"
+  }},
   "record_management": {{
     "screened_at_utc": "ISO-8601 datetime string",
-    "screened_by": "string (e.g. 'Egis RecruitPro')",
-    "duplication_status": "NEW | POSSIBLE_DUPLICATE | CONFIRMED_DUPLICATE",
-    "remarks": "string or null",
+    "screened_by": "string (e.g. 'Senior Talent Acquisition Partner')",
     "tags": ["string"]
   }}
 }}
 
-Evaluation Criteria:
-Primary factors:
-- Relevant discipline experience (engineering, design, construction, or project management)
-- Exposure to major infrastructure, aviation, or transportation projects
-- Regional experience (e.g., North America, Middle East, Europe)
-- Certifications or licenses (P.Eng., PMP, PE, etc.)
-- Leadership, stakeholder, and client management capabilities
-
-Secondary factors:
-- Technical software proficiency (e.g., Primavera, AutoCAD, BIM tools)
-- Communication and coordination skills
-- Availability or notice period
-
-Rating Scale:
-- High Match: Strong alignment with the target role's technical and project requirements.
-- Potential Match: Relevant experience with minor gaps worth clarifying.
-- Low Match: Limited alignment or missing key role requirements.
-
 IMPORTANT:
 - You MUST extract the candidate's name from the CV
 - Extract email and phone if available
-- Be factual and objective
-- Do not invent or speculate data
+- Extract only evidence-based insights directly from the CV
+- Be factual and objective - do not invent or speculate data
+- All statements must be grounded in the CV or provided context
 - Use the current timestamp for screened_at_utc
 - Return only valid JSON"""
 
@@ -1248,26 +1216,24 @@ IMPORTANT:
                     "source_system": "CV Upload",
                     "cv_reference": original_name
                 },
-                "role_context": {
-                    "target_role_title": position_context.get("title") if position_context else None,
-                    "requisition_id": None,
-                    "project_name": position_context.get("project_name") if position_context else None,
-                    "region": None
+                "summary": "Basic extraction completed, full AI screening unavailable",
+                "compliance_table": [],
+                "functional_capability_assessment": {
+                    "technical_expertise": ["CV analysis pending"],
+                    "project_experience": ["CV analysis pending"],
+                    "industry_domain_exposure": ["CV analysis pending"],
+                    "leadership_and_communication": ["CV analysis pending"],
+                    "tools_and_software": ["CV analysis pending"]
                 },
-                "screening_result": {
-                    "overall_fit": "POTENTIAL_MATCH",
-                    "match_score": 50,
-                    "recommended_roles": [position_context.get("title") if position_context else "To be determined"],
-                    "key_strengths": ["CV analysis pending"],
-                    "potential_gaps": ["Full screening analysis pending"],
-                    "notice_period": "Not mentioned"
+                "strengths": ["CV analysis pending"],
+                "risks_gaps": ["Full screening analysis pending"],
+                "overall_recommendation": {
+                    "recommendation": "Recommend with reservations",
+                    "justification": "Basic extraction completed, full AI screening unavailable"
                 },
-                "must_have_requirements": [],
                 "record_management": {
                     "screened_at_utc": datetime.utcnow().isoformat() + "Z",
-                    "screened_by": "Egis RecruitPro",
-                    "duplication_status": "NEW",
-                    "remarks": "Basic extraction completed, full AI screening unavailable",
+                    "screened_by": "Senior Talent Acquisition Partner",
                     "tags": []
                 }
             }

@@ -643,6 +643,32 @@
   .rp-progress-bar-error {
     @apply bg-gradient-to-r from-error to-red-600;
   }
+
+  /* ========================================
+     ATS Console Specific Components
+     ======================================== */
+  /* Screen visibility management */
+  .screen {
+    @apply hidden;
+  }
+
+  .screen.active {
+    @apply block animate-fade-in;
+  }
+
+  /* Context tab styling */
+  .context-tab-active {
+    @apply border-primary/60 bg-primary/10 text-primary;
+  }
+
+  /* Enhanced navigation active state for ATS */
+  .nav-link[aria-selected="true"] {
+    @apply bg-gradient-to-r from-primary/20 to-primary/5 text-primary font-semibold;
+  }
+
+  .nav-link[aria-selected="true"][data-nav-variant="sidebar"] {
+    @apply border-l-4 border-primary;
+  }
 }
 
 /* ============================================================

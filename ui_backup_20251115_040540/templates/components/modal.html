@@ -1,0 +1,104 @@
+<!-- Modal Component -->
+<div id="rp-modal-overlay" class="rp-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="rp-modal-title" aria-describedby="rp-modal-body">
+  <div class="rp-modal-content">
+    <h2 id="rp-modal-title" class="rp-modal-header"></h2>
+    <div id="rp-modal-body" class="rp-modal-body"></div>
+    <div class="rp-modal-footer">
+      <button id="rp-modal-cancel" class="rp-button-secondary" type="button">
+        Cancel
+      </button>
+      <button id="rp-modal-confirm" class="rp-button-primary" type="button">
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    const overlay = document.getElementById('rp-modal-overlay');
+    const titleEl = document.getElementById('rp-modal-title');
+    const bodyEl = document.getElementById('rp-modal-body');
+    const cancelBtn = document.getElementById('rp-modal-cancel');
+    const confirmBtn = document.getElementById('rp-modal-confirm');
+
+    let currentResolve = null;
+
+    function showModal(options = {}) {
+      const {
+        title = 'Confirm',
+        message = 'Are you sure?',
+        confirmLabel = 'Confirm',
+        cancelLabel = 'Cancel',
+        confirmStyle = 'primary', // 'primary' | 'destructive'
+        onConfirm = null,
+        onCancel = null,
+      } = options;
+
+      return new Promise((resolve) => {
+        currentResolve = resolve;
+
+        // Set content
+        titleEl.textContent = title;
+        bodyEl.textContent = message;
+        cancelBtn.textContent = cancelLabel;
+        confirmBtn.textContent = confirmLabel;
+
+        // Set button style
+        confirmBtn.className = confirmStyle === 'destructive'
+          ? 'rp-button-destructive'
+          : 'rp-button-primary';
+
+        // Show modal
+        overlay.classList.remove('hidden');
+
+        // Focus confirm button
+        setTimeout(() => confirmBtn.focus(), 0);
+
+        // Set up one-time event handlers
+        function handleConfirm() {
+          cleanup();
+          resolve(true);
+          if (onConfirm) onConfirm();
+        }
+
+        function handleCancel() {
+          cleanup();
+          resolve(false);
+          if (onCancel) onCancel();
+        }
+
+        function handleEscape(e) {
+          if (e.key === 'Escape') {
+            handleCancel();
+          }
+        }
+
+        function handleBackdropClick(e) {
+          if (e.target === overlay) {
+            handleCancel();
+          }
+        }
+
+        function cleanup() {
+          overlay.classList.add('hidden');
+          confirmBtn.removeEventListener('click', handleConfirm);
+          cancelBtn.removeEventListener('click', handleCancel);
+          document.removeEventListener('keydown', handleEscape);
+          overlay.removeEventListener('click', handleBackdropClick);
+        }
+
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+        document.addEventListener('keydown', handleEscape);
+        overlay.addEventListener('click', handleBackdropClick);
+      });
+    }
+
+    // Add to global namespace
+    window.RecruitPro = window.RecruitPro || {};
+    window.RecruitPro.showModal = showModal;
+  })();
+</script>

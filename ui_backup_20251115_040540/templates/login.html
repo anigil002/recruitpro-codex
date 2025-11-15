@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - RecruitPro{% endblock %}
+
+{% block body %}
+<div class="relative flex min-h-screen w-full">
+  <!-- Left Column: Branding -->
+  <div class="hidden lg:flex w-1/2 flex-col items-start justify-center bg-[#1A2B48] p-12 text-white relative overflow-hidden">
+    <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/20"></div>
+    <div class="absolute -bottom-24 -left-16 w-80 h-80 rounded-full bg-primary/10"></div>
+    <div class="z-10 flex flex-col gap-6">
+      <h1 class="text-4xl font-bold tracking-tight">RecruitPro</h1>
+      <p class="text-3xl max-w-md font-light text-text-secondary">
+        The Future of Recruiting. Automated.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right Column: Login Form -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
+    <div class="flex w-full max-w-md flex-col gap-8">
+      <!-- Heading -->
+      <div class="flex flex-col gap-2 text-center lg:text-left">
+        <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-text-primary">
+          Sign In to RecruitPro
+        </h1>
+        <p class="text-base text-text-secondary">
+          Welcome back! Please enter your details to continue.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form id="login-form" class="flex flex-col gap-6" action="/api/auth/login" method="post" novalidate>
+        <input type="hidden" name="grant_type" value="password">
+
+        <!-- Email Address Field -->
+        <div class="rp-form-group">
+          <label for="login-email" class="rp-label">Email Address</label>
+          <input
+            id="login-email"
+            class="rp-input"
+            placeholder="you@example.com"
+            type="email"
+            name="username"
+            required
+            autocomplete="email"
+            aria-describedby="email-error"
+          >
+          <span id="email-error" class="rp-error hidden"></span>
+        </div>
+
+        <!-- Password Field -->
+        <div class="rp-form-group">
+          <label for="login-password" class="rp-label">Password</label>
+          <div class="relative">
+            <input
+              id="login-password"
+              class="rp-input pr-12"
+              placeholder="Enter your password"
+              type="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              aria-describedby="password-error"
+            >
+            <button
+              type="button"
+              id="toggle-password"
+              class="absolute right-2 top-1/2 -translate-y-1/2 rp-icon-button"
+              aria-label="Toggle password visibility"
+            >
+              <span class="material-symbols-outlined text-xl" aria-hidden="true">
+                visibility
+              </span>
+            </button>
+          </div>
+          <span id="password-error" class="rp-error hidden"></span>
+        </div>
+
+        <!-- Options -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <label class="flex gap-x-3 items-center cursor-pointer">
+            <input
+              class="rp-checkbox"
+              type="checkbox"
+              name="remember"
+            >
+            <span class="text-sm text-text-secondary">
+              Remember me
+            </span>
+          </label>
+          <a
+            class="text-primary text-sm font-medium hover:underline"
+            href="#"
+          >
+            Forgot Password?
+          </a>
+        </div>
+
+        <!-- Error Alert -->
+        <div
+          id="login-error"
+          class="rp-alert-error hidden"
+          role="alert"
+          aria-live="polite"
+        >
+          <div id="login-error-message" class="font-medium"></div>
+          <div id="login-error-hint" class="text-sm mt-1 opacity-90"></div>
+        </div>
+
+        <!-- Login Button -->
+        <button
+          id="login-submit"
+          class="rp-button-primary h-14 text-base"
+          type="submit"
+        >
+          Log In
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-4">
+        <div class="rp-divider flex-1"></div>
+        <span class="text-sm text-text-muted">OR</span>
+        <div class="rp-divider flex-1"></div>
+      </div>
+
+      <!-- SSO Login -->
+      <button
+        type="button"
+        class="rp-button-secondary h-14 text-base"
+        disabled
+        title="SSO login coming soon"
+      >
+        <svg class="h-6 w-6" viewBox="0 0 48 48" aria-hidden="true">
+          <path
+            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+            fill="#FFC107"
+          ></path>
+          <path
+            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+            fill="#FF3D00"
+          ></path>
+          <path
+            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+            fill="#4CAF50"
+          ></path>
+          <path
+            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C42.021,35.596,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+            fill="#1976D2"
+          ></path>
+        </svg>
+        Continue with Google
+      </button>
+
+      <!-- Footer -->
+      <div class="text-center">
+        <p class="text-sm text-text-muted flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base" aria-hidden="true">lock</span>
+          © 2024 RecruitPro. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    'use strict';
+
+    // Elements
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const errorMessage = document.getElementById('login-error-message');
+    const errorHint = document.getElementById('login-error-hint');
+    const submitButton = document.getElementById('login-submit');
+    const passwordInput = document.getElementById('login-password');
+    const toggleButton = document.getElementById('toggle-password');
+
+    // Token storage (use fixed keys for compatibility)
+    const TOKEN_STORAGE_KEY = 'recruitpro.token';
+    const TOKEN_TYPE_STORAGE_KEY = 'recruitpro.tokenType';
+
+    // Password visibility toggle
+    if (passwordInput && toggleButton) {
+      toggleButton.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        const icon = toggleButton.querySelector('span');
+        icon.textContent = isPassword ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    // Helper: Show error message
+    function setLoginError(message, hint = '') {
+      if (!message) {
+        loginError.classList.add('hidden');
+        errorMessage.textContent = '';
+        errorHint.textContent = '';
+        return;
+      }
+
+      errorMessage.textContent = message;
+      errorHint.textContent = hint;
+      loginError.classList.remove('hidden');
+    }
+
+    // Helper: Set submit button loading state
+    function setSubmitting(isSubmitting) {
+      if (isSubmitting) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+          <span class="rp-spinner"></span>
+          Signing In…
+        `;
+      } else {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Log In';
+      }
+    }
+
+    // Helper: Persist token to storage
+    function persistToken(token, tokenType = 'Bearer') {
+      try {
+        window.localStorage?.setItem(TOKEN_STORAGE_KEY, token);
+        window.localStorage?.setItem(TOKEN_TYPE_STORAGE_KEY, tokenType);
+      } catch (error) {
+        console.error('Failed to persist token:', error);
+      }
+    }
+
+    // Helper: Clear stored token
+    function clearStoredToken() {
+      try {
+        window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+        window.localStorage?.removeItem(TOKEN_TYPE_STORAGE_KEY);
+      } catch (error) {
+        // Ignore
+      }
+    }
+
+    // Helper: Resolve redirect target
+    function resolveRedirectTarget() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('next') || params.get('redirect') || '/app';
+    }
+
+    // Helper: Generate error hint based on status
+    function deriveHint(status, payloadHint) {
+      if (typeof payloadHint === 'string' && payloadHint.trim()) {
+        return payloadHint.trim();
+      }
+
+      const fallback = {
+        400: 'Review the form fields for typos or missing information.',
+        401: 'Double-check your email and password and try again.',
+        422: 'Make sure each field is filled out correctly.',
+        429: 'Too many attempts. Wait a few seconds before trying again.',
+        500: "We're experiencing an issue. Try again in a moment.",
+      };
+
+      return fallback[status] || '';
+    }
+
+    // Form submission handler
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoginError('');
+        setSubmitting(true);
+
+        const formData = new FormData(loginForm);
+        const body = new URLSearchParams();
+        formData.forEach((value, key) => {
+          if (typeof value === 'string') {
+            body.append(key, value);
+          }
+        });
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            credentials: 'include',
+            body: body.toString(),
+          });
+
+          const text = await response.text();
+          let data = null;
+
+          if (text) {
+            try {
+              data = JSON.parse(text);
+            } catch (error) {
+              throw new Error("We couldn't understand the server response.");
+            }
+          }
+
+          if (!response.ok) {
+            const parsedHint = data?.error?.hint;
+            const detail = data?.detail || data?.error?.message || data?.message;
+            const hint = deriveHint(response.status, parsedHint);
+
+            throw new Error(
+              detail ||
+              (response.status === 401
+                ? "Those credentials don't match our records."
+                : 'Unable to sign in with those credentials.')
+            );
+          }
+
+          if (!data?.access_token) {
+            throw new Error('Login response did not include an access token.');
+          }
+
+          // Store token and redirect
+          clearStoredToken();
+          persistToken(data.access_token, data.token_type);
+          window.location.assign(resolveRedirectTarget());
+
+        } catch (error) {
+          let message = 'Unable to sign in.';
+          let hint = '';
+
+          if (error instanceof TypeError) {
+            message = "We couldn't reach the server.";
+            hint = 'Check your internet connection and try again.';
+          } else if (error instanceof Error) {
+            message = error.message;
+          }
+
+          setLoginError(message, hint);
+          setSubmitting(false);
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

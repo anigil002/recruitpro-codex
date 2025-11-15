@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RecruitPro - AI sourcing overview</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+
+      @layer components {
+        .rp-card {
+          @apply rounded-lg border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
+        }
+
+        .rp-card:hover {
+          @apply -translate-y-0.5 border-primary/30 shadow-lg shadow-primary/20;
+        }
+
+        .rp-card:focus-within {
+          @apply border-primary/40 shadow-lg shadow-primary/25;
+        }
+
+        .rp-surface {
+          @apply rounded-xl border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
+        }
+
+        .rp-surface:hover {
+          @apply border-primary/30 shadow-lg shadow-primary/15;
+        }
+
+        .rp-button {
+          @apply transition-transform duration-200 ease-out shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rp-card,
+        .rp-surface,
+        .rp-button {
+          transition: none !important;
+          transform: none !important;
+          box-shadow: none !important;
+        }
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2563EB",
+              secondary: "#14B8A6",
+              "background-light": "#F3F4F6",
+              "background-dark": "#0F172A",
+              "container-light": "#FFFFFF",
+              "container-dark": "#1E293B",
+              "text-light": "#111827",
+              "text-dark": "#E2E8F0",
+              "text-secondary-light": "#6B7280",
+              "text-secondary-dark": "#94A3B8",
+              "border-light": "#E5E7EB",
+              "border-dark": "#334155",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="antialiased font-display bg-background-light dark:bg-background-dark">
+    {% set token_query = '' %}
+    {% if token %}
+    {% set token_query = '?token=' + token %}
+    {% endif %}
+    <div class="relative flex min-h-screen w-full flex-row">
+      <!-- Side Navigation -->
+      <aside class="sticky top-0 flex h-screen flex-col justify-between border-r border-border-light bg-container-light p-4 dark:border-border-dark dark:bg-container-dark">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 px-2 py-2">
+            <div class="rounded-lg bg-primary p-2 text-white">
+              <span class="material-symbols-outlined !text-2xl">bolt</span>
+            </div>
+            <h1 class="text-xl font-bold leading-normal text-text-light dark:text-text-dark">
+              RecruitPro
+            </h1>
+          </div>
+          <div class="flex flex-col gap-2 pt-4">
+            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/app{{ token_query }}">
+              <span class="material-symbols-outlined">dashboard</span>
+              <p class="text-sm font-medium leading-normal">Dashboard</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="{% if projects %}/project-overview?project_id={{ projects[0].project_id }}{% if token %}&token={{ token }}{% endif %}{% else %}#{% endif %}">
+              <span class="material-symbols-outlined">work</span>
+              <p class="text-sm font-medium leading-normal">Projects</p>
+            </a>
+            <a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary" href="#">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              <p class="text-sm font-medium leading-normal">AI sourcing</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 text-text-secondary-light transition-colors hover:text-text-light dark:text-text-secondary-dark dark:hover:text-text-dark" href="/settings{{ token_query }}">
+              <span class="material-symbols-outlined">settings</span>
+              <p class="text-sm font-medium leading-normal">Settings</p>
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 px-2 py-1">
+          <div class="flex size-10 items-center justify-center rounded-full bg-primary/20 text-primary font-semibold">
+            {{ (user.initials if user else 'RP') }}
+          </div>
+          <div class="flex flex-col">
+            <h1 class="text-sm font-medium leading-normal text-text-light dark:text-text-dark">
+              {{ user.name if user else 'RecruitPro user' }}
+            </h1>
+            <p class="text-xs font-normal leading-normal text-text-secondary-light dark:text-text-secondary-dark">
+              {{ user.role if user else 'Guest' }}
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 lg:p-8">
+        <div class="flex flex-col gap-6">
+          {% if error %}
+          <div class="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {{ error }}
+          </div>
+          {% endif %}
+
+          {% if user %}
+          <header class="flex flex-col gap-2">
+            <p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">
+              Signed in as {{ user.email }}
+            </p>
+            <h2 class="text-4xl font-black leading-tight tracking-[-0.033em] text-text-light dark:text-text-dark">
+              AI sourcing overview
+            </h2>
+            <p class="text-base font-normal leading-normal text-text-secondary-light dark:text-text-secondary-dark">
+              Track sourcing jobs generated by RecruitPro AI services.
+            </p>
+          </header>
+
+          <section class="rp-surface flex flex-wrap items-center gap-4 p-4">
+            <form method="get" class="flex items-center gap-2">
+              <input type="hidden" name="token" value="{{ token }}" />
+              <label class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark" for="project-filter">Project</label>
+              <select class="form-select h-10 rounded-lg border border-border-light bg-background-light px-3 text-sm text-text-light focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-border-dark dark:bg-background-dark dark:text-text-dark" id="project-filter" name="project_id" onchange="this.form.submit()">
+                <option value="">All projects</option>
+                {% for project in projects %}
+                <option value="{{ project.project_id }}" {% if selected_project_id == project.project_id %}selected{% endif %}>{{ project.name }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <a class="text-sm font-medium text-primary hover:underline" href="/app{{ token_query }}">Create new sourcing job</a>
+          </section>
+
+          <section class="grid gap-4 md:grid-cols-4">
+            <article class="rp-card p-5">
+              <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Total jobs</p>
+              <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.total_jobs }}</p>
+            </article>
+            <article class="rp-card p-5">
+              <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Active jobs</p>
+              <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.active_jobs }}</p>
+            </article>
+            <article class="rp-card p-5">
+              <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Profiles generated</p>
+              <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.total_profiles }}</p>
+            </article>
+            <article class="rp-card p-5">
+              <p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Projects tracked</p>
+              <p class="text-3xl font-semibold text-text-light dark:text-text-dark">{{ summary.tracked_projects }}</p>
+            </article>
+          </section>
+
+          <section class="rp-surface flex flex-col gap-3 p-6">
+            <header class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Sourcing jobs</h3>
+              <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Newest first</span>
+            </header>
+            {% if jobs %}
+            <ul class="flex flex-col divide-y divide-border-light dark:divide-border-dark">
+              {% for job in jobs %}
+              <li class="flex flex-col gap-1 py-3 transition-all duration-200 ease-out hover:-translate-y-0.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <p class="text-sm font-medium text-text-light dark:text-text-dark">{{ job.position_title }}</p>
+                  <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{{ job.status|title }}</span>
+                </div>
+                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                  {{ job.project_name }} • Profiles found {{ job.found_count }} • Progress {{ job.progress }}%
+                </p>
+                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                  Started {{ job.created_at.strftime('%Y-%m-%d %H:%M') if job.created_at else '—' }}{% if job.updated_at %} · Updated {{ job.updated_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                </p>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+              No AI sourcing jobs yet. Launch one from the RecruitPro console to see progress here.
+            </p>
+            {% endif %}
+          </section>
+
+          <section class="rp-surface flex flex-col gap-3 p-6">
+            <header class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Latest profiles</h3>
+              <span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Up to 12 recent results</span>
+            </header>
+            {% if results %}
+            <div class="grid gap-3 md:grid-cols-2">
+              {% for result in results %}
+              <article class="rp-card p-4 text-sm">
+                <p class="font-semibold text-text-light dark:text-text-dark">{{ result.name or 'Unnamed profile' }}</p>
+                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">{{ result.title or 'Role unknown' }}{% if result.company %} · {{ result.company }}{% endif %}</p>
+                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">{{ result.location or 'Location not provided' }}</p>
+                <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Quality score: {{ result.quality_score if result.quality_score is not none else 'n/a' }}</p>
+                <a class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline" href="{{ result.profile_url }}" target="_blank" rel="noreferrer">
+                  Open profile
+                  <span class="material-symbols-outlined text-sm">open_in_new</span>
+                </a>
+              </article>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+              Run sourcing jobs to populate AI-generated candidate suggestions.
+            </p>
+            {% endif %}
+          </section>
+          {% else %}
+          <div class="rp-surface p-10 text-center text-text-secondary-light dark:text-text-secondary-dark">
+            Provide a valid token query parameter to load AI sourcing data for your workspace.
+          </div>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

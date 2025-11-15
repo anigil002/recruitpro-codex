@@ -3,29 +3,77 @@
 {% block title %}Sign In - RecruitPro{% endblock %}
 
 {% block body %}
-<div class="relative flex min-h-screen w-full">
+<div class="relative flex min-h-screen w-full bg-gradient-to-br from-background via-background-dark to-background-darker">
   <!-- Left Column: Branding -->
-  <div class="hidden lg:flex w-1/2 flex-col items-start justify-center bg-[#1A2B48] p-12 text-white relative overflow-hidden">
-    <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/20"></div>
-    <div class="absolute -bottom-24 -left-16 w-80 h-80 rounded-full bg-primary/10"></div>
-    <div class="z-10 flex flex-col gap-6">
-      <h1 class="text-4xl font-bold tracking-tight">RecruitPro</h1>
-      <p class="text-3xl max-w-md font-light text-text-secondary">
-        The Future of Recruiting. Automated.
+  <div class="hidden lg:flex w-1/2 flex-col items-start justify-center p-12 text-white relative overflow-hidden">
+    <!-- Animated background elements -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-3xl animate-pulse-subtle"></div>
+      <div class="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-secondary/20 to-primary/20 blur-3xl animate-pulse-subtle" style="animation-delay: 1s;"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-primary/10 blur-2xl"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="z-10 flex flex-col gap-8 max-w-lg">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center shadow-glow-lg">
+          <span class="text-3xl font-black text-white">RP</span>
+        </div>
+        <div>
+          <h1 class="text-5xl font-black tracking-tight gradient-text-primary">RecruitPro</h1>
+          <p class="text-sm text-text-muted uppercase tracking-wider">Recruitment Excellence</p>
+        </div>
+      </div>
+
+      <p class="text-3xl font-bold leading-tight text-text-primary">
+        The Future of Recruiting.<br/>
+        <span class="gradient-text">Powered by AI.</span>
       </p>
+
+      <div class="flex flex-col gap-4 text-text-secondary">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+          <div>
+            <p class="font-semibold text-text-primary">Intelligent Candidate Screening</p>
+            <p class="text-sm">AI-powered CV analysis and matching</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+          <div>
+            <p class="font-semibold text-text-primary">Automated Workflows</p>
+            <p class="text-sm">Streamline your recruitment process</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+          <div>
+            <p class="font-semibold text-text-primary">Data-Driven Insights</p>
+            <p class="text-sm">Make informed hiring decisions</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Right Column: Login Form -->
   <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
     <div class="flex w-full max-w-md flex-col gap-8">
+      <!-- Mobile logo -->
+      <div class="lg:hidden flex items-center justify-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center shadow-glow">
+          <span class="text-2xl font-black text-white">RP</span>
+        </div>
+        <span class="text-3xl font-black gradient-text-primary">RecruitPro</span>
+      </div>
+
       <!-- Heading -->
-      <div class="flex flex-col gap-2 text-center lg:text-left">
-        <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-text-primary">
-          Sign In to RecruitPro
+      <div class="flex flex-col gap-3 text-center lg:text-left">
+        <h1 class="text-4xl font-black leading-tight tracking-tight text-text-primary">
+          Welcome Back
         </h1>
         <p class="text-base text-text-secondary">
-          Welcome back! Please enter your details to continue.
+          Sign in to continue to your workspace
         </p>
       </div>
 
@@ -119,20 +167,20 @@
       </form>
 
       <!-- Divider -->
-      <div class="flex items-center gap-4">
-        <div class="rp-divider flex-1"></div>
-        <span class="text-sm text-text-muted">OR</span>
-        <div class="rp-divider flex-1"></div>
+      <div class="relative flex items-center gap-4 my-2">
+        <div class="flex-1 border-t border-surface-border"></div>
+        <span class="text-sm font-medium text-text-muted uppercase tracking-wider">Or continue with</span>
+        <div class="flex-1 border-t border-surface-border"></div>
       </div>
 
       <!-- SSO Login -->
       <button
         type="button"
-        class="rp-button-secondary h-14 text-base"
+        class="rp-button-secondary h-12 text-base relative group"
         disabled
         title="SSO login coming soon"
       >
-        <svg class="h-6 w-6" viewBox="0 0 48 48" aria-hidden="true">
+        <svg class="h-5 w-5 transition-transform group-hover:scale-110" viewBox="0 0 48 48" aria-hidden="true">
           <path
             d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
             fill="#FFC107"
@@ -150,13 +198,17 @@
             fill="#1976D2"
           ></path>
         </svg>
-        Continue with Google
+        <span>Google</span>
+        <span class="rp-badge-secondary absolute -top-2 -right-2 text-2xs px-2 py-0.5">Soon</span>
       </button>
 
       <!-- Footer -->
-      <div class="text-center">
-        <p class="text-sm text-text-muted flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-base" aria-hidden="true">lock</span>
+      <div class="text-center pt-4">
+        <p class="text-xs text-text-muted flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm" aria-hidden="true">lock</span>
+          <span>Secured by enterprise-grade encryption</span>
+        </p>
+        <p class="text-xs text-text-muted mt-2">
           © 2024 RecruitPro. All rights reserved.
         </p>
       </div>

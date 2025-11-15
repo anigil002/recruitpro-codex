@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base layer - global styles */
+/* ============================================================
+   BASE LAYER - Global styles and resets
+   ============================================================ */
 @layer base {
   /* Respect user preferences for reduced motion */
   @media (prefers-reduced-motion: reduce) {
@@ -16,9 +18,9 @@
     }
   }
 
-  /* Focus visible styles for accessibility */
+  /* Enhanced focus visible styles for accessibility */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary/60 ring-offset-2 ring-offset-background-dark;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
   }
 
   /* Smooth scrolling for non-reduced motion */
@@ -27,290 +29,445 @@
       scroll-behavior: smooth;
     }
   }
+
+  /* Typography improvements */
+  body {
+    @apply antialiased font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-primary/30 text-text-primary;
+  }
 }
 
-/* Components layer - reusable component classes */
+/* ============================================================
+   COMPONENTS LAYER - Reusable component classes
+   ============================================================ */
 @layer components {
-  /* Card components */
+
+  /* ========================================
+     Card Components
+     ======================================== */
   .rp-card {
-    @apply rounded-lg border border-surface-border bg-surface-dark
-           transition-all duration-200 ease-out shadow-sm;
+    @apply rounded-xl border border-surface-border bg-gradient-to-br from-surface to-surface-elevated
+           shadow-sm transition-all duration-300 ease-out backdrop-blur-sm;
   }
 
   .rp-card:hover {
-    @apply -translate-y-0.5 border-primary/40 shadow-lg shadow-glow-sm;
+    @apply -translate-y-1 border-primary/30 shadow-elevated shadow-glow-sm;
   }
 
-  /* Surface component */
+  .rp-card-interactive {
+    @apply rp-card cursor-pointer;
+  }
+
+  .rp-card-interactive:active {
+    @apply translate-y-0 scale-[0.99];
+  }
+
+  .rp-card-glow {
+    @apply rp-card shadow-glow;
+  }
+
+  /* Surface components */
   .rp-surface {
-    @apply rounded-lg border border-surface-border bg-surface-dark p-4;
+    @apply rounded-xl border border-surface-border bg-surface p-5;
   }
 
   .rp-surface-elevated {
-    @apply rounded-lg border border-surface-border bg-surface-elevated p-4 shadow-md;
+    @apply rounded-xl border border-surface-border bg-surface-elevated p-5 shadow-elevated;
   }
 
-  /* Button components */
+  .rp-surface-glass {
+    @apply rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-5;
+  }
+
+  /* ========================================
+     Button Components
+     ======================================== */
   .rp-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2
-           font-semibold transition-all duration-150
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
+           font-semibold text-sm transition-all duration-200 ease-out
            focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-primary/60 focus-visible:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
+           focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+           relative overflow-hidden;
+  }
+
+  .rp-button::before {
+    content: '';
+    @apply absolute inset-0 bg-white/0 transition-all duration-300;
+  }
+
+  .rp-button:hover::before {
+    @apply bg-white/10;
   }
 
   .rp-button-primary {
-    @apply rp-button bg-primary text-white hover:bg-primary-600
-           active:bg-primary-700 shadow-sm hover:shadow-md;
+    @apply rp-button bg-gradient-to-br from-primary-500 to-primary-600 text-white
+           shadow-md hover:shadow-lg hover:shadow-glow hover:-translate-y-0.5
+           active:translate-y-0 active:shadow-md;
   }
 
   .rp-button-secondary {
-    @apply rp-button border border-surface-border bg-transparent text-text-secondary
-           hover:bg-surface-elevated hover:text-text-primary;
+    @apply rp-button border-2 border-surface-border bg-surface-elevated text-text-secondary
+           hover:bg-surface-hover hover:text-text-primary hover:border-primary/30
+           active:scale-95;
   }
 
   .rp-button-destructive {
-    @apply rp-button border border-error/40 bg-error/20 text-error
-           hover:bg-error/30 hover:border-error/60;
+    @apply rp-button border-2 border-error/40 bg-error/10 text-error
+           hover:bg-error/20 hover:border-error/60 hover:-translate-y-0.5
+           active:translate-y-0;
   }
 
   .rp-button-ghost {
-    @apply rp-button border border-surface-border bg-transparent
-           hover:bg-surface-elevated;
+    @apply rp-button bg-transparent text-text-secondary
+           hover:bg-surface-elevated hover:text-text-primary
+           active:scale-95;
+  }
+
+  .rp-button-success {
+    @apply rp-button bg-gradient-to-br from-success to-success-dark text-white
+           shadow-md hover:shadow-lg hover:-translate-y-0.5
+           active:translate-y-0;
   }
 
   /* Icon button */
   .rp-icon-button {
-    @apply inline-flex items-center justify-center w-10 h-10 rounded-lg
-           transition-all duration-150
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-xl
+           transition-all duration-200 ease-out text-text-secondary
            focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-primary/60 focus-visible:ring-offset-2
-           hover:bg-surface-elevated;
+           focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           hover:bg-surface-elevated hover:text-text-primary hover:scale-110
+           active:scale-95;
   }
 
-  /* Form elements */
+  .rp-icon-button-primary {
+    @apply rp-icon-button bg-primary/10 text-primary hover:bg-primary/20;
+  }
+
+  /* ========================================
+     Form Elements
+     ======================================== */
   .rp-input {
-    @apply w-full rounded-lg border border-surface-border bg-surface-dark
-           px-3 py-2 text-text-primary placeholder:text-text-muted
-           transition-colors duration-150
-           focus:border-primary focus:ring-2 focus:ring-primary/20
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-full rounded-xl border-2 border-surface-border bg-surface
+           px-4 py-2.5 text-text-primary placeholder:text-text-muted
+           transition-all duration-200 ease-out
+           focus:border-primary/60 focus:ring-4 focus:ring-primary/10 focus:bg-surface-elevated
+           disabled:opacity-50 disabled:cursor-not-allowed
+           hover:border-surface-border/80;
+  }
+
+  .rp-input-error {
+    @apply border-error/60 focus:border-error focus:ring-error/10;
+  }
+
+  .rp-input-success {
+    @apply border-success/60 focus:border-success focus:ring-success/10;
   }
 
   .rp-select {
-    @apply rp-input appearance-none bg-no-repeat bg-right pr-10;
+    @apply rp-input appearance-none bg-no-repeat bg-right pr-10 cursor-pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%2394a3b8' d='M4.427 6.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 6H4.604a.25.25 0 00-.177.427z'/%3E%3C/svg%3E");
   }
 
   .rp-textarea {
-    @apply rp-input min-h-[100px] resize-y;
+    @apply rp-input min-h-[120px] resize-y;
   }
 
   .rp-checkbox {
-    @apply h-4 w-4 rounded border-surface-border bg-surface-dark
-           text-primary transition-colors duration-150
-           focus:ring-2 focus:ring-primary/20 focus:ring-offset-2
-           focus:ring-offset-background-dark;
+    @apply h-5 w-5 rounded-md border-2 border-surface-border bg-surface
+           text-primary transition-all duration-200 cursor-pointer
+           focus:ring-4 focus:ring-primary/10 focus:ring-offset-2
+           focus:ring-offset-background
+           hover:border-primary/50 hover:scale-110
+           checked:bg-primary checked:border-primary;
+  }
+
+  .rp-radio {
+    @apply h-5 w-5 border-2 border-surface-border bg-surface
+           text-primary transition-all duration-200 cursor-pointer
+           focus:ring-4 focus:ring-primary/10 focus:ring-offset-2
+           focus:ring-offset-background
+           hover:border-primary/50 hover:scale-110
+           checked:bg-primary checked:border-primary;
   }
 
   .rp-label {
-    @apply block text-sm font-medium text-text-secondary mb-1;
+    @apply block text-sm font-semibold text-text-secondary mb-2;
+  }
+
+  .rp-label-required::after {
+    content: ' *';
+    @apply text-error;
   }
 
   /* File input styling */
   .rp-file-input {
     @apply rp-input
-           file:mr-3 file:rounded-md file:border-0
-           file:bg-primary/20 file:px-3 file:py-2
+           file:mr-4 file:rounded-lg file:border-0
+           file:bg-primary/10 file:px-4 file:py-2
            file:text-sm file:font-semibold file:text-primary
-           file:cursor-pointer file:transition-colors
-           file:hover:bg-primary/30;
+           file:cursor-pointer file:transition-all file:duration-200
+           file:hover:bg-primary/20 file:hover:scale-105;
   }
 
   /* Form group */
   .rp-form-group {
-    @apply flex flex-col gap-1;
+    @apply flex flex-col gap-2;
   }
 
-  /* Error message */
+  /* Input with icon */
+  .rp-input-group {
+    @apply relative;
+  }
+
+  .rp-input-icon-left {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-text-muted;
+  }
+
+  .rp-input-with-icon-left {
+    @apply pl-10;
+  }
+
+  .rp-input-icon-right {
+    @apply absolute right-3 top-1/2 -translate-y-1/2 text-text-muted;
+  }
+
+  .rp-input-with-icon-right {
+    @apply pr-10;
+  }
+
+  /* Error and success messages */
   .rp-error {
-    @apply text-sm text-error mt-1;
+    @apply text-sm text-error mt-1.5 flex items-center gap-1;
   }
 
-  /* Success message */
   .rp-success {
-    @apply text-sm text-success mt-1;
+    @apply text-sm text-success mt-1.5 flex items-center gap-1;
   }
 
-  /* Table components */
+  .rp-hint {
+    @apply text-xs text-text-muted mt-1.5;
+  }
+
+  /* ========================================
+     Table Components
+     ======================================== */
+  .rp-table-container {
+    @apply overflow-x-auto rounded-xl border border-surface-border bg-surface;
+  }
+
   .rp-table {
     @apply w-full border-collapse;
   }
 
   .rp-table thead {
-    @apply border-b border-surface-border;
+    @apply border-b-2 border-surface-border bg-surface-elevated/50;
   }
 
   .rp-table th {
-    @apply px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider;
+    @apply px-6 py-4 text-left text-xs font-bold text-text-secondary uppercase tracking-wider;
   }
 
   .rp-table td {
-    @apply px-4 py-3 text-sm text-text-primary;
+    @apply px-6 py-4 text-sm text-text-primary;
   }
 
   .rp-table tbody tr {
-    @apply border-b border-surface-border transition-colors duration-150
-           hover:bg-surface-elevated;
+    @apply border-b border-surface-border transition-all duration-200
+           hover:bg-surface-elevated/50;
   }
 
   .rp-table tbody tr:last-child {
     @apply border-b-0;
   }
 
-  /* Badge component */
+  .rp-table tbody tr.selected {
+    @apply bg-primary/10 border-primary/30;
+  }
+
+  /* ========================================
+     Badge Components
+     ======================================== */
   .rp-badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5
-           text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1
+           text-xs font-semibold transition-all duration-200;
   }
 
   .rp-badge-primary {
-    @apply rp-badge bg-primary/20 text-primary;
+    @apply rp-badge bg-primary/15 text-primary border border-primary/30;
   }
 
   .rp-badge-success {
-    @apply rp-badge bg-success/20 text-success;
+    @apply rp-badge bg-success/15 text-success border border-success/30;
   }
 
   .rp-badge-warning {
-    @apply rp-badge bg-warning/20 text-warning;
+    @apply rp-badge bg-warning/15 text-warning border border-warning/30;
   }
 
   .rp-badge-error {
-    @apply rp-badge bg-error/20 text-error;
+    @apply rp-badge bg-error/15 text-error border border-error/30;
   }
 
   .rp-badge-info {
-    @apply rp-badge bg-info/20 text-info;
+    @apply rp-badge bg-info/15 text-info border border-info/30;
   }
 
-  /* Navigation */
+  .rp-badge-secondary {
+    @apply rp-badge bg-secondary/15 text-secondary border border-secondary/30;
+  }
+
+  /* ========================================
+     Navigation Components
+     ======================================== */
   .rp-nav-item {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2
-           text-text-secondary transition-all duration-150
-           hover:bg-surface-elevated hover:text-text-primary;
+    @apply flex items-center gap-3 rounded-xl px-4 py-3
+           text-sm font-medium text-text-secondary transition-all duration-200
+           hover:bg-surface-elevated hover:text-text-primary hover:translate-x-1;
   }
 
   .rp-nav-item.active {
-    @apply bg-surface-elevated text-primary font-medium;
+    @apply bg-gradient-to-r from-primary/15 to-primary/5 text-primary
+           border-l-4 border-primary font-semibold;
   }
 
   /* Tab navigation */
   .rp-tabs {
-    @apply flex gap-1 border-b border-surface-border;
+    @apply flex gap-2 border-b-2 border-surface-border;
   }
 
   .rp-tab {
-    @apply px-4 py-2 text-sm font-medium text-text-secondary
-           transition-all duration-150 border-b-2 border-transparent
+    @apply px-5 py-3 text-sm font-semibold text-text-secondary
+           transition-all duration-200 border-b-2 border-transparent -mb-0.5
            hover:text-text-primary hover:border-surface-border
            focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-primary/60 focus-visible:ring-offset-2;
+           focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           rounded-t-lg hover:bg-surface-elevated/50;
   }
 
   .rp-tab[aria-selected="true"] {
-    @apply text-primary border-primary;
+    @apply text-primary border-primary bg-primary/5;
   }
 
-  /* Modal/Dialog */
+  /* ========================================
+     Modal/Dialog Components
+     ======================================== */
   .rp-modal-overlay {
     @apply fixed inset-0 z-50 flex items-center justify-center
-           bg-black/50 backdrop-blur-sm;
+           bg-black/60 backdrop-blur-md
+           animate-fade-in;
   }
 
   .rp-modal-content {
-    @apply bg-surface-dark rounded-lg shadow-xl border border-surface-border
-           max-w-md w-full mx-4 p-6;
+    @apply bg-gradient-to-br from-surface to-surface-elevated rounded-2xl
+           shadow-elevated-lg border border-surface-border
+           max-w-md w-full mx-4 p-6
+           animate-scale-in;
   }
 
   .rp-modal-header {
-    @apply text-xl font-semibold text-text-primary mb-4;
+    @apply text-2xl font-bold text-text-primary mb-4 pb-4 border-b border-surface-border;
   }
 
   .rp-modal-body {
-    @apply text-text-secondary mb-6;
+    @apply text-text-secondary mb-6 leading-relaxed;
   }
 
   .rp-modal-footer {
-    @apply flex gap-3 justify-end;
+    @apply flex gap-3 justify-end pt-4 border-t border-surface-border;
   }
 
-  /* Stat card */
+  /* ========================================
+     Stat Card Components
+     ======================================== */
   .rp-stat-card {
-    @apply rp-card p-4;
+    @apply rp-card p-6 relative overflow-hidden;
+  }
+
+  .rp-stat-card::after {
+    content: '';
+    @apply absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16;
   }
 
   .rp-stat-label {
-    @apply text-sm font-medium text-text-secondary;
+    @apply text-sm font-semibold text-text-secondary uppercase tracking-wide;
   }
 
   .rp-stat-value {
-    @apply text-2xl font-bold text-text-primary mt-1;
+    @apply text-3xl font-black text-text-primary mt-2 mb-1;
   }
 
-  /* Loading spinner */
+  .rp-stat-change {
+    @apply text-sm font-medium flex items-center gap-1;
+  }
+
+  .rp-stat-change.positive {
+    @apply text-success;
+  }
+
+  .rp-stat-change.negative {
+    @apply text-error;
+  }
+
+  /* ========================================
+     Loading States
+     ======================================== */
   .rp-spinner {
-    @apply inline-block w-4 h-4 border-2 border-current border-t-transparent
+    @apply inline-block w-5 h-5 border-2 border-current border-t-transparent
            rounded-full animate-spin;
   }
 
-  /* Screen reader only (for accessibility) */
-  .sr-only {
-    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap
-           border-0;
+  .rp-skeleton {
+    @apply bg-surface-elevated animate-pulse rounded-lg;
   }
 
-  .sr-only:focus-visible {
-    @apply static w-auto h-auto p-2 m-0 overflow-visible whitespace-normal;
+  .rp-skeleton-text {
+    @apply rp-skeleton h-4 w-full;
   }
 
-  /* Skip link */
-  .skip-link {
-    @apply sr-only focus-visible:not-sr-only
-           fixed top-4 left-4 z-50
-           bg-primary text-white px-4 py-2 rounded-lg
-           font-medium shadow-lg;
+  .rp-skeleton-title {
+    @apply rp-skeleton h-6 w-3/4;
   }
 
-  /* Divider */
-  .rp-divider {
-    @apply border-t border-surface-border my-4;
+  .rp-skeleton-avatar {
+    @apply rp-skeleton h-12 w-12 rounded-full;
   }
 
-  /* Alert/Banner */
+  /* ========================================
+     Alert/Banner Components
+     ======================================== */
   .rp-alert {
-    @apply rounded-lg border p-4;
+    @apply rounded-xl border-2 p-4 flex gap-3 items-start animate-slide-in;
   }
 
   .rp-alert-info {
-    @apply rp-alert border-info/40 bg-info/10 text-info;
+    @apply rp-alert border-info/40 bg-gradient-to-r from-info/10 to-info/5 text-info;
   }
 
   .rp-alert-success {
-    @apply rp-alert border-success/40 bg-success/10 text-success;
+    @apply rp-alert border-success/40 bg-gradient-to-r from-success/10 to-success/5 text-success;
   }
 
   .rp-alert-warning {
-    @apply rp-alert border-warning/40 bg-warning/10 text-warning;
+    @apply rp-alert border-warning/40 bg-gradient-to-r from-warning/10 to-warning/5 text-warning;
   }
 
   .rp-alert-error {
-    @apply rp-alert border-error/40 bg-error/10 text-error;
+    @apply rp-alert border-error/40 bg-gradient-to-r from-error/10 to-error/5 text-error;
   }
 
-  /* Breadcrumbs */
+  /* ========================================
+     Breadcrumb Components
+     ======================================== */
   .rp-breadcrumb {
-    @apply flex items-center gap-2 text-sm text-text-secondary;
+    @apply flex items-center gap-2 text-sm text-text-secondary flex-wrap;
   }
 
   .rp-breadcrumb-item {
@@ -322,53 +479,179 @@
   }
 
   .rp-breadcrumb-link {
-    @apply hover:text-primary transition-colors duration-150;
+    @apply hover:text-primary transition-all duration-200 hover:underline;
   }
 
-  /* Sidebar */
+  .rp-breadcrumb-current {
+    @apply text-text-primary font-semibold;
+  }
+
+  /* ========================================
+     Sidebar Components
+     ======================================== */
   .rp-sidebar {
-    @apply fixed left-0 top-0 bottom-0 w-64 bg-surface-dark
-           border-r border-surface-border overflow-y-auto;
+    @apply fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-surface to-surface-elevated
+           border-r border-surface-border overflow-y-auto scrollbar-thin;
   }
 
   .rp-sidebar-header {
-    @apply p-4 border-b border-surface-border;
+    @apply p-6 border-b border-surface-border;
   }
 
   .rp-sidebar-content {
-    @apply p-4;
+    @apply p-4 space-y-2;
   }
 
   .rp-sidebar-footer {
     @apply p-4 border-t border-surface-border mt-auto;
   }
 
-  /* Main content area (with sidebar) */
-  .rp-main-with-sidebar {
-    @apply ml-64 min-h-screen bg-background-dark;
-  }
-
-  /* Container */
-  .rp-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Page header */
-  .rp-page-header {
+  .rp-sidebar-section {
     @apply mb-6;
   }
 
+  .rp-sidebar-section-title {
+    @apply text-xs font-bold text-text-muted uppercase tracking-wider px-4 py-2;
+  }
+
+  /* ========================================
+     Layout Components
+     ======================================== */
+  .rp-main-with-sidebar {
+    @apply ml-72 min-h-screen bg-gradient-to-br from-background via-background-dark to-background-darker;
+  }
+
+  .rp-container {
+    @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-10;
+  }
+
+  .rp-page-header {
+    @apply mb-8 pb-6 border-b border-surface-border;
+  }
+
   .rp-page-title {
-    @apply text-3xl font-bold text-text-primary;
+    @apply text-4xl font-black text-text-primary tracking-tight;
   }
 
   .rp-page-subtitle {
-    @apply text-text-secondary mt-1;
+    @apply text-lg text-text-secondary mt-2;
+  }
+
+  /* ========================================
+     Utility Components
+     ======================================== */
+  .rp-divider {
+    @apply border-t border-surface-border my-6;
+  }
+
+  .rp-divider-vertical {
+    @apply border-l border-surface-border mx-4;
+  }
+
+  /* Screen reader only (accessibility) */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .sr-only:focus-visible {
+    @apply static w-auto h-auto p-2 m-0 overflow-visible whitespace-normal;
+    clip: auto;
+  }
+
+  /* Skip link for accessibility */
+  .skip-link {
+    @apply sr-only focus-visible:not-sr-only
+           fixed top-4 left-4 z-[100]
+           bg-primary text-white px-6 py-3 rounded-xl
+           font-semibold shadow-elevated-lg;
+  }
+
+  /* ========================================
+     Avatar Components
+     ======================================== */
+  .rp-avatar {
+    @apply inline-flex items-center justify-center rounded-full
+           bg-gradient-to-br from-primary to-primary-600 text-white
+           font-semibold overflow-hidden ring-2 ring-surface-border;
+  }
+
+  .rp-avatar-sm {
+    @apply rp-avatar h-8 w-8 text-xs;
+  }
+
+  .rp-avatar-md {
+    @apply rp-avatar h-10 w-10 text-sm;
+  }
+
+  .rp-avatar-lg {
+    @apply rp-avatar h-12 w-12 text-base;
+  }
+
+  .rp-avatar-xl {
+    @apply rp-avatar h-16 w-16 text-xl;
+  }
+
+  /* ========================================
+     Dropdown Components
+     ======================================== */
+  .rp-dropdown {
+    @apply absolute mt-2 min-w-[200px] rounded-xl border border-surface-border
+           bg-surface shadow-elevated-lg backdrop-blur-xl
+           py-2 z-50 animate-scale-in;
+  }
+
+  .rp-dropdown-item {
+    @apply flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary
+           transition-all duration-150
+           hover:bg-surface-elevated hover:text-text-primary cursor-pointer;
+  }
+
+  .rp-dropdown-divider {
+    @apply my-2 border-t border-surface-border;
+  }
+
+  /* ========================================
+     Tooltip Components
+     ======================================== */
+  .rp-tooltip {
+    @apply absolute z-50 px-3 py-2 text-xs font-medium text-white
+           bg-gray-900 rounded-lg shadow-lg
+           pointer-events-none animate-fade-in;
+  }
+
+  /* ========================================
+     Progress Components
+     ======================================== */
+  .rp-progress {
+    @apply w-full h-2 bg-surface-elevated rounded-full overflow-hidden;
+  }
+
+  .rp-progress-bar {
+    @apply h-full bg-gradient-to-r from-primary to-primary-600
+           rounded-full transition-all duration-300 ease-out;
+  }
+
+  .rp-progress-bar-success {
+    @apply bg-gradient-to-r from-success to-success-dark;
+  }
+
+  .rp-progress-bar-warning {
+    @apply bg-gradient-to-r from-warning to-yellow-600;
+  }
+
+  .rp-progress-bar-error {
+    @apply bg-gradient-to-r from-error to-red-600;
   }
 }
 
-/* Utilities layer - custom utilities */
+/* ============================================================
+   UTILITIES LAYER - Custom utility classes
+   ============================================================ */
 @layer utilities {
+  /* ========================================
+     Scrollbar Utilities
+     ======================================== */
   .scrollbar-thin {
     scrollbar-width: thin;
   }
@@ -378,35 +661,83 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
+    @apply bg-transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #233648;
-    border-radius: 3px;
+    @apply bg-surface-border rounded-full;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #2d4a5f;
+    @apply bg-primary/50;
   }
 
-  /* Text balance for better typography */
+  /* ========================================
+     Typography Utilities
+     ======================================== */
   .text-balance {
     text-wrap: balance;
   }
 
-  /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-primary-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-primary-400 to-secondary bg-clip-text text-transparent;
   }
 
-  /* Glass morphism effect */
+  .gradient-text-primary {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+  }
+
+  /* ========================================
+     Glass Morphism Effects
+     ======================================== */
   .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-strong {
+    @apply bg-white/10 backdrop-blur-2xl border border-white/20;
+  }
+
+  /* ========================================
+     Animated Background
+     ======================================== */
+  .animated-gradient {
+    background: linear-gradient(
+      -45deg,
+      #0ea5e9,
+      #8b5cf6,
+      #0ea5e9,
+      #3b82f6
+    );
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* ========================================
+     Hover Effects
+     ======================================== */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-2;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-glow;
   }
 }

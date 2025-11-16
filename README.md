@@ -16,12 +16,29 @@ This repository provides an executable reference implementation of the RecruitPr
 
 ### 1. Install Dependencies
 
+#### Python Dependencies
+
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -e .[dev]
 ```
 
 If you prefer a non-editable install, use `python -m pip install .[dev]` instead.
+
+#### Node.js Dependencies (for CSS)
+
+The UI uses Tailwind CSS which needs to be compiled:
+
+```bash
+npm install
+npm run build:css
+```
+
+For development with auto-rebuild on changes:
+
+```bash
+npm run watch:css
+```
 
 ### 2. Configure Environment
 

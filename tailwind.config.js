@@ -23,6 +23,16 @@ module.exports = {
           900: '#0c4a6e',
           950: '#082f49',
         },
+        // Compatibility aliases for legacy templates
+        'background-light': '#f8fafc',
+        'container-light': '#ffffff',
+        'text-light': '#0f172a',
+        'text-secondary-light': '#64748b',
+        'border-light': '#e2e8f0',
+        'container-dark': '#1e293b',
+        'text-dark': '#f1f5f9',
+        'text-secondary-dark': '#cbd5e1',
+        'border-dark': '#334155',
         // Enhanced secondary accent - purple
         secondary: {
           DEFAULT: '#8b5cf6',

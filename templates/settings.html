@@ -4,37 +4,18 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>RecruitPro - System Settings</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#3B82F6",
-              "accent-sky": "#38BDF8",
-              "slate-950": "#020617",
-            },
-            fontFamily: {
-              display: ["Inter", "sans-serif"],
-            },
-            borderRadius: {
-              DEFAULT: "0.75rem",
-              lg: "1rem",
-              xl: "1.5rem",
-            },
-          },
-        },
-      };
-    </script>
+
+    <!-- Preconnect for better performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <!-- Compiled Tailwind CSS with custom design system -->
+    <link href="/static/css/output.css" rel="stylesheet">
+
     <style>
       .material-symbols-outlined {
         font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
@@ -283,7 +264,7 @@
                 <span class="{{ 'hidden' if gemini.configured else '' }}" data-visible-when="missing">
                   No key configured. Provide a Gemini API key to enable real-time AI features.
                 </span>
-                <a class="text-accent-sky hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
+                <a class="text-primary hover:underline" href="{{ gemini.learn_more_url }}">Learn how to get your key.</a>
               </p>
               <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
                 <button
@@ -381,7 +362,7 @@
                   Provide your Google API key and Custom Search Engine ID to enable LinkedIn X-Ray enrichment.
                 </span>
                 Find your API key and Search Engine ID in the
-                <a class="text-accent-sky hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
+                <a class="text-primary hover:underline" href="{{ google.learn_more_url }}">Google Cloud Console.</a>
               </p>
               <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
                 <button

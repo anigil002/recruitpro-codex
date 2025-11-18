@@ -604,6 +604,50 @@
                     </form>
                   </div>
                 </div>
+
+                <!-- Bulk CV Upload Section -->
+                <div class="rounded-3xl bg-surfaceMuted/80 p-5 ring-1 ring-slate-800/60">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-lg font-semibold text-white">Bulk Upload CVs</h3>
+                      <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Multiple CVs</span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-300">Upload multiple CVs at once (max 50) for automated AI screening against a position.</p>
+                    <form id="bulk-cv-upload-form" class="mt-4 space-y-4" novalidate>
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <label class="text-xs text-slate-400">
+                          CV Files (PDF, DOCX) <span class="text-red-400">*</span>
+                          <input id="bulk-cv-files" name="cv_files" type="file" accept=".pdf,.docx,.doc" multiple required class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20" />
+                          <span class="mt-1 text-xs text-slate-500">Maximum 50 files</span>
+                        </label>
+                        <label class="text-xs text-slate-400">
+                          Position (Required)
+                          <select id="bulk-cv-position" name="position_id" required class="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/80 p-2">
+                            <option value="">Select position</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <button type="submit" class="rounded-full border border-primary/40 bg-primary/10 px-6 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20">
+                          Bulk Upload & Screen
+                        </button>
+                        <span class="text-xs text-slate-400">AI will screen each CV using Egis criteria</span>
+                      </div>
+                      <div id="bulk-cv-upload-progress" class="hidden space-y-2">
+                        <div class="flex items-center gap-2">
+                          <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-800">
+                            <div id="bulk-cv-progress-bar" class="h-full bg-primary transition-all duration-300" style="width: 0%"></div>
+                          </div>
+                          <span id="bulk-cv-progress-text" class="text-xs text-slate-400">0%</span>
+                        </div>
+                      </div>
+                      <div id="bulk-cv-upload-result" class="hidden rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-slate-200">
+                        <p class="font-semibold text-white">Bulk upload successful!</p>
+                        <p id="bulk-cv-upload-message" class="mt-1 text-slate-300"></p>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -3440,8 +3484,9 @@
             const positions = await response.json();
             const selectCandidate = document.getElementById('cv-position-candidate');
             const selectPosition = document.getElementById('cv-position-position-page');
+            const selectBulk = document.getElementById('bulk-cv-position');
 
-            [selectCandidate, selectPosition].forEach(select => {
+            [selectCandidate, selectPosition, selectBulk].forEach(select => {
               if (select) {
                 select.innerHTML = '<option value="">Select position</option>';
                 positions.forEach(pos => {
@@ -3553,6 +3598,84 @@
           } catch (error) {
             console.error('CV upload error:', error);
             showToast('Failed to upload CV', 'error');
+          }
+        });
+      }
+
+      // Handle Bulk CV Upload
+      const bulkCvUploadForm = document.getElementById('bulk-cv-upload-form');
+      if (bulkCvUploadForm) {
+        bulkCvUploadForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const filesInput = document.getElementById('bulk-cv-files');
+          const positionSelect = document.getElementById('bulk-cv-position');
+          const resultDiv = document.getElementById('bulk-cv-upload-result');
+          const progressDiv = document.getElementById('bulk-cv-upload-progress');
+          const progressBar = document.getElementById('bulk-cv-progress-bar');
+          const progressText = document.getElementById('bulk-cv-progress-text');
+          const messageEl = document.getElementById('bulk-cv-upload-message');
+
+          if (!filesInput.files || filesInput.files.length === 0) {
+            showToast('Please select at least one CV file', 'error');
+            return;
+          }
+
+          if (!positionSelect.value) {
+            showToast('Please select a position for bulk upload', 'error');
+            return;
+          }
+
+          if (filesInput.files.length > 50) {
+            showToast('Maximum 50 CVs can be uploaded at once', 'error');
+            return;
+          }
+
+          const formData = new FormData();
+          for (let i = 0; i < filesInput.files.length; i++) {
+            formData.append('files', filesInput.files[i]);
+          }
+          formData.append('position_id', positionSelect.value);
+
+          try {
+            showToast(`Uploading ${filesInput.files.length} CVs...`, 'info');
+            progressDiv.classList.remove('hidden');
+            progressBar.style.width = '50%';
+            progressText.textContent = '50%';
+
+            const response = await fetch('/api/candidates/bulk-upload-cvs', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${getStoredToken()}`
+              },
+              body: formData
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              progressBar.style.width = '100%';
+              progressText.textContent = '100%';
+
+              resultDiv.classList.remove('hidden');
+              messageEl.textContent = result.message || `${result.uploaded_count} CVs uploaded successfully. AI screening in progress for each CV.`;
+              showToast(`Successfully uploaded ${result.uploaded_count} CVs! AI screening queued.`, 'success');
+
+              bulkCvUploadForm.reset();
+
+              setTimeout(() => {
+                progressDiv.classList.add('hidden');
+                resultDiv.classList.add('hidden');
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+              }, 8000);
+            } else {
+              const error = await response.json();
+              showToast(error.detail || 'Failed to upload CVs', 'error');
+              progressDiv.classList.add('hidden');
+            }
+          } catch (error) {
+            console.error('Bulk CV upload error:', error);
+            showToast('Failed to upload CVs', 'error');
+            progressDiv.classList.add('hidden');
           }
         });
       }

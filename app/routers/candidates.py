@@ -16,7 +16,7 @@ except ImportError:  # pragma: no cover - optional dependency
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
-from ..models import Candidate, CandidateStatusHistory, Document, Position, Project
+from ..models import Candidate, CandidateStatusHistory, Document, Position, Project, ScreeningRun
 from ..utils.permissions import can_manage_workspace, ensure_project_access
 from ..schemas import (
     CandidateBulkActionRequest,
@@ -637,4 +637,196 @@ def upload_candidate_cv(
         "document_id": file_id,
         "job_id": job.job_id,
         "filename": safe_name,
+    }
+
+
+@router.post("/candidates/bulk-upload-cvs", status_code=status.HTTP_201_CREATED)
+def bulk_upload_candidate_cvs(
+    files: list[UploadFile] = File(...),
+    project_id: str | None = Form(None),
+    position_id: str | None = Form(None),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Upload multiple candidate CVs and automatically screen them with AI.
+
+    This endpoint:
+    1. Uploads multiple CV files to storage
+    2. Creates Document records for each file
+    3. Triggers background CV screening jobs for each CV
+    4. AI extracts candidate details (name, email, phone) for each CV
+    5. AI screens each CV against position requirements using the Egis screening criteria
+    6. Automatically creates Candidate records with all details populated
+
+    Returns the list of job IDs for tracking screening progress.
+    """
+
+    # Validate project access if project_id is provided
+    if project_id:
+        project = db.get(Project, project_id)
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        ensure_project_access(project, current_user)
+
+    # Validate position exists if position_id is provided
+    if position_id:
+        position = db.get(Position, position_id)
+        if not position:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
+        # If position has a project, use that project_id
+        if position.project_id and not project_id:
+            project_id = position.project_id
+
+    # Validate file count
+    if not files or len(files) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No files provided")
+
+    if len(files) > 50:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 50 CVs can be uploaded at once"
+        )
+
+    storage_dir = ensure_storage_dir()
+    uploaded_files = []
+    jobs = []
+
+    # Process each file
+    for file in files:
+        # Validate file type
+        if not file.filename:
+            continue
+
+        filename_lower = file.filename.lower()
+        if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx') or filename_lower.endswith('.doc')):
+            continue
+
+        try:
+            # Store the CV file
+            safe_name = Path(file.filename).name
+            file_id = generate_id()
+            file_path = storage_dir / f"{file_id}_{safe_name}"
+
+            with file_path.open("wb") as buffer:
+                buffer.write(file.file.read())
+
+            relative_path = file_path.relative_to(storage_dir)
+
+            # Create Document record
+            document = Document(
+                id=file_id,
+                filename=safe_name,
+                mime_type=file.content_type or "application/pdf",
+                file_url=str(relative_path),
+                scope="candidate_cv",
+                scope_id=position_id or project_id,
+                owner_user=current_user.user_id,
+            )
+            db.add(document)
+
+            # Enqueue CV screening job
+            job = enqueue_cv_screening_job(
+                db,
+                document_id=file_id,
+                project_id=project_id,
+                position_id=position_id,
+                user_id=current_user.user_id,
+            )
+
+            uploaded_files.append({
+                "filename": safe_name,
+                "document_id": file_id,
+                "job_id": job.job_id,
+            })
+            jobs.append(job.job_id)
+
+        except Exception as e:
+            # Log error but continue with other files
+            continue
+
+    # Log activity
+    log_activity(
+        db,
+        actor_type="user",
+        actor_id=current_user.user_id,
+        project_id=project_id,
+        message=f"Bulk uploaded {len(uploaded_files)} CVs for screening",
+        event_type="bulk_cv_uploaded",
+    )
+
+    db.commit()
+
+    return {
+        "message": f"Successfully uploaded {len(uploaded_files)} CVs. AI screening has been queued for each CV.",
+        "uploaded_count": len(uploaded_files),
+        "uploaded_files": uploaded_files,
+        "job_ids": jobs,
+    }
+
+
+@router.get("/candidates/{candidate_id}/screening")
+def get_candidate_screening_details(
+    candidate_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Get detailed AI screening results for a candidate.
+
+    Returns the structured screening data including:
+    - Table 1: Screening Summary (Overall Fit, Recommended Roles, Key Strengths, Potential Gaps, Notice Period)
+    - Table 2: Must-Have Requirement Compliance
+    - Final Recommendation and Decision
+    """
+
+    # Get the candidate
+    candidate = db.get(Candidate, candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+
+    # Ensure access
+    _ensure_candidate_access(candidate, current_user, db)
+
+    # Get the most recent screening run for this candidate
+    screening_run = (
+        db.query(ScreeningRun)
+        .filter(ScreeningRun.candidate_id == candidate_id)
+        .order_by(ScreeningRun.created_at.desc())
+        .first()
+    )
+
+    if not screening_run:
+        return {
+            "candidate_id": candidate_id,
+            "has_screening": False,
+            "message": "No screening data available for this candidate"
+        }
+
+    # Return structured screening data
+    return {
+        "candidate_id": candidate_id,
+        "has_screening": True,
+        "screening_id": screening_run.screening_id,
+        "position_id": screening_run.position_id,
+        "created_at": screening_run.created_at.isoformat() if screening_run.created_at else None,
+
+        # Table 1: Screening Summary
+        "table_1_screening_summary": {
+            "overall_fit": screening_run.overall_fit,
+            "recommended_roles": screening_run.recommended_roles or [],
+            "key_strengths": screening_run.key_strengths or [],
+            "potential_gaps": screening_run.potential_gaps or [],
+            "notice_period": screening_run.notice_period
+        },
+
+        # Table 2: Must-Have Requirement Compliance
+        "table_2_compliance": screening_run.compliance_table or [],
+
+        # Final Recommendation
+        "final_recommendation": {
+            "summary": screening_run.final_recommendation,
+            "decision": screening_run.final_decision
+        },
+
+        # Legacy score_json for backward compatibility
+        "score_json": screening_run.score_json or {}
     }

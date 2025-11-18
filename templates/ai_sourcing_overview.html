@@ -4,17 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RecruitPro - AI sourcing overview</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
+
+    <!-- Preconnect for better performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <!-- Compiled Tailwind CSS with custom design system -->
+    <link href="/static/css/output.css" rel="stylesheet">
+
     <style>
       .material-symbols-outlined {
         font-variation-settings:
@@ -22,32 +23,6 @@
           "wght" 400,
           "GRAD" 0,
           "opsz" 24;
-      }
-
-      @layer components {
-        .rp-card {
-          @apply rounded-lg border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
-        }
-
-        .rp-card:hover {
-          @apply -translate-y-0.5 border-primary/30 shadow-lg shadow-primary/20;
-        }
-
-        .rp-card:focus-within {
-          @apply border-primary/40 shadow-lg shadow-primary/25;
-        }
-
-        .rp-surface {
-          @apply rounded-xl border border-border-light bg-container-light transition-all duration-200 ease-out shadow-sm dark:border-border-dark dark:bg-container-dark;
-        }
-
-        .rp-surface:hover {
-          @apply border-primary/30 shadow-lg shadow-primary/15;
-        }
-
-        .rp-button {
-          @apply transition-transform duration-200 ease-out shadow-sm hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark;
-        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -60,38 +35,6 @@
         }
       }
     </style>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#2563EB",
-              secondary: "#14B8A6",
-              "background-light": "#F3F4F6",
-              "background-dark": "#0F172A",
-              "container-light": "#FFFFFF",
-              "container-dark": "#1E293B",
-              "text-light": "#111827",
-              "text-dark": "#E2E8F0",
-              "text-secondary-light": "#6B7280",
-              "text-secondary-dark": "#94A3B8",
-              "border-light": "#E5E7EB",
-              "border-dark": "#334155",
-            },
-            fontFamily: {
-              display: ["Inter", "sans-serif"],
-            },
-            borderRadius: {
-              DEFAULT: "0.5rem",
-              lg: "0.75rem",
-              xl: "1rem",
-              full: "9999px",
-            },
-          },
-        },
-      };
-    </script>
   </head>
   <body class="antialiased font-display bg-background-light dark:bg-background-dark">
     {% set token_query = '' %}

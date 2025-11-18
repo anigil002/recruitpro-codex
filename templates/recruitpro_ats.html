@@ -649,6 +649,21 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Candidates List with Screening Details -->
+              <div class="rounded-3xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold text-white">Recent Candidates</h3>
+                  <button onclick="loadCandidatesList()" class="rounded-full border border-slate-700 px-4 py-1 text-xs hover:bg-slate-800/50 transition">
+                    Refresh
+                  </button>
+                </div>
+                <div id="candidates-list-container" class="space-y-3">
+                  <div class="text-center py-8 text-slate-400">
+                    <p>Click Refresh to load candidates</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
           <section id="ai-tools" class="screen">
@@ -3537,6 +3552,12 @@
               resultDiv.classList.remove('hidden');
               showToast('CV uploaded successfully! AI screening in progress...', 'success');
               cvUploadFormCandidate.reset();
+
+              // Refresh candidates list after upload
+              setTimeout(() => {
+                loadCandidatesList();
+              }, 2000);
+
               setTimeout(() => {
                 resultDiv.classList.add('hidden');
               }, 5000);
@@ -3661,6 +3682,11 @@
 
               bulkCvUploadForm.reset();
 
+              // Refresh candidates list after upload
+              setTimeout(() => {
+                loadCandidatesList();
+              }, 2000);
+
               setTimeout(() => {
                 progressDiv.classList.add('hidden');
                 resultDiv.classList.add('hidden');
@@ -3683,8 +3709,283 @@
       // Load positions when page loads
       loadPositionsForCV();
 
+      // Load Candidates List Function
+      async function loadCandidatesList() {
+        const container = document.getElementById('candidates-list-container');
+        container.innerHTML = '<div class="text-center py-8 text-slate-400"><p>Loading candidates...</p></div>';
+
+        try {
+          const response = await fetch('/api/candidates', {
+            headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to load candidates');
+          }
+
+          const candidates = await response.json();
+
+          if (candidates.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-slate-400"><p>No candidates found. Upload some CVs to get started!</p></div>';
+            return;
+          }
+
+          // Render candidates
+          const candidatesHtml = candidates.slice(0, 20).map(candidate => {
+            const aiScorePercent = candidate.ai_score ? Math.round(candidate.ai_score * 100) : 0;
+            const scoreColor = aiScorePercent >= 80 ? 'text-green-400' : aiScorePercent >= 60 ? 'text-yellow-400' : 'text-slate-400';
+
+            return `
+              <div class="rounded-2xl border border-slate-800/60 bg-slate-950/70 p-4 hover:bg-slate-900/50 transition">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-white truncate">${candidate.name || 'Unknown'}</h4>
+                    <div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                      ${candidate.email ? `<span>📧 ${candidate.email}</span>` : ''}
+                      ${candidate.phone ? `<span>📞 ${candidate.phone}</span>` : ''}
+                      <span class="rounded-full bg-slate-800 px-2 py-0.5">${candidate.status || 'new'}</span>
+                      ${candidate.source ? `<span>via ${candidate.source}</span>` : ''}
+                    </div>
+                    ${candidate.ai_score ? `
+                      <div class="mt-2 flex items-center gap-2">
+                        <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-primary" style="width: ${aiScorePercent}%"></div>
+                        </div>
+                        <span class="text-xs font-semibold ${scoreColor}">${aiScorePercent}%</span>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <button
+                    onclick="showScreeningDetails('${candidate.candidate_id}')"
+                    class="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20 whitespace-nowrap"
+                  >
+                    View Screening
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          container.innerHTML = candidatesHtml;
+
+          if (candidates.length > 20) {
+            container.innerHTML += `
+              <div class="text-center py-4 text-xs text-slate-500">
+                Showing 20 of ${candidates.length} candidates
+              </div>
+            `;
+          }
+
+        } catch (error) {
+          console.error('Failed to load candidates:', error);
+          container.innerHTML = '<div class="text-center py-8 text-red-400"><p>Failed to load candidates. Please try again.</p></div>';
+        }
+      }
+
+      // Screening Details Modal Functions
+      function showScreeningDetails(candidateId) {
+        const modal = document.getElementById('screening-details-modal');
+        const modalContent = document.getElementById('screening-details-content');
+
+        modal.classList.remove('hidden');
+        modalContent.innerHTML = '<div class="text-center py-8"><p class="text-slate-400">Loading screening details...</p></div>';
+
+        // Fetch screening details
+        fetch(`/api/candidates/${candidateId}/screening`, {
+          headers: { 'Authorization': `Bearer ${getStoredToken()}` }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.has_screening) {
+            modalContent.innerHTML = `
+              <div class="text-center py-8">
+                <p class="text-slate-400">${data.message || 'No screening data available'}</p>
+              </div>
+            `;
+            return;
+          }
+
+          renderScreeningDetails(data);
+        })
+        .catch(error => {
+          console.error('Failed to load screening details:', error);
+          modalContent.innerHTML = '<div class="text-center py-8"><p class="text-red-400">Failed to load screening details</p></div>';
+        });
+      }
+
+      function renderScreeningDetails(data) {
+        const modalContent = document.getElementById('screening-details-content');
+        const table1 = data.table_1_screening_summary || {};
+        const table2 = data.table_2_compliance || [];
+        const finalRec = data.final_recommendation || {};
+
+        // Determine overall fit badge color
+        const getFitBadgeClass = (fit) => {
+          if (fit === 'Strong Match') return 'bg-green-500/20 text-green-400 border-green-500/40';
+          if (fit === 'Potential Match') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40';
+          if (fit === 'Low Match') return 'bg-red-500/20 text-red-400 border-red-500/40';
+          return 'bg-slate-500/20 text-slate-400 border-slate-500/40';
+        };
+
+        // Determine decision badge color
+        const getDecisionBadgeClass = (decision) => {
+          if (decision === 'Proceed to technical interview') return 'bg-green-500/20 text-green-400 border-green-500/40';
+          if (decision === 'Suitable for a lower-grade role') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40';
+          if (decision === 'Reject') return 'bg-red-500/20 text-red-400 border-red-500/40';
+          return 'bg-slate-500/20 text-slate-400 border-slate-500/40';
+        };
+
+        // Get compliance icon
+        const getComplianceIcon = (status) => {
+          if (status?.includes('✅') || status?.includes('Complying')) return '✅';
+          if (status?.includes('❌') || status?.includes('Not Complying')) return '❌';
+          if (status?.includes('⚠️') || status?.includes('Not Mentioned')) return '⚠️';
+          return '⚠️';
+        };
+
+        const html = `
+          <div class="space-y-6">
+            <!-- Table 1: Screening Summary -->
+            <div class="rounded-2xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+              <div class="flex items-center gap-3 mb-4">
+                <h3 class="text-lg font-semibold text-white">📋 Screening Summary</h3>
+                <span class="rounded-full border px-3 py-1 text-xs font-semibold ${getFitBadgeClass(table1.overall_fit)}">
+                  ${table1.overall_fit || 'N/A'}
+                </span>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Recommended Roles</p>
+                  <ul class="space-y-1 text-sm text-slate-300">
+                    ${(table1.recommended_roles || []).map(role =>
+                      `<li class="flex items-start gap-2"><span class="text-primary">•</span>${role}</li>`
+                    ).join('') || '<li class="text-slate-500">No roles specified</li>'}
+                  </ul>
+                </div>
+
+                <div>
+                  <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Notice Period</p>
+                  <p class="text-sm text-slate-300">${table1.notice_period || 'Not Mentioned'}</p>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Key Strengths</p>
+                <ul class="space-y-2 text-sm text-slate-300">
+                  ${(table1.key_strengths || []).map(strength =>
+                    `<li class="flex items-start gap-2 pl-2"><span class="text-green-400">✓</span>${strength}</li>`
+                  ).join('') || '<li class="text-slate-500">No strengths listed</li>'}
+                </ul>
+              </div>
+
+              <div class="mt-4">
+                <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Potential Gaps</p>
+                <ul class="space-y-2 text-sm text-slate-300">
+                  ${(table1.potential_gaps || []).map(gap =>
+                    `<li class="flex items-start gap-2 pl-2"><span class="text-yellow-400">⚠</span>${gap}</li>`
+                  ).join('') || '<li class="text-slate-500">No gaps identified</li>'}
+                </ul>
+              </div>
+            </div>
+
+            <!-- Table 2: Must-Have Requirement Compliance -->
+            <div class="rounded-2xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+              <h3 class="text-lg font-semibold text-white mb-4">✅ Must-Have Requirement Compliance</h3>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-800">
+                      <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Requirement</th>
+                      <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Status</th>
+                      <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/50">
+                    ${table2.length > 0 ? table2.map(req => `
+                      <tr class="hover:bg-slate-900/30">
+                        <td class="py-3 px-3">
+                          <p class="font-semibold text-white text-xs">${req.requirement_category || 'N/A'}</p>
+                          <p class="text-slate-400 text-xs mt-1">${req.requirement_description || ''}</p>
+                        </td>
+                        <td class="py-3 px-3">
+                          <span class="text-lg">${getComplianceIcon(req.compliance_status)}</span>
+                        </td>
+                        <td class="py-3 px-3 text-slate-300 text-xs">
+                          ${req.evidence || 'No evidence provided'}
+                        </td>
+                      </tr>
+                    `).join('') : `
+                      <tr>
+                        <td colspan="3" class="py-6 px-3 text-center text-slate-500">
+                          No compliance requirements assessed
+                        </td>
+                      </tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Final Recommendation -->
+            <div class="rounded-2xl bg-surfaceMuted/80 p-6 ring-1 ring-slate-800/60">
+              <div class="flex items-center gap-3 mb-4">
+                <h3 class="text-lg font-semibold text-white">🎯 Final Recommendation</h3>
+                <span class="rounded-full border px-3 py-1 text-xs font-semibold ${getDecisionBadgeClass(finalRec.decision)}">
+                  ${finalRec.decision || 'No Decision'}
+                </span>
+              </div>
+
+              <p class="text-sm text-slate-300 leading-relaxed">
+                ${finalRec.summary || 'No recommendation summary available'}
+              </p>
+
+              ${finalRec.justification ? `
+                <div class="mt-4 p-4 rounded-lg bg-slate-950/50 border border-slate-800">
+                  <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Justification</p>
+                  <p class="text-sm text-slate-300">${finalRec.justification}</p>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+
+        modalContent.innerHTML = html;
+      }
+
+      function closeScreeningModal() {
+        const modal = document.getElementById('screening-details-modal');
+        modal.classList.add('hidden');
+      }
+
+      // Close modal on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeScreeningModal();
+        }
+      });
+
       initializeConsole();
       showScreen('dashboard');
     </script>
+
+    <!-- Screening Details Modal -->
+    <div id="screening-details-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div class="relative max-w-5xl w-full max-h-[90vh] overflow-y-auto rounded-3xl bg-surface/95 p-6 ring-1 ring-slate-800/60">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-white">AI Screening Details</h2>
+          <button onclick="closeScreeningModal()" class="rounded-full p-2 hover:bg-slate-800/50 transition">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div id="screening-details-content">
+          <!-- Content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
   </body>
 </html>

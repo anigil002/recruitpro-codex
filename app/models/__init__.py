@@ -184,8 +184,19 @@ class ScreeningRun(Base):
     screening_id = Column(String, primary_key=True)
     candidate_id = Column(String, ForeignKey("candidates.candidate_id", ondelete="CASCADE"), nullable=False)
     position_id = Column(String, ForeignKey("positions.position_id", ondelete="CASCADE"), nullable=False)
-    score_json = Column(JSON, nullable=False)
+    score_json = Column(JSON, nullable=False)  # Legacy field for backward compatibility
     notes = Column(Text)
+
+    # New structured screening output fields
+    overall_fit = Column(String)  # Strong Match / Potential Match / Low Match
+    recommended_roles = Column(JSON)  # Array of recommended role titles
+    key_strengths = Column(JSON)  # Array of strength bullet points
+    potential_gaps = Column(JSON)  # Array of gap/concern bullet points
+    notice_period = Column(String)  # Notice period from CV
+    compliance_table = Column(JSON)  # Table 2: Must-Have Requirement Compliance
+    final_recommendation = Column(Text)  # Final recommendation summary
+    final_decision = Column(String)  # Proceed to technical interview / Suitable for a lower-grade role / Reject
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 

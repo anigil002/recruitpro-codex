@@ -391,17 +391,27 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
 
         # Extract candidate information
         candidate_data = screening_result.get("candidate", {})
-        overall_recommendation = screening_result.get("overall_recommendation", {})
+        table_1 = screening_result.get("table_1_screening_summary", {})
+        table_2 = screening_result.get("table_2_compliance", [])
+        final_recommendation = screening_result.get("final_recommendation", {})
 
-        # Map recommendation to AI score (0-1 scale)
-        recommendation = overall_recommendation.get("recommendation", "Recommend with reservations")
-        ai_score_map = {
-            "Strongly recommend": 0.9,
-            "Recommend": 0.7,
-            "Recommend with reservations": 0.5,
-            "Do not recommend": 0.2
+        # Map decision to AI score (0-1 scale)
+        decision = final_recommendation.get("decision", "Suitable for a lower-grade role")
+        overall_fit = table_1.get("overall_fit", "Potential Match")
+
+        # Calculate AI score based on decision and overall fit
+        decision_score_map = {
+            "Proceed to technical interview": 0.9,
+            "Suitable for a lower-grade role": 0.6,
+            "Reject": 0.2
         }
-        ai_score = ai_score_map.get(recommendation, 0.5)
+        fit_bonus = {
+            "Strong Match": 0.1,
+            "Potential Match": 0.0,
+            "Low Match": -0.1
+        }
+        ai_score = decision_score_map.get(decision, 0.6) + fit_bonus.get(overall_fit, 0.0)
+        ai_score = max(0.0, min(1.0, ai_score))  # Clamp between 0 and 1
 
         # Create the candidate record
         candidate = Candidate(
@@ -411,7 +421,7 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
             name=candidate_data.get("name", "Unknown Candidate"),
             email=candidate_data.get("email"),
             phone=candidate_data.get("phone"),
-            source=candidate_data.get("source_system", "CV Upload"),
+            source="CV Upload",
             status="screening",
             resume_url=document.file_url,
             ai_score=ai_score,
@@ -420,15 +430,16 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
         session.add(candidate)
         session.flush()
 
-        # Record the screening run
-        record_screening(session, candidate, position_id or "general", {
-            "summary": screening_result.get("summary", ""),
-            "compliance_table": screening_result.get("compliance_table", []),
-            "functional_capability_assessment": screening_result.get("functional_capability_assessment", {}),
-            "strengths": screening_result.get("strengths", []),
-            "risks_gaps": screening_result.get("risks_gaps", []),
-            "overall_recommendation": overall_recommendation,
-        })
+        # Record the screening run with structured data
+        record_screening(
+            session,
+            candidate,
+            position_id or "general",
+            screening_result,
+            table_1,
+            table_2,
+            final_recommendation
+        )
 
         mark_job_completed(session, job, screening_result)
 
@@ -437,7 +448,7 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
             actor_type="ai",
             actor_id=request.get("user_id"),
             project_id=project_id,
-            message=f"CV screened for {candidate_data.get('name', 'candidate')} - {recommendation}",
+            message=f"CV screened for {candidate_data.get('name', 'candidate')} - {decision}",
             event_type="cv_screened",
         )
 
@@ -474,12 +485,30 @@ def enqueue_market_research_job(session: Session, project_id: str, user_id: Opti
     return job
 
 
-def record_screening(session: Session, candidate: Candidate, position_id: str, score: Dict[str, Any]) -> ScreeningRun:
+def record_screening(
+    session: Session,
+    candidate: Candidate,
+    position_id: str,
+    full_screening_result: Dict[str, Any],
+    table_1: Dict[str, Any],
+    table_2: list,
+    final_recommendation: Dict[str, Any]
+) -> ScreeningRun:
+    """Record a screening run with structured data from the new screening format."""
     run = ScreeningRun(
         screening_id=generate_id(),
         candidate_id=candidate.candidate_id,
         position_id=position_id,
-        score_json=score,
+        score_json=full_screening_result,  # Keep full result for backward compatibility
+        # New structured fields
+        overall_fit=table_1.get("overall_fit"),
+        recommended_roles=table_1.get("recommended_roles", []),
+        key_strengths=table_1.get("key_strengths", []),
+        potential_gaps=table_1.get("potential_gaps", []),
+        notice_period=table_1.get("notice_period"),
+        compliance_table=table_2,
+        final_recommendation=final_recommendation.get("summary"),
+        final_decision=final_recommendation.get("decision"),
         created_at=datetime.utcnow(),
     )
     session.add(run)

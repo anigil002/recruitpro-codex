@@ -95,6 +95,40 @@ def _add_qualifications_column() -> None:
             pass
 
 
+def _add_screening_run_columns() -> None:
+    """Add new structured screening output columns to screening_runs table if they don't exist."""
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    if "screening_runs" not in existing_tables:
+        return
+
+    column_info = {column["name"]: column for column in inspector.get_columns("screening_runs")}
+
+    # Define the new columns to add
+    new_columns = {
+        "overall_fit": "VARCHAR",
+        "recommended_roles": "JSON",
+        "key_strengths": "JSON",
+        "potential_gaps": "JSON",
+        "notice_period": "VARCHAR",
+        "compliance_table": "JSON",
+        "final_recommendation": "TEXT",
+        "final_decision": "VARCHAR",
+    }
+
+    # Add each column if it doesn't exist
+    with engine.begin() as connection:
+        for column_name, column_type in new_columns.items():
+            if column_name not in column_info:
+                try:
+                    connection.execute(text(f"ALTER TABLE screening_runs ADD COLUMN {column_name} {column_type}"))
+                except Exception:
+                    # Column might already exist or ALTER TABLE might not be supported
+                    pass
+
+
 def _ensure_nullable_foreign_keys() -> None:
     """Ensure nullable foreign key columns match the SQLAlchemy models."""
 
@@ -142,6 +176,7 @@ def init_db() -> None:
 
     _ensure_nullable_foreign_keys()
     _add_qualifications_column()
+    _add_screening_run_columns()
     Base.metadata.create_all(bind=engine)
 
 

@@ -1092,46 +1092,76 @@ Output Constraints
         original_name: str,
         position_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Screen a candidate CV and extract comprehensive candidate information with role fit analysis."""
+        """Screen a candidate CV using detailed Egis Middle East & North America screening criteria."""
 
         text = self._extract_text(path)
 
-        # Truncate text if too long (keep first 50000 characters)
-        truncated_text = text[:50000] if len(text) > 50000 else text
+        # IMPORTANT: Analyze the ENTIRE CV - no truncation for comprehensive analysis
+        # The new prompt requires full CV analysis
+        cv_text = text
 
         # Build position context string
         position_info = ""
         if position_context:
             position_info = f"""
-Target Role Context (if available):
+Job Description / Position Context:
 {json.dumps(position_context, indent=2, ensure_ascii=False)}
 """
 
         system_instruction = {
-            "role": "Senior Talent Acquisition Partner",
-            "goal": "Screen the candidate's CV against the Job Description by evaluating compliance, functional capability, and overall suitability. Extract only evidence-based insights directly from the CV.",
+            "role": "Senior Talent Acquisition Partner for Egis Middle East & North America",
+            "specialization": "Screening CVs for construction, engineering, project management, aviation, rail, buildings, and infrastructure roles within large capital programs",
+            "tone": "Professional, efficient, analytical, and evidence-based",
             "compliance_rules": [
-                "No fabricated or speculative data.",
-                "All statements must be grounded in the CV or provided context.",
-                "Use objective, factual, and professional tone.",
-                "Extract only evidence-based insights directly from the CV."
+                "Read and analyze the entire CV — all pages, all sections, all appendices",
+                "No truncation - use 100% of available CV content",
+                "All statements must be grounded in the CV or provided context",
+                "No fabricated or speculative data",
+                "Use objective, factual, and professional tone"
             ]
         }
 
-        prompt = f"""Task: CV Screening Against Job Description
+        prompt = f"""You are a Senior Talent Acquisition Partner for Egis Middle East & North America.
+You specialize in screening CVs for construction, engineering, project management, aviation, rail, buildings, and infrastructure roles within large capital programs.
+Your tone is professional, efficient, analytical, and evidence-based.
 
-Screen the candidate's CV against the Job Description by evaluating compliance, functional capability, and overall suitability.
+GLOBAL PROCESSING RULES
+
+1. Full CV Analysis (No Truncation)
+   - You must read and analyse the entire CV — all pages, all sections, all appendices.
+   - Do not limit analysis to the first few hundred words, top section, opening summary, or first page.
+   - Use 100% of the available CV content for your assessment.
+
+2. Role Matching
+   - If a specific role or JD is provided → strictly use that role for screening.
+   - If no role is provided → determine the most suitable Egis role(s) from construction, engineering, project management, aviation, rail, buildings, and infrastructure positions.
+
+3. Must-Have Requirement Extraction
+   - From the job description, identify:
+     * Minimum experience
+     * Sector exposure
+     * Technical competencies
+     * Certifications
+     * Software
+     * Education
+     * Canadian experience (if applicable)
+     * Stakeholder/client-facing requirements
+     * Communication / leadership expectations
+     * Location or mobility requirements
+   - Every must-have requirement must appear in the compliance table.
+   - No skipping. No merging.
+
+4. Compliance Classification
+   - For each requirement in the JD, classify the candidate using:
+     * ✅ Complying — requirement fully met and explicitly supported by CV evidence
+     * ❌ Not Complying — requirement not met or explicitly contradicted
+     * ⚠️ Not Mentioned / Cannot Confirm — CV does not provide evidence
+   - Compliance must always be supported by specific, quoted or paraphrased evidence from the CV.
 
 {position_info}
 
 CV Content:
-{truncated_text}
-
-DIRECTIVES:
-
-1. COMPLIANCE REQUIREMENTS: Identify all mandatory requirements in the Job Description (e.g., certifications, licenses, domain experience, minimum years of experience, education, technical proficiencies, location/relocation eligibility). For each, determine if the candidate meets it and extract textual evidence from the CV.
-
-2. KEY ROLE REQUIREMENTS: Identify all core functional responsibilities and critical skills required for success in the role. Evaluate the candidate's capability for each based on tangible evidence from the CV.
+{cv_text}
 
 You must return a JSON object with the following structure:
 
@@ -1139,34 +1169,43 @@ You must return a JSON object with the following structure:
   "candidate": {{
     "name": "string (REQUIRED - extract from CV)",
     "email": "string or null",
-    "phone": "string or null",
-    "source_system": "string (e.g. 'CV Upload', 'LinkedIn', 'Manual')",
-    "cv_reference": "string or null"
+    "phone": "string or null"
   }},
-  "summary": "string - A concise summary of the candidate's overall suitability, relevant experience, and any immediate red flags",
-  "compliance_table": [
+
+  "table_1_screening_summary": {{
+    "overall_fit": "Strong Match | Potential Match | Low Match",
+    "recommended_roles": ["string - e.g., Senior Project Manager, Track Engineer, Pavement Specialist"],
+    "key_strengths": [
+      "string - Bullet point 1",
+      "string - Bullet point 2",
+      "string - Bullet point 3",
+      "string - Bullet point 4"
+    ],
+    "potential_gaps": [
+      "string - Bullet point 1",
+      "string - Bullet point 2"
+    ],
+    "notice_period": "string - As stated on CV or 'Not Mentioned'"
+  }},
+
+  "table_2_compliance": [
     {{
-      "requirement": "string - The mandatory requirement from job description",
-      "meets_requirement": "Yes | No",
-      "evidence_from_cv": "string - Textual evidence extracted from the CV"
+      "requirement_category": "string - e.g., Education, Total Experience, Sector/Domain, Canadian Experience, Technical Skills, Software, Certifications, Stakeholder Engagement, Communication Skills, Mobility/Relocation",
+      "requirement_description": "string - Detailed description of the requirement from JD",
+      "compliance_status": "✅ Complying | ❌ Not Complying | ⚠️ Not Mentioned / Cannot Confirm",
+      "evidence": "string - Specific evidence from CV supporting the compliance status"
     }}
   ],
-  "functional_capability_assessment": {{
-    "technical_expertise": ["string - Evidence of technical skills from CV"],
-    "project_experience": ["string - Relevant projects and accomplishments"],
-    "industry_domain_exposure": ["string - Industry-specific experience"],
-    "leadership_and_communication": ["string - Leadership and communication evidence"],
-    "tools_and_software": ["string - Tools and software proficiencies"]
+
+  "final_recommendation": {{
+    "summary": "string - A concise 3-4 sentence summary covering: strength of match, key risk factors, compliance gaps",
+    "decision": "Proceed to technical interview | Suitable for a lower-grade role | Reject",
+    "justification": "string - Clear justification for the decision"
   }},
-  "strengths": ["string - 4-6 strengths supported directly by the CV"],
-  "risks_gaps": ["string - Any concerns or missing requirements such as lack of certification, domain mismatch, insufficient experience, location or relocation constraints, etc."],
-  "overall_recommendation": {{
-    "recommendation": "Strongly recommend | Recommend | Recommend with reservations | Do not recommend",
-    "justification": "string - Clear justification for the recommendation"
-  }},
+
   "record_management": {{
     "screened_at_utc": "ISO-8601 datetime string",
-    "screened_by": "string (e.g. 'Senior Talent Acquisition Partner')",
+    "screened_by": "Senior Talent Acquisition Partner",
     "tags": ["string"]
   }}
 }}
@@ -1174,15 +1213,16 @@ You must return a JSON object with the following structure:
 IMPORTANT:
 - You MUST extract the candidate's name from the CV
 - Extract email and phone if available
+- Analyze the ENTIRE CV - do not truncate or skip sections
 - Extract only evidence-based insights directly from the CV
 - Be factual and objective - do not invent or speculate data
-- All statements must be grounded in the CV or provided context
+- All compliance assessments must be supported by specific CV evidence
 - Use the current timestamp for screened_at_utc
 - Return only valid JSON"""
 
         def fallback() -> Dict[str, Any]:
             # Extract basic information using heuristic methods
-            lines = truncated_text.split('\n')
+            lines = cv_text.split('\n')
             candidate_name = "Unknown Candidate"
             email = None
             phone = None
@@ -1198,13 +1238,13 @@ IMPORTANT:
             # Try to extract email
             import re
             email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            email_match = re.search(email_pattern, truncated_text)
+            email_match = re.search(email_pattern, cv_text)
             if email_match:
                 email = email_match.group(0)
 
             # Try to extract phone
             phone_pattern = r'[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}'
-            phone_match = re.search(phone_pattern, truncated_text)
+            phone_match = re.search(phone_pattern, cv_text)
             if phone_match:
                 phone = phone_match.group(0)
 
@@ -1212,29 +1252,32 @@ IMPORTANT:
                 "candidate": {
                     "name": candidate_name,
                     "email": email,
-                    "phone": phone,
-                    "source_system": "CV Upload",
-                    "cv_reference": original_name
+                    "phone": phone
                 },
-                "summary": "Basic extraction completed, full AI screening unavailable",
-                "compliance_table": [],
-                "functional_capability_assessment": {
-                    "technical_expertise": ["CV analysis pending"],
-                    "project_experience": ["CV analysis pending"],
-                    "industry_domain_exposure": ["CV analysis pending"],
-                    "leadership_and_communication": ["CV analysis pending"],
-                    "tools_and_software": ["CV analysis pending"]
+                "table_1_screening_summary": {
+                    "overall_fit": "Potential Match",
+                    "recommended_roles": ["CV analysis pending"],
+                    "key_strengths": ["CV analysis pending - AI screening unavailable"],
+                    "potential_gaps": ["Full screening analysis pending"],
+                    "notice_period": "Not Mentioned"
                 },
-                "strengths": ["CV analysis pending"],
-                "risks_gaps": ["Full screening analysis pending"],
-                "overall_recommendation": {
-                    "recommendation": "Recommend with reservations",
+                "table_2_compliance": [
+                    {
+                        "requirement_category": "General",
+                        "requirement_description": "Full CV screening",
+                        "compliance_status": "⚠️ Not Mentioned / Cannot Confirm",
+                        "evidence": "Basic extraction completed, full AI screening unavailable"
+                    }
+                ],
+                "final_recommendation": {
+                    "summary": "Basic candidate information extracted. Full AI screening was unavailable. Manual review recommended.",
+                    "decision": "Suitable for a lower-grade role",
                     "justification": "Basic extraction completed, full AI screening unavailable"
                 },
                 "record_management": {
                     "screened_at_utc": datetime.utcnow().isoformat() + "Z",
                     "screened_by": "Senior Talent Acquisition Partner",
-                    "tags": []
+                    "tags": ["fallback_screening", "manual_review_needed"]
                 }
             }
 

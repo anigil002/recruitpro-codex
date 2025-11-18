@@ -128,7 +128,41 @@ def screen_candidate(
     score = gemini.score_candidate(score_payload)
     candidate.ai_score = score
     db.add(candidate)
-    record_screening(db, candidate, position_id, score)
+
+    # Create minimal structured screening result for backwards compatibility
+    # This endpoint uses simple scoring, not full CV analysis
+    full_screening_result = {
+        "candidate": {
+            "name": candidate.name,
+            "email": candidate.email,
+            "phone": candidate.phone
+        },
+        "score": score
+    }
+
+    table_1 = {
+        "overall_fit": "Potential Match",
+        "recommended_roles": [position.title] if position else [],
+        "key_strengths": ["Manual screening - see score details"],
+        "potential_gaps": [],
+        "notice_period": "Not Mentioned"
+    }
+
+    table_2 = [
+        {
+            "requirement_category": "Manual Screening",
+            "requirement_description": "On-demand screening via API",
+            "compliance_status": "⚠️ Not Mentioned / Cannot Confirm",
+            "evidence": "This is a manual/API-based screening, not full CV analysis"
+        }
+    ]
+
+    final_recommendation = {
+        "summary": f"Manual screening completed with score: {score}. Full CV analysis not performed.",
+        "decision": "Suitable for a lower-grade role"
+    }
+
+    record_screening(db, candidate, position_id, full_screening_result, table_1, table_2, final_recommendation)
     job = create_ai_job(
         db,
         "ai_screening",

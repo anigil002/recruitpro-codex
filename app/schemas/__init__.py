@@ -184,6 +184,7 @@ class CandidateRead(CandidateBase):
     candidate_id: str
     created_at: datetime
     ai_score: Optional[Any]
+    created_by: Optional[str] = None
 
 
 class CandidateUpdate(BaseModel):

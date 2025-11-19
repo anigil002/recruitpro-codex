@@ -129,6 +129,26 @@ def _add_screening_run_columns() -> None:
                     pass
 
 
+def _add_candidate_created_by_column() -> None:
+    """Add created_by column to candidates table if it doesn't exist."""
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    if "candidates" not in existing_tables:
+        return
+
+    column_info = {column["name"]: column for column in inspector.get_columns("candidates")}
+
+    if "created_by" not in column_info:
+        with engine.begin() as connection:
+            try:
+                connection.execute(text("ALTER TABLE candidates ADD COLUMN created_by VARCHAR"))
+            except Exception:
+                # Column might already exist or ALTER TABLE might not be supported
+                pass
+
+
 def _ensure_nullable_foreign_keys() -> None:
     """Ensure nullable foreign key columns match the SQLAlchemy models."""
 
@@ -142,6 +162,7 @@ def _ensure_nullable_foreign_keys() -> None:
     nullable_columns = {
         "projects": {"created_by"},
         "project_documents": {"uploaded_by"},
+        "candidates": {"created_by"},
         "candidate_status_history": {"changed_by"},
         "communication_templates": {"created_by"},
         "outreach_runs": {"user_id"},
@@ -177,6 +198,7 @@ def init_db() -> None:
     _ensure_nullable_foreign_keys()
     _add_qualifications_column()
     _add_screening_run_columns()
+    _add_candidate_created_by_column()
     Base.metadata.create_all(bind=engine)
 
 

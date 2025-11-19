@@ -39,6 +39,10 @@ def _ensure_candidate_access(candidate: Candidate, current_user, db: Session) ->
 
     elevated_roles = {"admin", "super_admin"}
 
+    # Allow access if user created the candidate
+    if candidate.created_by == current_user.user_id:
+        return
+
     if candidate.project_id:
         project = ensure_project_access(db.get(Project, candidate.project_id), current_user)
         if project.created_by != current_user.user_id and current_user.role not in elevated_roles:
@@ -136,7 +140,13 @@ def _delete_candidate_record(
 def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[CandidateRead]:
     query = db.query(Candidate).join(Project, isouter=True)
     if not can_manage_workspace(current_user):
-        query = query.filter((Project.created_by == current_user.user_id) | (Candidate.project_id.is_(None)))
+        # Users can only see:
+        # 1. Candidates in projects they created
+        # 2. Candidates they created (regardless of project assignment)
+        query = query.filter(
+            (Project.created_by == current_user.user_id) |
+            (Candidate.created_by == current_user.user_id)
+        )
     candidates = query.all()
     return [
         CandidateRead(
@@ -153,6 +163,7 @@ def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_curr
             ai_score=c.ai_score,
             tags=c.tags,
             created_at=c.created_at,
+            created_by=c.created_by,
         )
         for c in candidates
     ]
@@ -234,6 +245,7 @@ def create_candidate(
         rating=payload.rating,
         resume_url=payload.resume_url,
         tags=sorted(set(payload.tags or [])) if payload.tags is not None else None,
+        created_by=current_user.user_id,
         created_at=datetime.utcnow(),
     )
     db.add(candidate)
@@ -263,6 +275,7 @@ def create_candidate(
         ai_score=candidate.ai_score,
         tags=candidate.tags,
         created_at=candidate.created_at,
+        created_by=candidate.created_by,
     )
 
 
@@ -271,8 +284,7 @@ def get_candidate(candidate_id: str, db: Session = Depends(get_db), current_user
     candidate = db.get(Candidate, candidate_id)
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
-    if candidate.project_id:
-        ensure_project_access(db.get(Project, candidate.project_id), current_user)
+    _ensure_candidate_access(candidate, current_user, db)
     return CandidateRead(
         candidate_id=candidate.candidate_id,
         project_id=candidate.project_id,
@@ -287,6 +299,7 @@ def get_candidate(candidate_id: str, db: Session = Depends(get_db), current_user
         ai_score=candidate.ai_score,
         tags=candidate.tags,
         created_at=candidate.created_at,
+        created_by=candidate.created_by,
     )
 
 
@@ -341,6 +354,7 @@ def update_candidate(
         ai_score=candidate.ai_score,
         tags=candidate.tags,
         created_at=candidate.created_at,
+        created_by=candidate.created_by,
     )
 
 
@@ -403,6 +417,7 @@ def patch_candidate(
         ai_score=candidate.ai_score,
         tags=candidate.tags,
         created_at=candidate.created_at,
+        created_by=candidate.created_by,
     )
 
 

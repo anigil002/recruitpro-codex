@@ -426,6 +426,7 @@ def _handle_cv_screening_job(payload: Dict[str, Any]) -> None:
             resume_url=document.file_url,
             ai_score=ai_score,
             tags=screening_result.get("record_management", {}).get("tags", []),
+            created_by=request.get("user_id"),
         )
         session.add(candidate)
         session.flush()

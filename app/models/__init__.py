@@ -111,6 +111,7 @@ class Candidate(Base):
     resume_url = Column(String)
     tags = Column(JSON)
     ai_score = Column(JSON)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship("Project")

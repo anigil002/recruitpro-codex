@@ -28,6 +28,7 @@ from ..schemas import (
 )
 from ..services.activity import log_activity
 from ..services.ai import enqueue_cv_screening_job
+from ..services.file_upload import validate_and_scan_file
 from ..utils.storage import delete_storage_file, ensure_storage_dir
 from ..utils.security import generate_id
 
@@ -59,7 +60,11 @@ def _recalculate_project_hires(db: Session, project_id: str | None) -> None:
         return
     hires = (
         db.query(Candidate)
-        .filter(Candidate.project_id == project_id, Candidate.status == "hired")
+        .filter(
+            Candidate.project_id == project_id,
+            Candidate.status == "hired",
+            Candidate.deleted_at.is_(None)  # Exclude soft-deleted
+        )
         .count()
     )
     project.hires_count = hires
@@ -72,7 +77,10 @@ def _recalculate_position_applicants(db: Session, position_id: str | None) -> No
     position = db.get(Position, position_id)
     if not position:
         return
-    applicants = db.query(Candidate).filter(Candidate.position_id == position_id).count()
+    applicants = db.query(Candidate).filter(
+        Candidate.position_id == position_id,
+        Candidate.deleted_at.is_(None)  # Exclude soft-deleted
+    ).count()
     position.applicants_count = applicants
     db.add(position)
 
@@ -139,6 +147,8 @@ def _delete_candidate_record(
 @router.get("/candidates", response_model=List[CandidateRead])
 def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[CandidateRead]:
     query = db.query(Candidate).join(Project, isouter=True)
+    # Filter out soft-deleted candidates (STANDARD-DB-005)
+    query = query.filter(Candidate.deleted_at.is_(None))
     if not can_manage_workspace(current_user):
         # Users can only see:
         # 1. Candidates in projects they created
@@ -423,10 +433,39 @@ def patch_candidate(
 
 @router.delete("/candidates/{candidate_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_candidate(candidate_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> None:
+    """Soft delete a candidate per STANDARD-DB-005 (GDPR compliance).
+
+    Sets deleted_at and deleted_by instead of removing the record.
+    For hard delete (GDPR right to be forgotten), use the admin endpoint.
+    """
     candidate = db.get(Candidate, candidate_id)
     if not candidate:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
-    _delete_candidate_record(db, candidate, current_user)
+
+    # Check if already soft-deleted
+    if candidate.deleted_at:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+
+    _ensure_candidate_access(candidate, current_user, db)
+
+    # Soft delete
+    candidate.deleted_at = datetime.utcnow()
+    candidate.deleted_by = current_user.user_id
+    db.add(candidate)
+
+    log_activity(
+        db,
+        actor_type="user",
+        actor_id=current_user.user_id,
+        project_id=candidate.project_id,
+        position_id=candidate.position_id,
+        candidate_id=candidate.candidate_id,
+        message=f"Soft deleted candidate {candidate.name}",
+        event_type="candidate_soft_deleted",
+    )
+
+    # Recalculate metrics
+    _recalculate_many(db, [candidate.project_id], [candidate.position_id])
 
 
 @router.post("/candidates/bulk-action")
@@ -603,21 +642,25 @@ def upload_candidate_cv(
         if position.project_id and not project_id:
             project_id = position.project_id
 
+    # Validate and scan file (STANDARD-SEC-003)
+    content, secure_filename = validate_and_scan_file(file)
+
     # Store the CV file
     storage_dir = ensure_storage_dir()
-    safe_name = Path(file.filename).name if file.filename else "cv.pdf"
     file_id = generate_id()
-    file_path = storage_dir / f"{file_id}_{safe_name}"
+    file_path = storage_dir / f"{file_id}_{secure_filename}"
 
+    # Write with restricted permissions (no execution)
     with file_path.open("wb") as buffer:
-        buffer.write(file.file.read())
+        buffer.write(content)
+    file_path.chmod(0o644)  # rw-r--r-- (no execute permissions)
 
     relative_path = file_path.relative_to(storage_dir)
 
     # Create Document record
     document = Document(
         id=file_id,
-        filename=safe_name,
+        filename=secure_filename,
         mime_type=file.content_type or "application/pdf",
         file_url=str(relative_path),
         scope="candidate_cv",
@@ -632,7 +675,7 @@ def upload_candidate_cv(
         actor_type="user",
         actor_id=current_user.user_id,
         project_id=project_id,
-        message=f"Uploaded CV {safe_name} for screening",
+        message=f"Uploaded CV {secure_filename} for screening (validated and scanned)",
         event_type="cv_uploaded",
     )
 
@@ -648,10 +691,10 @@ def upload_candidate_cv(
     db.commit()
 
     return {
-        "message": "CV uploaded successfully. AI screening has been queued.",
+        "message": "CV uploaded successfully. File validated, scanned, and AI screening has been queued.",
         "document_id": file_id,
         "job_id": job.job_id,
-        "filename": safe_name,
+        "filename": secure_filename,
     }
 
 
@@ -708,29 +751,28 @@ def bulk_upload_candidate_cvs(
 
     # Process each file
     for file in files:
-        # Validate file type
         if not file.filename:
             continue
 
-        filename_lower = file.filename.lower()
-        if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx') or filename_lower.endswith('.doc')):
-            continue
-
         try:
-            # Store the CV file
-            safe_name = Path(file.filename).name
-            file_id = generate_id()
-            file_path = storage_dir / f"{file_id}_{safe_name}"
+            # Validate and scan file (STANDARD-SEC-003)
+            content, secure_filename = validate_and_scan_file(file)
 
+            # Store the CV file
+            file_id = generate_id()
+            file_path = storage_dir / f"{file_id}_{secure_filename}"
+
+            # Write with restricted permissions (no execution)
             with file_path.open("wb") as buffer:
-                buffer.write(file.file.read())
+                buffer.write(content)
+            file_path.chmod(0o644)  # rw-r--r-- (no execute permissions)
 
             relative_path = file_path.relative_to(storage_dir)
 
             # Create Document record
             document = Document(
                 id=file_id,
-                filename=safe_name,
+                filename=secure_filename,
                 mime_type=file.content_type or "application/pdf",
                 file_url=str(relative_path),
                 scope="candidate_cv",
@@ -749,7 +791,7 @@ def bulk_upload_candidate_cvs(
             )
 
             uploaded_files.append({
-                "filename": safe_name,
+                "filename": secure_filename,
                 "document_id": file_id,
                 "job_id": job.job_id,
             })

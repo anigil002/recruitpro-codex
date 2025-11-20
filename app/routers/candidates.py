@@ -105,9 +105,17 @@ def _delete_candidate_record(
     *,
     recalc_metrics: bool = True,
 ) -> Tuple[Set[str], Set[str]]:
-    """Delete a candidate and perform the required cleanup."""
+    """Soft delete a candidate per STANDARD-DB-005.
+
+    This function is used by bulk delete operations to ensure consistent
+    soft delete behavior across single and bulk operations.
+    """
 
     _ensure_candidate_access(candidate, current_user, db)
+
+    # Check if already soft-deleted
+    if candidate.deleted_at:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
 
     project_ids: Set[str] = set()
     position_ids: Set[str] = set()
@@ -117,19 +125,20 @@ def _delete_candidate_record(
     position_id = candidate.position_id
     was_hired = candidate.status == "hired"
 
-    if candidate.resume_url:
-        delete_storage_file(candidate.resume_url)
+    # Soft delete (don't delete resume file - preserve for audit trail)
+    candidate.deleted_at = datetime.utcnow()
+    candidate.deleted_by = current_user.user_id
+    db.add(candidate)
 
-    db.delete(candidate)
     log_activity(
         db,
         actor_type="user",
         actor_id=current_user.user_id,
         project_id=project_id,
         position_id=position_id,
-        candidate_id=None,
-        message=f"Deleted candidate {candidate_name}",
-        event_type="candidate_deleted",
+        candidate_id=candidate.candidate_id,
+        message=f"Soft deleted candidate {candidate_name}",
+        event_type="candidate_soft_deleted",
     )
     db.flush()
 
@@ -292,7 +301,7 @@ def create_candidate(
 @router.get("/candidates/{candidate_id}", response_model=CandidateRead)
 def get_candidate(candidate_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> CandidateRead:
     candidate = db.get(Candidate, candidate_id)
-    if not candidate:
+    if not candidate or candidate.deleted_at:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found")
     _ensure_candidate_access(candidate, current_user, db)
     return CandidateRead(

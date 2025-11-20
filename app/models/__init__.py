@@ -48,7 +48,7 @@ class Project(Base):
     hires_count = Column(Integer, nullable=False, default=0)
     research_done = Column(Integer, nullable=False, default=0)
     research_status = Column(String)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     creator = relationship("User", back_populates="projects")
@@ -111,8 +111,12 @@ class Candidate(Base):
     resume_url = Column(String)
     tags = Column(JSON)
     ai_score = Column(JSON)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Soft delete fields (STANDARD-DB-005)
+    deleted_at = Column(DateTime, nullable=True)
+    deleted_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
 
     project = relationship("Project")
     position = relationship("Position", back_populates="candidates")
@@ -287,7 +291,7 @@ class CommunicationTemplate(Base):
     type = Column(String, nullable=False)
     name = Column(String, nullable=False)
     template_json = Column(JSON, nullable=False)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -317,7 +321,7 @@ class SalaryBenchmark(Base):
     annual_max = Column(Integer, nullable=False)
     rationale = Column(Text)
     sources = Column(JSON, nullable=False)
-    created_by = Column(String, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(String, ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 

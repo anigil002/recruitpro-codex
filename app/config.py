@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="RECRUITPRO_", extra="ignore")
 
     app_name: str = Field(default="RecruitPro")
+    environment: str = Field(
+        default="development",
+        validation_alias=AliasChoices("ENVIRONMENT", "RECRUITPRO_ENVIRONMENT"),
+    )
     secret_key: SecretStr = Field(
         default_factory=_load_or_create_secret,
         validation_alias=AliasChoices("SECRET_KEY", "RECRUITPRO_SECRET_KEY"),

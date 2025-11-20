@@ -8,13 +8,16 @@ from typing import Any, Optional
 
 import logging
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -89,7 +92,35 @@ async def lifespan(_: FastAPI):
 logger = logging.getLogger(__name__)
 
 
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers per STANDARD-SEC-004.
+
+    Adds HSTS header and other security headers to all responses.
+    """
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+
+        # HSTS header (max-age=1 year)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Additional security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        return response
+
+
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+# HTTPS enforcement for production (STANDARD-SEC-004)
+if settings.environment.lower() == "production":
+    logger.info("Production environment detected: Enabling HTTPS enforcement")
+    app.add_middleware(HTTPSRedirectMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
+else:
+    logger.info(f"Environment: {settings.environment} - HTTPS enforcement disabled")
 
 if settings.cors_allowed_origins:
     app.add_middleware(

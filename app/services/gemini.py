@@ -24,6 +24,18 @@ from zipfile import ZipFile
 
 from ..config import get_settings
 
+try:
+    from tenacity import (
+        retry,
+        retry_if_exception_type,
+        stop_after_attempt,
+        wait_exponential,
+        before_sleep_log,
+    )
+    TENACITY_AVAILABLE = True
+except ImportError:
+    TENACITY_AVAILABLE = False
+
 try:  # pragma: no cover - optional dependency guard
     import fitz  # PyMuPDF
 except ImportError:  # pragma: no cover - fitz may be missing in lightweight installs
@@ -89,13 +101,14 @@ class GeminiService:
             self._client = httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0))
         return self._client
 
-    def _invoke_text(
+    def _invoke_text_core(
         self,
         prompt: str,
         *,
         response_mime_type: str = "application/json",
         system_instruction: Optional[str] = None,
     ) -> str:
+        """Core Gemini API invocation without retry logic."""
         if not self._live_enabled():
             raise GeminiServiceError("Gemini API key is not configured")
 
@@ -115,6 +128,7 @@ class GeminiService:
             response = client.post(endpoint, params={"key": self.api_key}, json=payload)
             response.raise_for_status()
         except Exception as exc:  # pragma: no cover - network interactions
+            logger.warning(f"Gemini HTTP request failed: {exc}")
             raise GeminiServiceError("Gemini HTTP request failed") from exc
 
         try:
@@ -130,6 +144,39 @@ class GeminiService:
         if not text.strip():
             raise GeminiServiceError("Gemini returned an empty response")
         return text
+
+    def _invoke_text(
+        self,
+        prompt: str,
+        *,
+        response_mime_type: str = "application/json",
+        system_instruction: Optional[str] = None,
+    ) -> str:
+        """Invoke Gemini API with automatic retry logic for transient failures."""
+        if TENACITY_AVAILABLE:
+            # Use retry logic when tenacity is available
+            @retry(
+                retry=retry_if_exception_type(GeminiServiceError),
+                stop=stop_after_attempt(3),
+                wait=wait_exponential(multiplier=1, min=2, max=10),
+                before_sleep=before_sleep_log(logger, logging.WARNING),
+                reraise=True,
+            )
+            def _invoke_with_retry():
+                return self._invoke_text_core(
+                    prompt,
+                    response_mime_type=response_mime_type,
+                    system_instruction=system_instruction,
+                )
+
+            return _invoke_with_retry()
+        else:
+            # Fall back to direct invocation without retry
+            return self._invoke_text_core(
+                prompt,
+                response_mime_type=response_mime_type,
+                system_instruction=system_instruction,
+            )
 
     def _structured_completion(
         self,

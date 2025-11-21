@@ -11,6 +11,9 @@ jinja2==3.1.4
 sqlalchemy==2.0.44
 alembic==1.17.0
 
+# PostgreSQL Driver (for production)
+psycopg2-binary==2.9.10
+
 # Data Validation & Settings
 pydantic==2.12.3
 pydantic-core==2.41.4
@@ -35,6 +38,22 @@ PyMuPDF==1.24.14
 
 # HTTP Client (for testing and external API calls)
 httpx==0.27.2
+
+# Background Jobs & Queue
+redis==5.2.1
+rq==2.1.0
+
+# Retry Logic
+tenacity==9.0.0
+
+# Structured Logging
+structlog==24.4.0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Error Monitoring
+sentry-sdk[fastapi]==2.22.1
 
 # ASGI Server Dependencies
 anyio==4.11.0

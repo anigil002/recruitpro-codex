@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, Optional
@@ -62,6 +63,31 @@ from .services.integrations import (
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry for error monitoring in production
+sentry_dsn = os.getenv("SENTRY_DSN") or os.getenv("RECRUITPRO_SENTRY_DSN")
+if sentry_dsn:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            environment=settings.environment,
+            traces_sample_rate=0.1 if settings.environment == "production" else 1.0,
+            integrations=[
+                FastApiIntegration(transaction_style="endpoint"),
+                SqlalchemyIntegration(),
+            ],
+            # Set a custom release version
+            release=os.getenv("RELEASE_VERSION", "0.1.0"),
+        )
+        logger.info(f"✓ Sentry initialized for environment: {settings.environment}")
+    except ImportError:
+        logger.warning("Sentry SDK not installed. Install with: pip install sentry-sdk[fastapi]")
+    except Exception as exc:
+        logger.error(f"Failed to initialize Sentry: {exc}")
 
 
 @asynccontextmanager

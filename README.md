@@ -61,11 +61,12 @@ export RECRUITPRO_CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:8
 
 #### Option B: Using .env File (Recommended)
 
-A `.env` file has been created with all configuration options. To enable **real AI integration**:
+Create a `.env` file to configure all options in one place. To enable **real AI integration**:
 
-1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Edit `.env` and uncomment/set `RECRUITPRO_GEMINI_API_KEY`
-3. Restart the application
+1. Copy the template: `cp .env.example .env`
+2. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+3. Edit `.env` and uncomment/set `RECRUITPRO_GEMINI_API_KEY=your-key-here`
+4. Restart the application
 
 **Without an API key**, RecruitPro runs in **fallback mode** using intelligent heuristics. See [`AI_INTEGRATION_GUIDE.md`](AI_INTEGRATION_GUIDE.md) for details.
 

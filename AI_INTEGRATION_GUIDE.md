@@ -161,11 +161,14 @@ Generates sample candidate profiles:
 
 ### Step 2: Configure RecruitPro
 
-Edit the `.env` file in the project root:
+Create and edit the `.env` file in the project root:
 
 ```bash
-# Uncomment and set your API key
-RECRUITPRO_GEMINI_API_KEY=your-actual-api-key-here
+# Copy the template
+cp .env.example .env
+
+# Edit .env and uncomment/set your API key
+# RECRUITPRO_GEMINI_API_KEY=your-actual-api-key-here
 ```
 
 ### Step 3: Restart the Application

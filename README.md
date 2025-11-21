@@ -4,10 +4,17 @@ This repository provides an executable reference implementation of the RecruitPr
 
 ## Features
 
-- FastAPI backend that exposes the 54 endpoints captured in the documentation with pragmatic stub logic.
+- FastAPI backend that exposes the 54 endpoints captured in the documentation.
 - SQLite persistence layer with SQLAlchemy models mirroring the published schema.
-- Deterministic AI helpers for file analysis, JD drafting, sourcing, screening, outreach, and salary benchmarking.
-- Activity feed logging, admin tools, sourcing stubs, and chatbot placeholder.
+- **Production-ready AI integration** with Google Gemini (11 AI features fully implemented):
+  - CV Screening with Egis-format compliance tables
+  - Document Analysis (project info & position extraction)
+  - Job Description Generation
+  - Market Research & Salary Benchmarking
+  - Candidate Scoring & Outreach Generation
+  - Chatbot Assistant & Boolean Search
+  - **Intelligent fallback system** for offline/development mode
+- Activity feed logging, admin tools, and real-time event streaming.
 - Minimal HTML front end (`templates/recruitpro_ats.html`) aligned with the UI design philosophy.
 - Automated tests that exercise the health, version, and core auth flow.
 - Cross-platform Electron desktop application that bundles the backend, renderer, and diagnostics required for production deploys.
@@ -42,6 +49,8 @@ npm run watch:css
 
 ### 2. Configure Environment
 
+#### Option A: Using Environment Variables
+
 Set the required secrets and runtime configuration before starting the API:
 
 ```bash
@@ -49,6 +58,17 @@ export RECRUITPRO_SECRET_KEY="change-me"
 export RECRUITPRO_DATABASE_URL="sqlite:///./data/recruitpro.db"
 export RECRUITPRO_CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:8000"
 ```
+
+#### Option B: Using .env File (Recommended)
+
+Create a `.env` file to configure all options in one place. To enable **real AI integration**:
+
+1. Copy the template: `cp .env.example .env`
+2. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+3. Edit `.env` and uncomment/set `RECRUITPRO_GEMINI_API_KEY=your-key-here`
+4. Restart the application
+
+**Without an API key**, RecruitPro runs in **fallback mode** using intelligent heuristics. See [`AI_INTEGRATION_GUIDE.md`](AI_INTEGRATION_GUIDE.md) for details.
 
 ### 3. Initialize the Database
 
@@ -157,8 +177,50 @@ storage/           # Uploaded assets (gitignored)
 recruitpro_system_v2.5.md  # Comprehensive product documentation
 ```
 
+## AI Integration
+
+RecruitPro features **fully implemented, production-ready AI integration** with Google's Gemini API.
+
+### Quick Start
+
+1. Get API key: [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Set in `.env`: `RECRUITPRO_GEMINI_API_KEY=your-key`
+3. Restart application
+
+### AI Features (All Implemented)
+
+| Feature | Status | API Endpoint |
+|---------|--------|--------------|
+| CV Screening | ✅ Live | `POST /api/ai/screen-candidate` |
+| Document Analysis | ✅ Live | `POST /api/ai/analyze-file` |
+| JD Generation | ✅ Live | `POST /api/ai/generate-jd` |
+| Market Research | ✅ Live | `POST /api/research/market-analysis` |
+| Salary Benchmarking | ✅ Live | `POST /api/research/salary-benchmark` |
+| Candidate Scoring | ✅ Live | `POST /api/ai/screen-candidate` |
+| Outreach Generation | ✅ Live | `POST /api/ai/generate-email` |
+| Call Scripts | ✅ Live | `POST /api/ai/call-script` |
+| Chatbot | ✅ Live | `POST /api/chatbot` |
+| Candidate Sourcing | ✅ Live | `POST /api/ai/source-candidates` |
+| Boolean Search | ✅ Live | Integrated in sourcing |
+
+### Fallback Mode
+
+**Without an API key**, RecruitPro runs in **intelligent fallback mode**:
+- Uses heuristic algorithms and templates
+- Provides functional responses
+- Never crashes or returns errors
+- Perfect for development/testing
+
+**With an API key**, RecruitPro uses **live Gemini AI**:
+- Detailed, context-specific analyses
+- Evidence-based reasoning
+- Unique responses for each request
+- Production-grade quality
+
+📚 **Complete Documentation**: See [`AI_INTEGRATION_GUIDE.md`](AI_INTEGRATION_GUIDE.md) for architecture, testing, and deployment details.
+
 ## Notes
 
-- AI-heavy endpoints use deterministic stub data so the system functions offline while matching documented behaviors.
+- **AI Integration is fully implemented** - Configure `RECRUITPRO_GEMINI_API_KEY` to enable live AI or run in fallback mode.
 - Security-sensitive routes (admin, auth) apply role checks and hashed passwords. JWT tokens provide stateless authentication.
 - The implementation intentionally favours clarity and developer experience to help future contributors extend the platform.

@@ -59,14 +59,19 @@ export RECRUITPRO_DATABASE_URL="sqlite:///./data/recruitpro.db"
 export RECRUITPRO_CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:8000"
 ```
 
-#### Option B: Using .env File (Recommended)
+#### Option B: Using .env File
 
-Create a `.env` file to configure all options in one place. To enable **real AI integration**:
+Create a `.env` file to configure all options in one place:
 
 1. Copy the template: `cp .env.example .env`
-2. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-3. Edit `.env` and uncomment/set `RECRUITPRO_GEMINI_API_KEY=your-key-here`
-4. Restart the application
+2. Edit values as needed
+3. Restart the application
+
+**For AI integration**, you can configure the Gemini API key either:
+- **Via UI** (Recommended): Navigate to `/settings` after starting the app - no restart needed
+- **Via .env**: Set `RECRUITPRO_GEMINI_API_KEY` in `.env` and restart
+
+Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 **Without an API key**, RecruitPro runs in **fallback mode** using intelligent heuristics. See [`AI_INTEGRATION_GUIDE.md`](AI_INTEGRATION_GUIDE.md) for details.
 

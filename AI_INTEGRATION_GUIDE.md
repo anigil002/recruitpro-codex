@@ -161,29 +161,44 @@ Generates sample candidate profiles:
 
 ### Step 2: Configure RecruitPro
 
-Create and edit the `.env` file in the project root:
+You have **two options** to configure the API key:
 
-```bash
-# Copy the template
-cp .env.example .env
+#### Option A: Via UI (Recommended - No Restart Required)
 
-# Edit .env and uncomment/set your API key
-# RECRUITPRO_GEMINI_API_KEY=your-actual-api-key-here
-```
+1. Start the application:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
 
-### Step 3: Restart the Application
+2. Navigate to Settings: `http://localhost:8000/settings`
 
-```bash
-# Stop the current server (Ctrl+C)
-# Restart
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+3. Enter your Gemini API key in the form
 
-### Step 4: Verify Integration
+4. Click "Save"
 
-Check the logs on startup - you should see Gemini initialization messages.
+5. **Done!** The key is stored in the database and takes effect immediately.
 
-Test an AI endpoint:
+#### Option B: Via Environment Variable
+
+1. Create and edit the `.env` file:
+   ```bash
+   # Copy the template
+   cp .env.example .env
+
+   # Edit .env and uncomment/set your API key
+   # RECRUITPRO_GEMINI_API_KEY=your-actual-api-key-here
+   ```
+
+2. Restart the application:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+
+**Note**: The UI method (Option A) is recommended for most users as it's easier and doesn't require restarts. The environment variable method is better for production deployments where configuration is managed externally.
+
+### Step 3: Verify Integration
+
+Check via the Settings UI (shows "✓ Configured" badge) or test an AI endpoint:
 
 ```bash
 curl -X POST http://localhost:8000/api/ai/generate-jd \
@@ -293,6 +308,23 @@ Use the Swagger UI at `http://localhost:8000/docs` to test endpoints:
 2. `/api/ai/generate-jd`
 3. `/api/ai/source-candidates`
 4. `/api/research/salary-benchmark`
+
+## Configuration Priority
+
+The system checks for API keys in this order:
+
+1. **Database** (set via UI at `/settings`) - **checked first**
+2. **Environment variable** (from `.env` or system env) - **fallback**
+3. **Fallback mode** (no API key) - **safe degradation**
+
+This means:
+- UI settings override environment variables
+- Environment variables provide defaults
+- System never breaks if both are missing
+
+You can use both methods together:
+- Set a default in `.env` for production
+- Override per-instance via UI for testing
 
 ## Advanced Configuration
 

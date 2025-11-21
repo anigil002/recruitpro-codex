@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
@@ -30,7 +31,7 @@ def healthcheck(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
     # Check database
     try:
-        db.execute("SELECT 1").fetchone()
+        db.execute(text("SELECT 1")).fetchone()
         checks["database"] = {"status": "healthy", "message": "Database connection OK"}
     except Exception as exc:
         checks["database"] = {"status": "unhealthy", "message": f"Database error: {str(exc)}"}

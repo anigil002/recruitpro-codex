@@ -25,6 +25,7 @@ app/services/advanced_ai_features.py
 app/services/ai.py
 app/services/bootstrap.py
 app/services/chatbot.py
+app/services/file_upload.py
 app/services/gemini.py
 app/services/integrations.py
 app/services/migrations.py
@@ -45,6 +46,7 @@ tests/test_activity_security.py
 tests/test_ai_integrations.py
 tests/test_candidate_deletion.py
 tests/test_chatbot.py
+tests/test_gemini_parsing.py
 tests/test_health.py
 tests/test_integration_credentials.py
 tests/test_projects.py

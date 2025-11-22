@@ -7,7 +7,7 @@ from typing import Iterable, List, Set, Tuple
 import csv
 import io
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import StreamingResponse
 try:
     from openpyxl import Workbook
@@ -25,6 +25,8 @@ from ..schemas import (
     CandidatePatch,
     CandidateRead,
     CandidateUpdate,
+    PaginatedResponse,
+    PaginationMeta,
 )
 from ..services.activity import log_activity
 from ..services.ai import enqueue_cv_screening_job
@@ -153,8 +155,18 @@ def _delete_candidate_record(
     return project_ids, position_ids
 
 
-@router.get("/candidates", response_model=List[CandidateRead])
-def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[CandidateRead]:
+@router.get("/candidates", response_model=PaginatedResponse[CandidateRead])
+def list_candidates(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> PaginatedResponse[CandidateRead]:
+    """List candidates with pagination to prevent memory issues at scale.
+
+    Pagination prevents loading thousands of candidates into memory at once.
+    Default: 20 items per page, max 100 items per page.
+    """
     query = db.query(Candidate).join(Project, isouter=True)
     # Filter out soft-deleted candidates (STANDARD-DB-005)
     query = query.filter(Candidate.deleted_at.is_(None))
@@ -166,26 +178,44 @@ def list_candidates(db: Session = Depends(get_db), current_user=Depends(get_curr
             (Project.created_by == current_user.user_id) |
             (Candidate.created_by == current_user.user_id)
         )
-    candidates = query.all()
-    return [
-        CandidateRead(
-            candidate_id=c.candidate_id,
-            project_id=c.project_id,
-            position_id=c.position_id,
-            name=c.name,
-            email=c.email,
-            phone=c.phone,
-            source=c.source,
-            status=c.status,
-            rating=c.rating,
-            resume_url=c.resume_url,
-            ai_score=c.ai_score,
-            tags=c.tags,
-            created_at=c.created_at,
-            created_by=c.created_by,
-        )
-        for c in candidates
-    ]
+
+    # Get total count before pagination
+    total = query.count()
+
+    # Apply pagination
+    offset = (page - 1) * limit
+    candidates = query.offset(offset).limit(limit).all()
+
+    # Calculate total pages
+    total_pages = (total + limit - 1) // limit  # Ceiling division
+
+    return PaginatedResponse(
+        data=[
+            CandidateRead(
+                candidate_id=c.candidate_id,
+                project_id=c.project_id,
+                position_id=c.position_id,
+                name=c.name,
+                email=c.email,
+                phone=c.phone,
+                source=c.source,
+                status=c.status,
+                rating=c.rating,
+                resume_url=c.resume_url,
+                ai_score=c.ai_score,
+                tags=c.tags,
+                created_at=c.created_at,
+                created_by=c.created_by,
+            )
+            for c in candidates
+        ],
+        meta=PaginationMeta(
+            page=page,
+            limit=limit,
+            total=total,
+            total_pages=total_pages,
+        ),
+    )
 
 
 @router.get("/candidates/duplicates")

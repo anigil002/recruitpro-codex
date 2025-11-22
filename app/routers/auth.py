@@ -17,7 +17,14 @@ from ..schemas import (
     UserUpdate,
 )
 from ..services.activity import log_activity
-from ..utils.security import create_access_token, generate_id, hash_password, verify_password
+from ..utils.security import (
+    PasswordValidationError,
+    create_access_token,
+    generate_id,
+    hash_password,
+    validate_password_strength,
+    verify_password,
+)
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
@@ -26,6 +33,12 @@ router = APIRouter(prefix="/api", tags=["auth"])
 def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
     if db.query(User).filter(User.email == payload.email.lower()).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    # Validate password strength (STANDARD-SEC-001)
+    try:
+        validate_password_strength(payload.password)
+    except PasswordValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
     user = User(
         user_id=generate_id(),
@@ -94,6 +107,12 @@ def change_password(
 ) -> dict:
     if not verify_password(payload.current_password, current_user.password_hash):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password")
+
+    # Validate new password strength (STANDARD-SEC-001)
+    try:
+        validate_password_strength(payload.new_password)
+    except PasswordValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
     current_user.password_hash = hash_password(payload.new_password)
     db.add(current_user)

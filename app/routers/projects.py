@@ -3,13 +3,15 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
 from ..models import Position, Project
 from ..schemas import (
+    PaginatedResponse,
+    PaginationMeta,
     PositionCreate,
     PositionRead,
     PositionUpdate,
@@ -257,13 +259,41 @@ def bulk_project_lifecycle(
     }
 
 
-@router.get("/positions", response_model=List[PositionRead])
-def list_positions(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[PositionRead]:
+@router.get("/positions", response_model=PaginatedResponse[PositionRead])
+def list_positions(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> PaginatedResponse[PositionRead]:
+    """List positions with pagination to prevent memory issues at scale.
+
+    Pagination prevents loading thousands of positions into memory at once.
+    Default: 20 items per page, max 100 items per page.
+    """
     query = db.query(Position)
     if not can_manage_workspace(current_user):
         query = query.join(Project).filter(Project.created_by == current_user.user_id)
-    positions = query.all()
-    return [position_to_read(pos) for pos in positions]
+
+    # Get total count before pagination
+    total = query.count()
+
+    # Apply pagination
+    offset = (page - 1) * limit
+    positions = query.offset(offset).limit(limit).all()
+
+    # Calculate total pages
+    total_pages = (total + limit - 1) // limit  # Ceiling division
+
+    return PaginatedResponse(
+        data=[position_to_read(pos) for pos in positions],
+        meta=PaginationMeta(
+            page=page,
+            limit=limit,
+            total=total,
+            total_pages=total_pages,
+        ),
+    )
 
 
 @router.post("/positions", response_model=PositionRead, status_code=status.HTTP_201_CREATED)

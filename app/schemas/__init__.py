@@ -1,9 +1,12 @@
 """Pydantic schemas for API payloads."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from pydantic import AnyHttpUrl, BaseModel, EmailStr, Field, field_validator, model_validator
+
+# Generic type for pagination
+T = TypeVar("T")
 
 
 class Token(BaseModel):
@@ -14,6 +17,22 @@ class Token(BaseModel):
 class TokenPayload(BaseModel):
     sub: str
     exp: int
+
+
+class PaginationMeta(BaseModel):
+    """Metadata for paginated responses."""
+
+    page: int = Field(ge=1, description="Current page number (1-indexed)")
+    limit: int = Field(ge=1, le=100, description="Number of items per page")
+    total: int = Field(ge=0, description="Total number of items")
+    total_pages: int = Field(ge=0, description="Total number of pages")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic paginated response wrapper."""
+
+    data: List[T]
+    meta: PaginationMeta
 
 
 class UserBase(BaseModel):

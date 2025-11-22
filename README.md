@@ -1,19 +1,32 @@
 # RecruitPro Application
 
+**⚠️ STATUS: BETA - NOT PRODUCTION READY ⚠️**
+
+**This software is currently in BETA and is NOT ready for production deployment. Critical infrastructure components are still being implemented:**
+- **Database**: Currently using SQLite - PostgreSQL with connection pooling required for production
+- **Background Processing**: No queue system - Redis + RQ implementation in progress
+- **Security**: Missing critical features (ClamAV integration, rate limiting, HTTPS enforcement)
+- **Scalability**: Pagination incomplete, concurrent write testing not performed
+- **Monitoring**: No production monitoring or alerting configured
+
+**DO NOT deploy this to production environments until the issues above are resolved.**
+
+---
+
 This repository provides an executable reference implementation of the RecruitPro ATS & AI platform described in `recruitpro_system_v2.5.md`. The goal is to make the documentation tangible by shipping a runnable FastAPI backend, lightweight HTML shell, and automated tests.
 
 ## Features
 
 - FastAPI backend that exposes the 54 endpoints captured in the documentation.
-- SQLite persistence layer with SQLAlchemy models mirroring the published schema.
-- **Production-ready AI integration** with Google Gemini (11 AI features fully implemented):
+- SQLite persistence layer with SQLAlchemy models mirroring the published schema (⚠️ PostgreSQL required for production).
+- **AI integration** with Google Gemini (11 AI features implemented):
   - CV Screening with Egis-format compliance tables
   - Document Analysis (project info & position extraction)
   - Job Description Generation
   - Market Research & Salary Benchmarking
   - Candidate Scoring & Outreach Generation
   - Chatbot Assistant & Boolean Search
-  - **Intelligent fallback system** for offline/development mode
+  - Fallback system for offline/development mode
 - Activity feed logging, admin tools, and real-time event streaming.
 - Minimal HTML front end (`templates/recruitpro_ats.html`) aligned with the UI design philosophy.
 - Automated tests that exercise the health, version, and core auth flow.
@@ -143,16 +156,23 @@ npm run make
 
 The packaged application includes the FastAPI source code and templates in the installer bundle. Ensure the target system has a compatible Python runtime and that dependencies from `pyproject.toml` are installed or vendored prior to distributing the build.
 
-### Production readiness checklist
+### Development Status
 
-The Electron bundle is considered production ready when the following checks pass:
+**⚠️ The Electron application is NOT production-ready.** Critical items pending:
 
-- `npm test` and `npm run lint` succeed inside the `desktop/` directory.
-- The packaged installer generated via `npm run make` boots, connects to the embedded FastAPI server, and surfaces diagnostics in the queue/system consoles.
-- Auto-update, authentication/session restore, and project/candidate management workflows behave identically to the web console.
-- Telemetry is reporting events to the configured destination and crash reporting is enabled via the Electron main process configuration.
+- [ ] Database migration to PostgreSQL with connection pooling
+- [ ] Background queue system (Redis + RQ) for async tasks
+- [ ] Complete pagination for all list endpoints
+- [ ] ClamAV virus scanning integration
+- [ ] Rate limiting (per-user, per-endpoint)
+- [ ] HTTPS redirect middleware
+- [ ] Production monitoring (Sentry, Prometheus)
+- [ ] Load testing with realistic scenarios
+- [ ] Security audit completion
+- [ ] Staging environment setup
+- [ ] Backup and disaster recovery procedures
 
-Document the results of these checks in [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) whenever a regression fix lands so the matrix reflects the current state of the desktop application.
+Document progress in [`desktop/FEATURE_STATUS.md`](desktop/FEATURE_STATUS.md) as items are completed.
 
 ### 6. Run Tests
 
@@ -184,7 +204,7 @@ recruitpro_system_v2.5.md  # Comprehensive product documentation
 
 ## AI Integration
 
-RecruitPro features **fully implemented, production-ready AI integration** with Google's Gemini API.
+RecruitPro features **AI integration** with Google's Gemini API (⚠️ background queue system required for production use).
 
 ### Quick Start
 

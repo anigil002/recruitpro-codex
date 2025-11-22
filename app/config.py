@@ -99,6 +99,28 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Background Queue (Redis + RQ)
+    redis_url: str = Field(
+        default="redis://localhost:6379/0",
+        validation_alias=AliasChoices("REDIS_URL", "RECRUITPRO_REDIS_URL"),
+    )
+
+    # Rate Limiting
+    rate_limit_enabled: bool = Field(default=True)
+    rate_limit_default: str = Field(default="100/minute")
+
+    # Monitoring & Observability
+    sentry_dsn: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SENTRY_DSN", "RECRUITPRO_SENTRY_DSN"),
+    )
+    sentry_environment: str = Field(default="production")
+    sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
+
+    # Security Settings
+    force_https: bool = Field(default=False)
+    password_history_count: int = Field(default=5, ge=0, le=50)
+
     @field_validator("storage_path", mode="before")
     @classmethod
     def _normalize_storage_path(cls, value: str | None) -> str:

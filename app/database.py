@@ -26,6 +26,21 @@ if url.get_backend_name() == "sqlite":
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         url = url.set(database=str(raw_path))
     engine_kwargs["connect_args"] = connect_args
+elif url.get_backend_name() == "postgresql":
+    # PostgreSQL-specific connection pooling configuration
+    # Pool size should be tuned based on your application's concurrency needs
+    # Default pool size: 5 connections, max overflow: 10 additional connections
+    engine_kwargs["pool_size"] = 20  # Core pool size
+    engine_kwargs["max_overflow"] = 30  # Additional connections beyond pool_size
+    engine_kwargs["pool_timeout"] = 30  # Seconds to wait for connection
+    engine_kwargs["pool_recycle"] = 3600  # Recycle connections after 1 hour
+    engine_kwargs["pool_pre_ping"] = True  # Verify connections before use
+
+    # Enable statement caching for better performance
+    engine_kwargs["connect_args"] = {
+        "connect_timeout": 10,
+        "options": "-c timezone=utc",
+    }
 
 engine = create_engine(str(url), **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)

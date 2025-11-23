@@ -4,7 +4,7 @@ import asyncio
 import json
 from typing import AsyncGenerator, List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
@@ -12,38 +12,42 @@ from sqlalchemy.orm import Session
 from ..deps import get_current_user, get_db, get_stream_user
 from ..models import ActivityFeed, Candidate, Project
 from ..utils.permissions import can_manage_workspace
-from ..schemas import ActivityRead
+from ..schemas import ActivityRead, PaginatedResponse, PaginationMeta
 from ..services.realtime import events
 
 router = APIRouter(prefix="/api", tags=["activity"])
 
 
-@router.get("/activity", response_model=List[ActivityRead])
+@router.get("/activity", response_model=PaginatedResponse[ActivityRead])
 def list_activity(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> List[ActivityRead]:
-    items = (
-        db.query(ActivityFeed)
-        .filter(ActivityFeed.actor_id == current_user.user_id)
-        .order_by(ActivityFeed.created_at.desc())
-        .limit(100)
-        .all()
+) -> PaginatedResponse[ActivityRead]:
+    query = db.query(ActivityFeed).filter(ActivityFeed.actor_id == current_user.user_id)
+    total = query.count()
+    offset = (page - 1) * limit
+    items = query.order_by(ActivityFeed.created_at.desc()).offset(offset).limit(limit).all()
+    total_pages = (total + limit - 1) // limit
+
+    return PaginatedResponse(
+        data=[
+            ActivityRead(
+                activity_id=item.activity_id,
+                actor_type=item.actor_type,
+                actor_id=item.actor_id,
+                project_id=item.project_id,
+                position_id=item.position_id,
+                candidate_id=item.candidate_id,
+                event_type=item.event_type,
+                message=item.message,
+                created_at=item.created_at,
+            )
+            for item in items
+        ],
+        meta=PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages),
     )
-    return [
-        ActivityRead(
-            activity_id=item.activity_id,
-            actor_type=item.actor_type,
-            actor_id=item.actor_id,
-            project_id=item.project_id,
-            position_id=item.position_id,
-            candidate_id=item.candidate_id,
-            event_type=item.event_type,
-            message=item.message,
-            created_at=item.created_at,
-        )
-        for item in items
-]
 
 
 @router.get("/dashboard/stats")

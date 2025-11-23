@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
@@ -13,7 +13,10 @@ from ..schemas import (
     EmbeddingIndexRead,
     FeatureToggleRead,
     FeatureToggleUpdate,
+    PaginatedResponse,
+    PaginationMeta,
     PromptPackRead,
+    UserRead,
     UserRoleUpdate,
 )
 from ..services.activity import log_activity
@@ -34,6 +37,16 @@ router = APIRouter(prefix="/api", tags=["admin"])
 def require_admin(user: User) -> None:
     if user.role not in {"admin", "super_admin"}:
         raise HTTPException(status_code=403, detail="Admin privileges required")
+
+
+def _paginate_items(items: list, page: int, limit: int) -> tuple[list, PaginationMeta]:
+    """Return a slice of items and pagination metadata."""
+
+    total = len(items)
+    offset = (page - 1) * limit
+    paginated = items[offset : offset + limit]
+    total_pages = (total + limit - 1) // limit
+    return paginated, PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages)
 
 
 @router.post("/admin/migrate-from-json")
@@ -76,13 +89,17 @@ def migrate_from_json(
     return response
 
 
-@router.get("/admin/advanced/features", response_model=List[FeatureToggleRead])
+@router.get("/admin/advanced/features", response_model=PaginatedResponse[FeatureToggleRead])
 def advanced_features(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> List[FeatureToggleRead]:
+) -> PaginatedResponse[FeatureToggleRead]:
     require_admin(current_user)
-    return [FeatureToggleRead(**item) for item in list_feature_flags(db)]
+    items = [FeatureToggleRead(**item) for item in list_feature_flags(db)]
+    paginated, meta = _paginate_items(items, page, limit)
+    return PaginatedResponse(data=paginated, meta=meta)
 
 
 @router.put("/admin/advanced/features/{key}", response_model=FeatureToggleRead)
@@ -105,12 +122,16 @@ def update_feature_toggle(
     )
 
 
-@router.get("/admin/advanced/prompt-packs", response_model=List[PromptPackRead])
+@router.get("/admin/advanced/prompt-packs", response_model=PaginatedResponse[PromptPackRead])
 def prompt_packs(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user=Depends(get_current_user),
-) -> List[PromptPackRead]:
+) -> PaginatedResponse[PromptPackRead]:
     require_admin(current_user)
-    return [PromptPackRead(**pack) for pack in list_prompt_packs()]
+    packs = [PromptPackRead(**pack) for pack in list_prompt_packs()]
+    paginated, meta = _paginate_items(packs, page, limit)
+    return PaginatedResponse(data=paginated, meta=meta)
 
 
 @router.post("/admin/database/optimize")
@@ -123,21 +144,33 @@ def database_optimize(
     return {"status": "optimized"}
 
 
-@router.get("/admin/users")
-def list_users(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> Dict[str, list]:
+@router.get("/admin/users", response_model=PaginatedResponse[UserRead])
+def list_users(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> PaginatedResponse[UserRead]:
     require_admin(current_user)
-    users = db.query(User).all()
-    return {
-        "users": [
-            {
-                "user_id": user.user_id,
-                "email": user.email,
-                "name": user.name,
-                "role": user.role,
-            }
+    query = db.query(User)
+    total = query.count()
+    offset = (page - 1) * limit
+    users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+    total_pages = (total + limit - 1) // limit
+    return PaginatedResponse(
+        data=[
+            UserRead(
+                user_id=user.user_id,
+                email=user.email,
+                name=user.name,
+                role=user.role,
+                created_at=user.created_at,
+                settings=user.settings,
+            )
             for user in users
-        ]
-    }
+        ],
+        meta=PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages),
+    )
 
 
 @router.put("/admin/users/{user_id}/role")
@@ -175,13 +208,17 @@ def admin_integration_status(
     return list_integration_status(db)
 
 
-@router.get("/admin/embeddings", response_model=List[EmbeddingIndexRead])
+@router.get("/admin/embeddings", response_model=PaginatedResponse[EmbeddingIndexRead])
 def list_embeddings(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> List[EmbeddingIndexRead]:
+) -> PaginatedResponse[EmbeddingIndexRead]:
     require_admin(current_user)
-    return [EmbeddingIndexRead(**item) for item in list_embedding_indices(db)]
+    embeddings = [EmbeddingIndexRead(**item) for item in list_embedding_indices(db)]
+    paginated, meta = _paginate_items(embeddings, page, limit)
+    return PaginatedResponse(data=paginated, meta=meta)
 
 
 @router.post("/admin/embeddings", response_model=EmbeddingIndexRead)

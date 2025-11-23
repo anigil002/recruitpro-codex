@@ -68,16 +68,26 @@ def position_to_read(position: Position) -> PositionRead:
     )
 
 
-@router.get("/projects", response_model=List[ProjectRead])
+@router.get("/projects", response_model=PaginatedResponse[ProjectRead])
 def list_projects(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> List[ProjectRead]:
+) -> PaginatedResponse[ProjectRead]:
     query = db.query(Project)
     if not can_manage_workspace(current_user):
         query = query.filter(Project.created_by == current_user.user_id)
-    projects = query.all()
-    return [project_to_read(p) for p in projects]
+
+    total = query.count()
+    offset = (page - 1) * limit
+    projects = query.order_by(Project.created_at.desc()).offset(offset).limit(limit).all()
+    total_pages = (total + limit - 1) // limit
+
+    return PaginatedResponse(
+        data=[project_to_read(p) for p in projects],
+        meta=PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages),
+    )
 
 
 @router.post("/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)

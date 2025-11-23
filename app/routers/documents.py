@@ -3,13 +3,13 @@
 from pathlib import Path
 from typing import List
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..deps import get_current_user, get_db
 from ..models import Document, Project, ProjectDocument
-from ..schemas import DocumentRead
+from ..schemas import DocumentRead, PaginatedResponse, PaginationMeta
 from ..services.activity import log_activity
 from ..services.ai import create_ai_job
 from ..services.queue import background_queue
@@ -20,25 +20,38 @@ from ..utils.storage import ensure_storage_dir, resolve_storage_path
 router = APIRouter(prefix="/api", tags=["documents"])
 
 
-@router.get("/documents", response_model=List[DocumentRead])
-def list_documents(db: Session = Depends(get_db), current_user=Depends(get_current_user)) -> List[DocumentRead]:
+@router.get("/documents", response_model=PaginatedResponse[DocumentRead])
+def list_documents(
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> PaginatedResponse[DocumentRead]:
     query = db.query(Document)
     if not can_manage_workspace(current_user):
         query = query.filter(Document.owner_user == current_user.user_id)
-    documents = query.all()
-    return [
-        DocumentRead(
-            id=doc.id,
-            filename=doc.filename,
-            mime_type=doc.mime_type,
-            file_url=doc.file_url,
-            scope=doc.scope,
-            scope_id=doc.scope_id,
-            owner_user=doc.owner_user,
-            uploaded_at=doc.uploaded_at,
-        )
-        for doc in documents
-    ]
+
+    total = query.count()
+    offset = (page - 1) * limit
+    documents = query.order_by(Document.uploaded_at.desc()).offset(offset).limit(limit).all()
+    total_pages = (total + limit - 1) // limit
+
+    return PaginatedResponse(
+        data=[
+            DocumentRead(
+                id=doc.id,
+                filename=doc.filename,
+                mime_type=doc.mime_type,
+                file_url=doc.file_url,
+                scope=doc.scope,
+                scope_id=doc.scope_id,
+                owner_user=doc.owner_user,
+                uploaded_at=doc.uploaded_at,
+            )
+            for doc in documents
+        ],
+        meta=PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages),
+    )
 
 
 @router.post("/documents/upload", response_model=DocumentRead, status_code=status.HTTP_201_CREATED)
@@ -126,32 +139,37 @@ def upload_document(
     )
 
 
-@router.get("/projects/{project_id}/documents", response_model=List[DocumentRead])
+@router.get("/projects/{project_id}/documents", response_model=PaginatedResponse[DocumentRead])
 def list_project_documents(
     project_id: str,
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-) -> List[DocumentRead]:
+) -> PaginatedResponse[DocumentRead]:
     ensure_project_access(db.get(Project, project_id), current_user)
-    documents = (
-        db.query(ProjectDocument)
-        .filter(ProjectDocument.project_id == project_id)
-        .order_by(ProjectDocument.uploaded_at.desc())
-        .all()
+    query = db.query(ProjectDocument).filter(ProjectDocument.project_id == project_id)
+    total = query.count()
+    offset = (page - 1) * limit
+    documents = query.order_by(ProjectDocument.uploaded_at.desc()).offset(offset).limit(limit).all()
+    total_pages = (total + limit - 1) // limit
+
+    return PaginatedResponse(
+        data=[
+            DocumentRead(
+                id=doc.doc_id,
+                filename=doc.filename,
+                mime_type=doc.mime_type,
+                file_url=doc.file_url,
+                scope="project",
+                scope_id=doc.project_id,
+                owner_user=doc.uploaded_by,
+                uploaded_at=doc.uploaded_at,
+            )
+            for doc in documents
+        ],
+        meta=PaginationMeta(page=page, limit=limit, total=total, total_pages=total_pages),
     )
-    return [
-        DocumentRead(
-            id=doc.doc_id,
-            filename=doc.filename,
-            mime_type=doc.mime_type,
-            file_url=doc.file_url,
-            scope="project",
-            scope_id=doc.project_id,
-            owner_user=doc.uploaded_by,
-            uploaded_at=doc.uploaded_at,
-        )
-        for doc in documents
-    ]
 
 
 @router.get("/documents/{doc_id}/download")

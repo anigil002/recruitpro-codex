@@ -174,7 +174,7 @@ def check_password_history(
 
 def store_password_in_history(
     user_id: str,
-    password_hash: str,
+    new_password: str,
     session: Session,
 ) -> None:
     """
@@ -182,15 +182,19 @@ def store_password_in_history(
 
     Args:
         user_id: User ID
-        password_hash: Hashed password to store
+        new_password: Raw password to hash and store
         session: Database session
     """
+    id_column_definition = "SERIAL PRIMARY KEY"
+    if session.bind and session.bind.dialect.name == "sqlite":
+        id_column_definition = "INTEGER PRIMARY KEY AUTOINCREMENT"
+
     # Create password_history table if it doesn't exist
     session.execute(
         text(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS password_history (
-                id SERIAL PRIMARY KEY,
+                id {id_column_definition},
                 user_id VARCHAR NOT NULL,
                 password_hash VARCHAR NOT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -200,8 +204,7 @@ def store_password_in_history(
         )
     )
 
-    # Hash the password hash for additional security
-    secure_hash = hashlib.sha256(password_hash.encode()).hexdigest()
+    password_hash = hashlib.sha256(new_password.encode()).hexdigest()
 
     # Insert new password
     session.execute(
@@ -213,7 +216,7 @@ def store_password_in_history(
         ),
         {
             "user_id": user_id,
-            "password_hash": secure_hash,
+            "password_hash": password_hash,
             "created_at": datetime.utcnow(),
         }
     )

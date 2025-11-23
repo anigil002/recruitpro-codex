@@ -33,7 +33,7 @@ from .config import get_settings
 settings = get_settings()
 
 # Redis connection
-redis_conn = redis.from_url(settings.redis_url, decode_responses=True)
+redis_conn = redis.from_url(settings.redis_url)
 
 # Define queues with different priorities
 default_queue = Queue("default", connection=redis_conn)

@@ -34,16 +34,9 @@ Requires-Dist: anyio<5.0.0,>=4.3.0; extra == "dev"
 
 # RecruitPro Application
 
-**⚠️ STATUS: BETA - NOT PRODUCTION READY ⚠️**
+**Status: Ready for Local Single-User Deployment**
 
-**This software is currently in BETA and is NOT ready for production deployment. Critical infrastructure components are still being implemented:**
-- **Database**: Currently using SQLite - PostgreSQL with connection pooling required for production
-- **Background Processing**: No queue system - Redis + RQ implementation in progress
-- **Security**: Missing critical features (ClamAV integration, rate limiting, HTTPS enforcement)
-- **Scalability**: Pagination incomplete, concurrent write testing not performed
-- **Monitoring**: No production monitoring or alerting configured
-
-**DO NOT deploy this to production environments until the issues above are resolved.**
+This application is fully functional for local single-user deployment with SQLite. For production multi-user deployment, see [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md) for additional configuration (PostgreSQL, Redis, etc.).
 
 ---
 

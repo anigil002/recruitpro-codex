@@ -5,6 +5,10 @@ app/config.py
 app/database.py
 app/deps.py
 app/main.py
+app/middleware.py
+app/monitoring.py
+app/queue.py
+app/tasks.py
 app/models/__init__.py
 app/routers/__init__.py
 app/routers/activity.py
@@ -31,6 +35,7 @@ app/services/integrations.py
 app/services/migrations.py
 app/services/queue.py
 app/services/realtime.py
+app/services/security.py
 app/services/smartrecruiters.py
 app/utils/errors.py
 app/utils/permissions.py

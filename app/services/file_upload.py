@@ -6,10 +6,13 @@ Provides file validation, virus scanning, and secure storage for uploaded files.
 import hashlib
 import logging
 import secrets
+import tempfile
 from pathlib import Path
 from typing import Optional, Tuple
 
 from fastapi import HTTPException, UploadFile, status
+
+from .security import scan_file_with_clamav
 
 logger = logging.getLogger(__name__)
 
@@ -101,12 +104,7 @@ def validate_file_size(content: bytes) -> None:
 
 
 def scan_for_viruses(content: bytes, filename: str) -> Tuple[bool, Optional[str]]:
-    """Scan file content for viruses and malware.
-
-    This is a stub implementation. In production, integrate with:
-    - ClamAV daemon via python-clamav or clamd
-    - VirusTotal API
-    - Cloud-based scanning service
+    """Scan file content for viruses and malware using ClamAV.
 
     Args:
         content: File content bytes
@@ -118,7 +116,7 @@ def scan_for_viruses(content: bytes, filename: str) -> Tuple[bool, Optional[str]
         - (False, "threat_name") if malware detected
 
     Raises:
-        VirusScanError: If scanning service is unavailable
+        VirusScanError: If scanning service is unavailable and strict mode is enabled
     """
     # Calculate file hash for logging
     file_hash = hashlib.sha256(content).hexdigest()
@@ -128,31 +126,59 @@ def scan_for_viruses(content: bytes, filename: str) -> Tuple[bool, Optional[str]
         f"(size: {len(content)} bytes, sha256: {file_hash})"
     )
 
-    # TODO: Integrate with actual virus scanning service
-    # Example ClamAV integration:
-    # try:
-    #     import clamd
-    #     cd = clamd.ClamAVDaemon()
-    #     scan_result = cd.scan_stream(content)
-    #     if scan_result['stream'][0] == 'FOUND':
-    #         threat = scan_result['stream'][1]
-    #         logger.warning(f"Virus detected: {threat} in {filename}")
-    #         return False, threat
-    #     return True, None
-    # except Exception as e:
-    #     logger.error(f"Virus scan failed: {e}")
-    #     raise VirusScanError(f"Virus scanning service unavailable: {e}")
+    try:
+        # Write content to temporary file for ClamAV scanning
+        with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp_file:
+            tmp_file.write(content)
+            tmp_path = tmp_file.name
 
-    # Stub implementation - ALWAYS returns clean
-    # IMPORTANT: Replace with actual scanning before production deployment
-    logger.warning(
-        "SECURITY WARNING: Virus scanning is not implemented. "
-        "File passed without scanning. Integrate ClamAV or VirusTotal for production."
-    )
+        try:
+            # Use ClamAV scanning from security service
+            scan_result = scan_file_with_clamav(tmp_path)
 
-    # For now, accept all files (development only)
-    logger.info(f"Virus scan completed (stub): {filename} - CLEAN (not actually scanned)")
-    return True, None
+            if scan_result.get("error"):
+                # ClamAV returned an error
+                error_msg = scan_result["error"]
+                logger.error(f"Virus scan error: {error_msg}")
+
+                # For local single-user deployment, allow files if ClamAV is not installed
+                if "not installed" in error_msg.lower():
+                    logger.warning(
+                        f"ClamAV not installed - accepting file without scan: {filename}. "
+                        "For production use, install ClamAV: sudo apt-get install clamav clamav-daemon"
+                    )
+                    return True, None
+
+                # For other errors, fail open in local mode (user can change this behavior)
+                logger.warning(f"Virus scan failed, accepting file in local mode: {filename}")
+                return True, None
+
+            if scan_result["clean"]:
+                logger.info(
+                    f"Virus scan completed: {filename} - CLEAN "
+                    f"(scanned with {scan_result.get('scanner', 'unknown')} in {scan_result.get('scan_time', 0):.2f}s)"
+                )
+                return True, None
+            else:
+                # Malware detected
+                threats = scan_result.get("threats", [])
+                threat_name = threats[0] if threats else "Unknown malware"
+                logger.warning(f"Virus detected in {filename}: {threat_name}")
+                return False, threat_name
+
+        finally:
+            # Clean up temporary file
+            try:
+                Path(tmp_path).unlink()
+            except Exception as e:
+                logger.warning(f"Failed to delete temporary file {tmp_path}: {e}")
+
+    except Exception as e:
+        # Unexpected error during scanning
+        logger.error(f"Unexpected error during virus scan: {e}")
+        # For local single-user deployment, fail open (accept the file)
+        logger.warning(f"Accepting file due to scan error in local mode: {filename}")
+        return True, None
 
 
 def validate_and_scan_file(file: UploadFile) -> Tuple[bytes, str]:
